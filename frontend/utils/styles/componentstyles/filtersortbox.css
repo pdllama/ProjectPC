@@ -1,0 +1,93 @@
+@keyframes filter-slide-in {
+    from {
+        transform: translateZ(0px) translateY(0%);
+    }
+    to {
+        transform: translateZ(0px) translateY(-20%);
+    }
+}
+
+@keyframes filter-slide-out {
+    from {
+        transform: translateZ(0px) translateY(-20%);
+    }
+    to {
+        transform: translateZ(0px) translateY(0%);
+    }
+}
+
+@keyframes grow-height {
+    from {
+        height: 0px
+    }
+    to {
+        height: 210px
+    }
+}
+
+@keyframes shrink-height {
+    from {
+        height: 210px
+    }
+    to {
+        height: 0px
+    }
+}
+
+.filter-slide-in {
+    animation: 0.5s ease-out 0s 1 filter-slide-in;
+}
+
+.filter-slide-out {
+    animation: 0.5s ease-in 0s 1 filter-slide-out;
+    animation-fill-mode: forwards
+}
+
+.add-height {
+    animation: 0.5s ease-out 0s 1 grow-height;
+    z-index: -1000
+}
+
+.shrink-height {
+    animation: 0.5s ease-in 0s 1 shrink-height;
+}
+
+
+/* this part is for the small width display section which can also use this css page */
+
+@keyframes grow-sw-progress-height {
+    from {
+        height: 0px
+    }
+    to {
+        height: 300px
+    }
+}
+
+@keyframes shrink-sw-progress-height {
+    from {
+        height: 300px
+    }
+    to {
+        height: 0px
+    }
+}
+
+.add-sw-progress-height {
+    animation: 0.5s ease-out 0s 1 grow-sw-progress-height;
+}
+
+.shrink-sw-progress-height {
+    animation: 0.5s ease-in 0s 1 shrink-sw-progress-height;
+}
+
+/* sw filter/sort */
+
+@keyframes grow-sw-sort-subcats {
+    from {
+        height: 0px;
+    }
+    to {
+        height: 160px;
+    }
+}
