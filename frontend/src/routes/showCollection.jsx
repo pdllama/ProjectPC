@@ -21,6 +21,7 @@ import store from '../app/store';
 import {deselect, changeList} from './../app/slices/editmode'
 import listStyles from '../../utils/styles/componentstyles/liststyles';
 import ChangeOnHandView from '../components/collectiontable/changeonhandviewbutton';
+import ChangeAbilitiesView from '../components/collectiontable/changeabilitiesview';
 import SmallWidthColList from '../components/collectiontable/collectionlist/smallwidth/smallwidthcol';
 import { selectScreenBreakpoint } from '../app/selectors/windowsizeselectors';
 import collectionState from '../app/slices/collectionstate';
@@ -115,7 +116,7 @@ export default function ShowCollection({collection, isCollectionOwner, colorStyl
             name: collectionDataInState.options.collectionName,
             gen: collectionLoaderData.gen,
             options: {...collectionDataInState.options},
-            ownedPokemon: betweenPages ? collectionDataInState.collection : collectionDataInState.collection.map(p => {return {...p, imgLink: undefined, possibleGender: undefined}}),
+            ownedPokemon: betweenPages ? collectionDataInState.collection : collectionDataInState.collection.map(p => {return {...p, imgLink: undefined, possibleGender: undefined, haName: undefined}}),
             onHand: betweenPages ? collectionDataInState.onhand : collectionDataInState.onhand.map(p => {return {...p, imgLink: undefined}}),
             ...topLevelVirtuals
         }
@@ -161,6 +162,9 @@ export default function ShowCollection({collection, isCollectionOwner, colorStyl
                         
                     </Tabs>
                     <Box sx={{width: '60%', display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+                        {collectionLoaderData.gen === 'home' && 
+                            <ChangeAbilitiesView />
+                        }
                         {list === 'onHand' && 
                             <ChangeOnHandView isEditMode={isEditMode} demo={demo} collectionLoaderData={collectionLoaderData}/>
                         }

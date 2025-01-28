@@ -41,6 +41,8 @@ function OnHandRowContent({columns, row, pokemonId, collectionId, styles, isSele
     const ohIdsFlagged = isEditMode ? useSelector((state) => state.editmode.deletedOnHandIds) : null
     const possibleEMs = !isHomeCollection && (allEggMoveInfo[row.name])
     const maxEMs = !isHomeCollection && (possibleEMs === undefined ? 0 : possibleEMs.length > 4 ? 4 : possibleEMs.length)
+
+    const haView = isHomeCollection ? useSelector((state) => state.collectionState.listDisplay.showHAView) : null
     // const reRenderCount = useRef(0)
     // useEffect(() => {
     //     reRenderCount.current += 1
@@ -82,6 +84,7 @@ function OnHandRowContent({columns, row, pokemonId, collectionId, styles, isSele
                 const nameProps = (isHomeCollection && c.dataKey === 'name') ? {
                     availableGames: availableGamesInfo[row.name]
                 } : {}
+                const haName = haView === false ? undefined : c.dataKey === 'name' ? row.haName : undefined
                 return (
                     c.dataKey === 'EMs' ?
                     <EggMoveColumnDisplay
@@ -120,6 +123,7 @@ function OnHandRowContent({columns, row, pokemonId, collectionId, styles, isSele
                         ohDeleteMode={deleteOnHandMode}
                         onClickFunc={deleteOnHandMode ? () => dispatch(toggleOnHandIdToDelete(row._id)) : isSelected ? null : setSelected}
                         onhandCells={true}
+                        haName={haName}
                         specialStyles={textSizeAdjustor}
                         blackSquare={isBlackSquare}
                         isTradePage={isTradePage}

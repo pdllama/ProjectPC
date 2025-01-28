@@ -84,9 +84,18 @@ const aprimonImportFormTemplate = {
     emImport: {import: false}
 }
 
+const exportGameSpriteLink = {
+    9: 'scarlet-violet',
+    'swsh': 'sword-shield',
+    'bdsp': 'brilliant-diamond-shining-pearl',
+    'home': 'home',
+    6: 'bank',
+    7: 'bank'
+}
+
 export {
     regions, gapIdentifiers, regionalFormNameIdentifiers, originalRegionalFormNameIdentifiers, 
     additionalOriginRegionalFormNameIdentifiers, allowedAprimonMultipleDexNums, allowedAprimonDuplicateNum, firstLetterAllowedAltForms,
     aprimonGeneralIdentifiers, aprimonSpecificIdentifiers, aprimonAsideInfo,
-    aprimonImportFormTemplate
+    aprimonImportFormTemplate, exportGameSpriteLink
 }

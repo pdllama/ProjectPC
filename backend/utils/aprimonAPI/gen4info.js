@@ -694,6 +694,7 @@ const gen4Info = [{
         natDexNum: 420,
         HA: {
             hasHA: false,
+            regAbilityName: 'Chlorophyll'
         }
     },
     specificGenInfo: {
@@ -1490,7 +1491,8 @@ const gen4Info = [{
     info: {
         natDexNum: 455,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Levitate'
         }
     },
     specificGenInfo: {
@@ -1648,7 +1650,8 @@ const gen4Info = [{
     info: {
         natDexNum: 479,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Levitate'
         }
     },
     specificGenInfo: {
@@ -1704,7 +1707,8 @@ const gen4Info = [{
     info: {
         natDexNum: 480,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Levitate'
         },
         legendary: true
     },
@@ -1752,7 +1756,8 @@ const gen4Info = [{
     info: {
         natDexNum: 481,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Levitate'
         },
         legendary: true
     },
@@ -1800,7 +1805,8 @@ const gen4Info = [{
     info: {
         natDexNum: 482,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Levitate'
         },
         legendary: true
     },
@@ -2013,7 +2019,8 @@ const gen4Info = [{
     info: {
         natDexNum: 486,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Slow Start'
         },
         legendary: true
     },
@@ -2119,7 +2126,8 @@ const gen4Info = [{
     info: {
         natDexNum: 488,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Levitate'
         },
         legendary: true
     },

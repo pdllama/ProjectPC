@@ -430,7 +430,8 @@ const gen8Info = [{
     info: {
         natDexNum: 845,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Gulp Missile'
         }
     },
     specificGenInfo: {
@@ -866,7 +867,8 @@ const gen8Info = [{
     info: {
         natDexNum: 874,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Power Spot'
         }
     },
     specificGenInfo: {
@@ -899,7 +901,8 @@ const gen8Info = [{
     info: {
         natDexNum: 875,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Ice Face'
         }
     },
     specificGenInfo: {
@@ -969,7 +972,8 @@ const gen8Info = [{
     info: {
         natDexNum: 877,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Levitate'
         }
     },
     specificGenInfo: {
@@ -1200,7 +1204,8 @@ const gen8Info = [{
     info: {
         natDexNum: 888,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Intrepid Sword'
         },
         legendary: true
     },
@@ -1232,7 +1237,8 @@ const gen8Info = [{
     info: {
         natDexNum: 889,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Dauntless Shield'
         },
         legendary: true
     },
@@ -1264,7 +1270,8 @@ const gen8Info = [{
     info: {
         natDexNum: 890,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Pressure'
         },
         legendary: true
     },
@@ -1296,7 +1303,8 @@ const gen8Info = [{
     info: {
         natDexNum: 891,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Inner Focus'
         },
         legendary: true
     },
@@ -1317,7 +1325,8 @@ const gen8Info = [{
     info: {
         natDexNum: 894,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Transistor'
         },
         legendary: true
     },
@@ -1349,7 +1358,8 @@ const gen8Info = [{
     info: {
         natDexNum: 895,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: "Dragon's Maw"
         },
         legendary: true
     },
@@ -1381,7 +1391,8 @@ const gen8Info = [{
     info: {
         natDexNum: 896,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Chilling Neigh'
         },
         legendary: true
     },
@@ -1413,7 +1424,8 @@ const gen8Info = [{
     info: {
         natDexNum: 897,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Grim Neigh'
         },
         legendary: true
     },
@@ -1445,7 +1457,8 @@ const gen8Info = [{
     info: {
         natDexNum: 898,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Unnerve'
         },
         legendary: true
     },

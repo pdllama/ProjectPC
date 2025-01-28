@@ -2256,6 +2256,7 @@ const gen1Info = [{
         natDexNum: 92,
         HA: {
             hasHA: false,
+            regAbilityName: 'Levitate'
         }
     },
     specificGenInfo: {
@@ -4466,7 +4467,7 @@ const gen1Info = [{
         natDexNum: 150,
         HA: {
             hasHA: true,
-            name: {reg: 'Pressure', alt1: 'Unnerve'}
+            name: {reg: 'Unnerve'}
         },
         legendary: true
     },

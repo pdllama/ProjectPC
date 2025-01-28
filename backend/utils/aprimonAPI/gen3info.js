@@ -733,6 +733,7 @@ const gen3Info = [{
         natDexNum: 287,
         HA: {
             hasHA: false,
+            regAbilityName: 'Truant'
         }
     },
     specificGenInfo: {
@@ -2236,6 +2237,7 @@ const gen3Info = [{
         natDexNum: 337,
         HA: {
             hasHA: false,
+            regAbilityName: 'Levitate'
         }
     },
     specificGenInfo: {
@@ -2283,6 +2285,7 @@ const gen3Info = [{
         natDexNum: 338,
         HA: {
             hasHA: false,
+            regAbilityName: 'Levitate'
         }
     },
     specificGenInfo: {
@@ -2451,7 +2454,8 @@ const gen3Info = [{
     info: {
         natDexNum: 343,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Levitate'
         }
     },
     specificGenInfo: {
@@ -2661,7 +2665,8 @@ const gen3Info = [{
     info: {
         natDexNum: 351,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Forecast'
         }
     },
     specificGenInfo: {
@@ -2918,6 +2923,7 @@ const gen3Info = [{
         natDexNum: 358,
         HA: {
             hasHA: false,
+            regAbilityName: 'Levitate'
         },
         special: {
             incenseMon: true,
@@ -3555,7 +3561,8 @@ const gen3Info = [{
     info: {
         natDexNum: 380,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Levitate'
         },
         legendary: true
     },
@@ -3612,7 +3619,8 @@ const gen3Info = [{
     info: {
         natDexNum: 381,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Levitate'
         },
         legendary: true
     },
@@ -3669,7 +3677,8 @@ const gen3Info = [{
     info: {
         natDexNum: 382,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Drizzle'
         },
         legendary: true
     },
@@ -3726,7 +3735,8 @@ const gen3Info = [{
     info: {
         natDexNum: 383,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Drought'
         },
         legendary: true
     },
@@ -3783,7 +3793,8 @@ const gen3Info = [{
     info: {
         natDexNum: 384,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Air Lock'
         },
         legendary: true
     },

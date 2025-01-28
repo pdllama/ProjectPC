@@ -240,6 +240,7 @@ export default function SmallWidthOnHand({collectionID, styles, collectionListSt
                 row1Balls={tableColumns1.map(tC => tC.dataKey)}
                 row2Balls={tableColumns2.map(tC => tC.dataKey)}
                 isEditMode={isEditMode}
+                isHomeCollection={isHomeCollection}
                 demo={demo}
                 {...availableGamesData}
             />

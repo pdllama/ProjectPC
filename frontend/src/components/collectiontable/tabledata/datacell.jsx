@@ -10,7 +10,7 @@ import { setPokemon } from '../../../app/slices/tradeoffer'
 import { selectIfPokemonIsSelected } from '../../../app/selectors/tradeselectors'
 import { getGameColor, homeDisplayGames } from '../../../../common/infoconstants/miscconstants.mjs'
 
-export default function DataCell({label, styles, alignment='none', isEditMode, imgParams={isImg: false}, leftMostCell=false, isSelected=false, onClickFunc, onhandCells=false, specialStyles={}, blackSquare=false, availableGames=undefined, localHandleChange=null, isTradePage=false, tradeSide, tradeDispData, imgAlignment={}, bodyColorOverride={}, fontSizeOverride, reserved=0, isEmDisplay=false, flaggedForDeletion=null, ohDeleteMode=false, specificDeselectFunc=null, checkboxCell=false, checkboxData={}}) {
+export default function DataCell({label, styles, alignment='none', isEditMode, imgParams={isImg: false}, leftMostCell=false, isSelected=false, onClickFunc, onhandCells=false, specialStyles={}, blackSquare=false, availableGames=undefined, localHandleChange=null, isTradePage=false, tradeSide, tradeDispData, imgAlignment={}, bodyColorOverride={}, fontSizeOverride, reserved=0, isEmDisplay=false, flaggedForDeletion=null, ohDeleteMode=false, specificDeselectFunc=null, checkboxCell=false, checkboxData={}, haName=undefined}) {
     const {isImg, imgLinkKey, imgSize='32px', imgType='poke'} = imgParams
     const theme = useTheme()
     const blackSquareStyles = blackSquare ? {backgroundColor: 'black'} : {}
@@ -22,8 +22,9 @@ export default function DataCell({label, styles, alignment='none', isEditMode, i
     const bodyColorSx = isImg ? {backgroundColor: '#1d1c1b', borderRadius: '10px', paddingY: '16px', paddingX: 'calc(50% - 16px)', margin: 0, zIndex: -1} : styles.bodyColor
     const extraBodyColorSx = !isImg ? {height: '20px', px: 0} : {}
 
-    const displayAvailableGames = availableGames !== undefined
-    const includeBottomText = displayAvailableGames || reserved !== 0
+    const displayAvailableGames = (availableGames !== undefined && haName === undefined)
+    const displayHA = haName !== undefined
+    const includeBottomText = displayAvailableGames || reserved !== 0 || displayHA
     const relativeStyle = includeBottomText ? {position: 'relative'} : {}
     const isOnHandAndTradePage = isTradePage && onhandCells
     // const localSelectedStyles = localHandleChange !== null ? {backgroundColor: 'theme'}
@@ -36,6 +37,7 @@ export default function DataCell({label, styles, alignment='none', isEditMode, i
     }
     const isSelectedForTrade = isOnHandAndTradePage ? useSelector((state) => selectIfPokemonIsSelected(state, tradeSide, {name: tradeDispData.pData.name, ball: tradeDispData.ballData.ball, onhandId: tradeDispData.ballData.onhandId})) : false
     const dispatchTradeChange = isOnHandAndTradePage ? () => dispatch(setPokemon({pData: tradeDispData.pData, ballData: tradeDispData.ballData, tradeSide})) : false
+    const nonHAMon = displayHA && haName.includes('Non-HA')
     return (
         <>
         
@@ -107,6 +109,13 @@ export default function DataCell({label, styles, alignment='none', isEditMode, i
                             </Box>
                         )
                     })}
+                    {displayHA && 
+                        <Box sx={{display: 'flex', position: 'absolute', width: '100%', bottom: '0px', ...theme.components.box.fullCenterRow}}>
+                            <Typography sx={{fontSize: label.length > 15 ? '9.5px' : '11px', color: theme.palette.color1.light, opacity: nonHAMon ? 0.75 : 1}}>
+                                {nonHAMon ? <i>{haName.slice(0, haName.indexOf(' - '))}</i> : <b>{haName}</b>}
+                            </Typography>
+                        </Box>
+                    }
                 </Box>
                 }
             </Box>

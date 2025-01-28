@@ -159,7 +159,8 @@ const gen7Info = [{
     info: {
         natDexNum: 736,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Swarm'
         }
     },
     specificGenInfo: {
@@ -234,7 +235,8 @@ const gen7Info = [{
     info: {
         natDexNum: 741,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Dancer'
         },
         alternateForm: {
             interchangeable: true,
@@ -362,7 +364,8 @@ const gen7Info = [{
     info: {
         natDexNum: 746,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Schooling'
         }
     },
     specificGenInfo: {
@@ -859,7 +862,8 @@ const gen7Info = [{
     info: {
         natDexNum: 767,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Wimp Out'
         }
     },
     specificGenInfo: {
@@ -970,7 +974,8 @@ const gen7Info = [{
     info: {
         natDexNum: 774,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Shields Down'
         },
         alternateForm: {
             name: {1: 'Blue', 2: 'Green', 3: 'Indigo', 4: 'Orange', 5: 'Red', 6: 'Violet', 7: 'Yellow'}
@@ -1002,7 +1007,8 @@ const gen7Info = [{
     info: {
         natDexNum: 775,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Comatose'
         }
     },
     specificGenInfo: {
@@ -1033,7 +1039,8 @@ const gen7Info = [{
     info: {
         natDexNum: 776,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Shell Armor'
         }
     },
     specificGenInfo: {
@@ -1100,7 +1107,8 @@ const gen7Info = [{
     info: {
         natDexNum: 778,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Disguise'
         }
     },
     specificGenInfo: {
@@ -1209,7 +1217,8 @@ const gen7Info = [{
     info: {
         natDexNum: 781,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Steelworker'
         }
     },
     specificGenInfo: {
@@ -1416,7 +1425,8 @@ const gen7Info = [{
     info: {
         natDexNum: 791,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Full Metal Body'
         },
         legendary: true
     },
@@ -1457,7 +1467,8 @@ const gen7Info = [{
     info: {
         natDexNum: 792,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Shadow Shield'
         },
         legendary: true
     },
@@ -1498,7 +1509,8 @@ const gen7Info = [{
     info: {
         natDexNum: 793,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Beast Boost'
         },
         nonBreedable: true,
         ultraBeast: true
@@ -1531,7 +1543,8 @@ const gen7Info = [{
     info: {
         natDexNum: 794,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Beast Boost'
         },
         nonBreedable: true,
         ultraBeast: true
@@ -1564,7 +1577,8 @@ const gen7Info = [{
     info: {
         natDexNum: 795,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Beast Boost'
         },
         nonBreedable: true,
         ultraBeast: true
@@ -1597,7 +1611,8 @@ const gen7Info = [{
     info: {
         natDexNum: 796,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Beast Boost'
         },
         nonBreedable: true,
         ultraBeast: true
@@ -1630,7 +1645,8 @@ const gen7Info = [{
     info: {
         natDexNum: 797,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Beast Boost'
         },
         nonBreedable: true,
         ultraBeast: true
@@ -1663,7 +1679,8 @@ const gen7Info = [{
     info: {
         natDexNum: 798,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Beast Boost'
         },
         nonBreedable: true,
         ultraBeast: true
@@ -1696,7 +1713,8 @@ const gen7Info = [{
     info: {
         natDexNum: 799,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Beast Boost'
         },
         nonBreedable: true,
         ultraBeast: true
@@ -1729,7 +1747,8 @@ const gen7Info = [{
     info: {
         natDexNum: 800,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Prism Armor'
         },
         legendary: true
     },
@@ -1770,7 +1789,8 @@ const gen7Info = [{
     info: {
         natDexNum: 803,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Beast Boost'
         },
         nonBreedable: true,
         ultraBeast: true
@@ -1794,7 +1814,8 @@ const gen7Info = [{
     info: {
         natDexNum: 805,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Beast Boost'
         },
         nonBreedable: true,
         ultraBeast: true
@@ -1827,7 +1848,8 @@ const gen7Info = [{
     info: {
         natDexNum: 806,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Beast Boost'
         },
         nonBreedable: true,
         ultraBeast: true

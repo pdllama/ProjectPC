@@ -12,7 +12,7 @@ import ImgData from '../../tabledata/imgdata';
 import { getGameColor } from '../../../../../common/infoconstants/miscconstants.mjs';
 import ControlPointIcon from '@mui/icons-material/ControlPoint';
 
-function SmallWidthByPokemonDisplay({cols1, cols2, row={}, pokemonId, isEditMode, isSelected, setSelected, styles, availableGames=undefined, row1Balls, row2Balls, noRow2, nameLabel, allowedBalls}) {
+function SmallWidthByPokemonDisplay({cols1, cols2, row={}, pokemonId, isEditMode, isSelected, setSelected, styles, availableGames=undefined, isHomeCollection, row1Balls, row2Balls, noRow2, nameLabel, allowedBalls}) {
     const dispatch = useDispatch()
     const theme = useTheme()
     if (row === undefined || Object.keys(row).length === 0) { //see onhandbypokemondisplay.jsx for why this is needed
@@ -20,7 +20,9 @@ function SmallWidthByPokemonDisplay({cols1, cols2, row={}, pokemonId, isEditMode
         </TableCell>
     }
 
-    const displayAvailableGames = availableGames !== undefined
+    const haView = isHomeCollection ? useSelector((state => state.collectionState.listDisplay.showHAView)) : null
+    const nonHAMon = row.haName.includes('Non-HA')
+    const displayAvailableGames = availableGames !== undefined && !haView
     const deleteOnHandMode = isEditMode ? useSelector((state) => state.editmode.deleteOnHandMode) : null
     const ohIdsFlagged = isEditMode ? useSelector((state) => state.editmode.deletedOnHandIds) : null
     const deletedFromMemory = allowedBalls === 'DELETED FROM MEMORY'
@@ -30,7 +32,6 @@ function SmallWidthByPokemonDisplay({cols1, cols2, row={}, pokemonId, isEditMode
         dispatch(setUnsavedChanges('onhand'))
     }
 
-    console.log(row)
     return (
         <>
             <TableCell sx={{...theme.components.box.fullCenterCol, backgroundColor: theme.palette.color2.main, position: 'relative', height: noRow2 ? '131.344px' : '181.344px', color: 'white', width: '100%', padding: 0}}>
@@ -75,6 +76,13 @@ function SmallWidthByPokemonDisplay({cols1, cols2, row={}, pokemonId, isEditMode
                             )
                         })}
                         </Box>
+                        }
+                        {(!isHomeCollection || haView) && 
+                            <Box sx={{display: 'flex', position: 'absolute', top: '100%'}}>
+                                <Typography sx={{fontSize: '11px', color: theme.palette.color1.light, opacity: nonHAMon ? 0.75 : 1}}>
+                                    {nonHAMon ? <i>{row.haName.slice(0, row.haName.indexOf(' - '))}</i> : <b>{row.haName}</b>}
+                                </Typography>
+                            </Box>
                         }
                     </Box>
                 </Box>

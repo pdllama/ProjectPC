@@ -7,6 +7,7 @@ import { setPendingTrade } from '../controllers/tradecontrollers/colmanagementfu
 import { getCollectionProgressPercent, checkBadgeMilestone } from './postpremiddleware.js';
 import { collectionProgressAggField } from '../controllers/searchcontroller.js';
 import { postDeleteColEditTradeCol } from './postpremiddleware.js';
+import getHAName from '../utils/schemavirtuals/getHAName.js';
 
 const opts = {toJSON: {virtuals: true}, minimize: false}
 
@@ -264,12 +265,20 @@ collectionSchema.path('ownedPokemon').schema.virtual('imgLink').get(function() {
     return getImgLink(this)
 })
 
+collectionSchema.path('ownedPokemon').schema.virtual('haName').get(function() {
+    return getHAName(this)
+})
+
 collectionSchema.path('ownedPokemon').schema.virtual('possibleGender').get(function() {
     return getPossibleGender(this)
 })
 
 collectionSchema.path('onHand').schema.virtual('imgLink').get(function() {
     return getImgLink(this)
+})
+
+collectionSchema.path('onHand').schema.virtual('haName').get(function() {
+    return getHAName(this)
 })
 
 collectionSchema.virtual('availableGamesInfo').get(function() {

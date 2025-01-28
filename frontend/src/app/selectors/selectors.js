@@ -192,7 +192,7 @@ const selectByPokemonOHData = createSelector([selectOnHandList, selectPokemonIde
             ballsData[oh.ball].numNonHA += oh.reserved
         }
     })
-    return {name: onhands[0].name, imgLink: onhands[0].imgLink, natDexNum: onhands[0].natDexNum, balls: ballsData}
+    return {name: onhands[0].name, imgLink: onhands[0].imgLink, natDexNum: onhands[0].natDexNum, haName: onhands[0].haName, balls: ballsData}
 })
 
 const selectOtherOnhandReqData = createSelector([selectCollectionList, selectPokemonIdentifier], (col, id) => {

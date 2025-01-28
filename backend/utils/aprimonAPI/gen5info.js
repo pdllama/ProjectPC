@@ -1276,7 +1276,8 @@ const gen5Info = [{
     info: {
         natDexNum: 562,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: {reg: 'Mummy', alt1: 'Wandering Spirit'}
         },
         regionalForm: {
             forms: [{name: 'Galarian', gen: 8}]
@@ -1346,7 +1347,8 @@ const gen5Info = [{
     info: {
         natDexNum: 566,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Defeatist'
         }
     },
     specificGenInfo: {
@@ -1423,7 +1425,8 @@ const gen5Info = [{
     info: {
         natDexNum: 570,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Illusion'
         },
         regionalForm: {
             forms: [{name: 'Hisuian', gen: 9}]
@@ -2006,6 +2009,7 @@ const gen5Info = [{
         natDexNum: 597,
         HA: {
             hasHA: false,
+            regAbilityName: 'Anticipation (On Evolve)'
         }
     },
     specificGenInfo: {
@@ -2069,7 +2073,8 @@ const gen5Info = [{
     info: {
         natDexNum: 602,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Levitate'
         }
     },
     specificGenInfo: {
@@ -2274,7 +2279,8 @@ const gen5Info = [{
     info: {
         natDexNum: 615,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Levitate'
         }
     },
     specificGenInfo: {
@@ -2811,7 +2817,8 @@ const gen5Info = [{
     info: {
         natDexNum: 633,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Hustle'
         }
     },
     specificGenInfo: {
@@ -2898,7 +2905,8 @@ const gen5Info = [{
     info: {
         natDexNum: 638,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Justified'
         },
         legendary: true
     },
@@ -2939,7 +2947,8 @@ const gen5Info = [{
     info: {
         natDexNum: 639,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Justified'
         },
         legendary: true
     },
@@ -2980,7 +2989,8 @@ const gen5Info = [{
     info: {
         natDexNum: 640,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Justified'
         },
         legendary: true
     },
@@ -3123,7 +3133,8 @@ const gen5Info = [{
     info: {
         natDexNum: 643,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Turboblaze'
         },
         legendary: true
     },
@@ -3164,7 +3175,8 @@ const gen5Info = [{
     info: {
         natDexNum: 644,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Teravolt'
         },
         legendary: true
     },
@@ -3256,7 +3268,8 @@ const gen5Info = [{
     info: {
         natDexNum: 646,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Pressure'
         },
         legendary: true
     },
@@ -3297,7 +3310,8 @@ const gen5Info = [{
     info: {
         natDexNum: 647,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Justified'
         },
         legendary: true
     },
@@ -3329,7 +3343,8 @@ const gen5Info = [{
     info: {
         natDexNum: 648,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Serene Grace'
         },
         legendary: true
     },

@@ -31,6 +31,8 @@ const listDisplayInitialState = {
     }, 
     onhandView: 'byIndividual', 
     showFullSets: true,
+    showEmptySets: true,
+    showHAView: false
 }
 
 const displayReducers = {
@@ -165,7 +167,7 @@ const displayReducers = {
         }
         const removingGenFilter = typeof filterKey === 'number' && specificCategoryFilters.includes(filterKey) && !numberButIsGameFilter                               
         if (reFilterList) {
-            const filteredList = filterList([], filterKey, filterCategory, listType, totalList, reFilterList, newTotalActiveFilterList, currentSortKey, availableGamesInfo, state.listDisplay.showFullSets)
+            const filteredList = filterList([], filterKey, filterCategory, listType, totalList, reFilterList, newTotalActiveFilterList, currentSortKey, availableGamesInfo, state.listDisplay.showFullSets, state.listDisplay.showEmptySets)
             state.listDisplay[listType] = filteredList
             state.listDisplay[`${listType}Filters`].filters[filterCategory] = newActiveFilterList
             

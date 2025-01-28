@@ -1,5 +1,6 @@
 import { apriballs, generations, findGenByDexNum, homeDisplayGames } from "../../../common/infoconstants/miscconstants.mjs"
 import { sortList } from "../../../common/sortingfunctions/customsorting.mjs"
+import { hideEmptySets } from "../display/emptysetview"
 import { hideFullSets } from "../display/fullsetview"
 
 //checks if the current filter list has any of a specified type of filter. useful for accounting for refiltering when we're adding a second of a particular type of filter
@@ -17,7 +18,7 @@ const checkForTypeOfFilter = (activeFilters, filterType) => {
     return typeOfFilterPresent
 }
 
-const filterMultipleKeys = (totalList, genKeys, ballKeys, otherKeys, currentSortKey, listType, availableGamesInfo, showFullSets=true) => {
+const filterMultipleKeys = (totalList, genKeys, ballKeys, otherKeys, currentSortKey, listType, availableGamesInfo, showFullSets=true, showEmptySets=true) => {
     const filteredList = []
     const tagFilters = otherKeys.filter(f => !homeDisplayGames.includes(f) && f !== 'no-game')
     const gameFilters = otherKeys.filter(f => homeDisplayGames.includes(f) || f === 'no-game')
@@ -90,7 +91,9 @@ const filterMultipleKeys = (totalList, genKeys, ballKeys, otherKeys, currentSort
             return currentSortKey === '' ? finalFilteredList : sortList(currentSortKey, finalFilteredList)
         }
     
-        const finalFilteredList = showFullSets ? filteredByTagList : hideFullSets(filteredByTagList)
+        const finalFilteredList = showFullSets && showEmptySets ? filteredByTagList : 
+                                    !showFullSets ? hideFullSets(!showEmptySets ? hideEmptySets(filteredByTagList) : filteredByTagList) : 
+                                    hideEmptySets(filteredByTagList)
         return currentSortKey === '' ? finalFilteredList : sortList(currentSortKey, finalFilteredList)
     } 
     if (gameFilters.length !== 0) {
@@ -154,13 +157,13 @@ const filterByGame = (list, gameFilters, availableGamesInfo) => {
     return newList
 }
 
-const filterList = (list=[], filterKey, filterCategory, listType, totalList=[], reFilterList=false, filterKeys={}, currentSortKey='', availableGamesInfo={}, showFullSets=true) => {
+const filterList = (list=[], filterKey, filterCategory, listType, totalList=[], reFilterList=false, filterKeys={}, currentSortKey='', availableGamesInfo={}, showFullSets=true, showEmptySets=true) => {
     if (reFilterList) { //refer to filter.jsx notes for when refiltering the list (taking the total list and re-adding filters) is required
         const ballFilters = filterKeys.ballFilters.filter(key => apriballs.includes(key))
         const genFilters = filterKeys.genFilters.filter(key => generations.includes(key))
         const otherFiltersStep = filterKeys.otherFilters.filter(key => homeDisplayGames.includes(key) || key === 'highlyWanted' || key === 'pending' || key === 'no-game')
         const otherFilters = otherFiltersStep.filter((key, idx) => otherFiltersStep.indexOf(key) === idx)
-        const filteredList = filterMultipleKeys(totalList, genFilters, ballFilters, otherFilters, currentSortKey, listType, availableGamesInfo, showFullSets)
+        const filteredList = filterMultipleKeys(totalList, genFilters, ballFilters, otherFilters, currentSortKey, listType, availableGamesInfo, showFullSets, showEmptySets)
         return filteredList
     }
     if (filterCategory === 'ballFilters') {

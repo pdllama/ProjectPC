@@ -22,6 +22,7 @@ export default function displayOnHandByPokemon(onhandList, collectionList) {
             name: p.name,
             natDexNum: p.natDexNum,
             imgLink: p.imgLink,
+            haName: p.haName,
             balls: ballData
         }
     })

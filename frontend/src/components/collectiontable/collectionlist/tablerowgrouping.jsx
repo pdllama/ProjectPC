@@ -127,8 +127,9 @@ function TableRowGrouping({columns, row, id, collectionId, ownerId, styles, isSe
     const idx = (isEditMode || demo) ? useSelector(state => state.collectionState.collection.findIndex((p) => p.imgLink === id)) : null
     const unsavedChanges = (isEditMode || demo) ? useSelector((state) => state.editmode.unsavedChanges) : null
 
-    //available games
+    //available games and ha view data
     const availableGames = (isHomeCollection) ? useSelector((state) => state.collectionState.availableGamesInfo[row.name]) : null
+    const haView = (isHomeCollection) ? useSelector((state) => state.collectionState.listDisplay.showHAView) : null
 
     //default data
     const globalDefaults = (isEditMode || demo) ? useSelector((state) => state.collectionState.options.globalDefaults) : null
@@ -213,6 +214,7 @@ function TableRowGrouping({columns, row, id, collectionId, ownerId, styles, isSe
                             isSelected={isSelected}
                             onClickFunc={isSelected ? null : setSelected}
                             availableGames={(availableGames === null) ? undefined : c.dataKey === 'name' ? availableGames : undefined}
+                            haName={((isHomeCollection && haView === false) ? undefined : c.dataKey === 'name' ? row.haName : undefined)}
                         />:
                     row.balls[c.dataKey] === undefined ? 
                         <TableCell sx={blackTableCellStyles} key={`${row.imgLink}-${c.label}`}>

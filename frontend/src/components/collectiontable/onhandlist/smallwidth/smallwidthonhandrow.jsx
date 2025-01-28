@@ -67,6 +67,10 @@ function SmallWidthOnHandRowContent({row, pokemonId, collectionId, styles, isSel
         }
     }
 
+    const haView = isHomeCollection ? useSelector((state) => state.collectionState.listDisplay.showHAView) : null
+    const displayHomeGames = isHomeCollection && !haView
+    const nonHAMon = row.haName.includes('Non-HA')
+
     return (
         <TableCell 
             sx={{...theme.components.box.fullCenterCol, backgroundColor: theme.palette.color2.main, position: 'relative', height: '150px', color: 'white', width: '100%', padding: 0}}
@@ -123,7 +127,7 @@ function SmallWidthOnHandRowContent({row, pokemonId, collectionId, styles, isSel
                 </Box>
                 <Box sx={{...theme.components.box.fullCenterRow, justifyContent: 'start', alignItems: 'center', width: '40%'}}>
                     <Typography sx={row.name.length >= 15 ? {...nameFontSizeScaling} : {}}><b>{userData.loggedIn ? getNameDisplay(userData.user.settings.display.pokemonNames, row.name, row.natDexNum) : row.name}</b></Typography>
-                    {isHomeCollection && 
+                    {displayHomeGames && 
                         <Box sx={{position: 'absolute', bottom: '-3px', width: '300px', right:'calc(50% - 150px)', ...theme.components.box.fullCenterRow}}>
                         {homeDisplayGames.map((game, idx) => {
                             const nameOfGame = game === 9 ? 'S/V' : game === 'swsh' ? 'SW/SH' : game === 'bdsp' && 'BD/SP'
@@ -140,6 +144,13 @@ function SmallWidthOnHandRowContent({row, pokemonId, collectionId, styles, isSel
                                 </Box>
                             )
                         })}
+                        </Box>
+                    }
+                    {(!isHomeCollection || haView) && 
+                        <Box sx={{...theme.components.box.fullCenterRow, position: 'absolute', bottom: '-3px', width: '300px', right:'calc(50% - 150px)'}}>
+                            <Typography sx={{fontSize: '11px', color: theme.palette.color1.light, opacity: nonHAMon ? 0.75 : 1}}>
+                                {nonHAMon ? <i>{row.haName.slice(0, row.haName.indexOf(' - '))}</i> : <b>{row.haName}</b>}
+                            </Typography>
                         </Box>
                     }
                 </Box>

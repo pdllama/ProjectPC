@@ -31,6 +31,7 @@ function SmallWidthColRow({row, isSelected, collectionId, setSelected, ballScope
     //following data is used for editing values in the list
     const possibleEggMoves = (isEditMode && !isHomeCollection) ? useSelector((state) => state.collectionState.eggMoveInfo[row.name]) : null
     const availableGames = (isHomeCollection) ? useSelector((state) => state.collectionState.availableGamesInfo[row.name]) : null
+    const haView = (isHomeCollection) ? useSelector((state) => state.collectionState.listDisplay.showHAView) : null
     const maxEMs = (isEditMode && !isHomeCollection) ? possibleEggMoves.length > 4 ? 4 : possibleEggMoves.length : null
     const emCountSelectionList = (isEditMode && !isHomeCollection) ? setMaxEmArr(maxEMs) : null
     const idx = isEditMode ? useSelector(state => state.collectionState.collection.findIndex((p) => p.imgLink === id)) : null
@@ -74,7 +75,8 @@ function SmallWidthColRow({row, isSelected, collectionId, setSelected, ballScope
     }
 
     const nameLabel = userData.loggedIn ? getNameDisplay(userData.user.settings.display.pokemonNames, row.name, row.natDexNum) : row.name
-
+    const nonHAMon = row.haName.includes('Non-HA')
+    
     return (
         <>
             <TableCell sx={{...theme.components.box.fullCenterCol, backgroundColor: theme.palette.color2.main, position: 'relative', height: noRow2 ? '165px' : '293.5px', color: 'white', width: '100%', padding: 0}}>
@@ -101,24 +103,31 @@ function SmallWidthColRow({row, isSelected, collectionId, setSelected, ballScope
                     <Box sx={{...theme.components.box.fullCenterCol, alignItems: 'center', width: '65%', position: 'relative'}}>
                         <Typography><b>{nameLabel}</b></Typography>
                         
-                        {isHomeCollection && 
-                        <Box sx={{position: 'absolute', top: '100%', ...theme.components.box.fullCenterRow}}>
-                        {homeDisplayGames.map((game, idx) => {
-                            const nameOfGame = game === 9 ? 'S/V' : game === 'swsh' ? 'SW/SH' : game === 'bdsp' && 'BD/SP'
-                            const firstGame = nameOfGame.slice(0, nameOfGame.indexOf('/'))
-                            const secondGame = nameOfGame.slice(nameOfGame.indexOf('/')+1, nameOfGame.length)
-                            const firstGameColor = getGameColor(firstGame)
-                            const secondGameColor = getGameColor(secondGame)
-                            const gamesEnabled = availableGames.includes(game)
-                            const margin = idx !== 0 ? {ml: 1} : {} 
-                            return (
-                                <Box key={`available-home-games-display-${nameOfGame}`} sx={{display: 'flex'}}>
-                                    <Typography sx={{fontSize: '10px', color: firstGameColor, opacity: gamesEnabled ? 1 : 0.4, ...margin}}>{firstGame}</Typography>
-                                    <Typography sx={{fontSize: '10px', color: secondGameColor, opacity: gamesEnabled ? 1 : 0.4}}>/{secondGame}</Typography>
-                                </Box>
-                            )
-                        })}
-                        </Box>
+                        {(isHomeCollection && !haView) &&
+                            <Box sx={{position: 'absolute', top: '100%', ...theme.components.box.fullCenterRow}}>
+                            {homeDisplayGames.map((game, idx) => {
+                                const nameOfGame = game === 9 ? 'S/V' : game === 'swsh' ? 'SW/SH' : game === 'bdsp' && 'BD/SP'
+                                const firstGame = nameOfGame.slice(0, nameOfGame.indexOf('/'))
+                                const secondGame = nameOfGame.slice(nameOfGame.indexOf('/')+1, nameOfGame.length)
+                                const firstGameColor = getGameColor(firstGame)
+                                const secondGameColor = getGameColor(secondGame)
+                                const gamesEnabled = availableGames.includes(game)
+                                const margin = idx !== 0 ? {ml: 1} : {} 
+                                return (
+                                    <Box key={`available-home-games-display-${nameOfGame}`} sx={{display: 'flex'}}>
+                                        <Typography sx={{fontSize: '10px', color: firstGameColor, opacity: gamesEnabled ? 1 : 0.4, ...margin}}>{firstGame}</Typography>
+                                        <Typography sx={{fontSize: '10px', color: secondGameColor, opacity: gamesEnabled ? 1 : 0.4}}>/{secondGame}</Typography>
+                                    </Box>
+                                )
+                            })}
+                            </Box>
+                        }
+                        {(!isHomeCollection || (isHomeCollection && haView)) && 
+                            <Box sx={{display: 'flex', position: 'absolute', top: '100%'}}>
+                                <Typography sx={{fontSize: '11px', color: theme.palette.color1.light, opacity: nonHAMon ? 0.75 : 1}}>
+                                    {nonHAMon ? <i>{row.haName.slice(0, row.haName.indexOf(' - '))}</i> : <b>{row.haName}</b>}
+                                </Typography>
+                            </Box>
                         }
                     </Box>
                 </Box>

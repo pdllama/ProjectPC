@@ -338,7 +338,8 @@ const gen9Info = [{
     info: {
         natDexNum: 948,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Mycelium Might'
         }
     },
     specificGenInfo: {
@@ -513,7 +514,8 @@ const gen9Info = [{
     info: {
         natDexNum: 963,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Water Veil'
         }
     },
     specificGenInfo: {
@@ -757,7 +759,8 @@ const gen9Info = [{
     info: {
         natDexNum: 984,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Protosynthesis'
         },
         nonBreedable: true,
         paradoxPokemon: true
@@ -779,7 +782,8 @@ const gen9Info = [{
     info: {
         natDexNum: 985,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Protosynthesis'
         },
         nonBreedable: true,
         paradoxPokemon: true
@@ -801,7 +805,8 @@ const gen9Info = [{
     info: {
         natDexNum: 986,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Protosynthesis'
         },
         nonBreedable: true,
         paradoxPokemon: true
@@ -823,7 +828,8 @@ const gen9Info = [{
     info: {
         natDexNum: 987,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Protosynthesis'
         },
         nonBreedable: true,
         paradoxPokemon: true
@@ -845,7 +851,8 @@ const gen9Info = [{
     info: {
         natDexNum: 988,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Protosynthesis'
         },
         nonBreedable: true,
         paradoxPokemon: true
@@ -867,7 +874,8 @@ const gen9Info = [{
     info: {
         natDexNum: 989,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Protosynthesis'
         },
         nonBreedable: true,
         paradoxPokemon: true
@@ -889,7 +897,8 @@ const gen9Info = [{
     info: {
         natDexNum: 990,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Quark Drive'
         },
         nonBreedable: true,
         paradoxPokemon: true
@@ -911,7 +920,8 @@ const gen9Info = [{
     info: {
         natDexNum: 991,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Quark Drive'
         },
         nonBreedable: true,
         paradoxPokemon: true
@@ -933,7 +943,8 @@ const gen9Info = [{
     info: {
         natDexNum: 992,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Quark Drive'
         },
         nonBreedable: true,
         paradoxPokemon: true
@@ -955,7 +966,8 @@ const gen9Info = [{
     info: {
         natDexNum: 993,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Quark Drive'
         },
         nonBreedable: true,
         paradoxPokemon: true
@@ -977,7 +989,8 @@ const gen9Info = [{
     info: {
         natDexNum: 994,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Quark Drive'
         },
         nonBreedable: true,
         paradoxPokemon: true
@@ -999,7 +1012,8 @@ const gen9Info = [{
     info: {
         natDexNum: 995,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Quark Drive'
         },
         nonBreedable: true,
         paradoxPokemon: true
@@ -1043,7 +1057,8 @@ const gen9Info = [{
     info: {
         natDexNum: 999,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Rattled'
         },
         nonBreedable: true
     },
@@ -1064,7 +1079,8 @@ const gen9Info = [{
     info: {
         natDexNum: 1000,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Good as Gold'
         },
         nonBreedable: true
     },
@@ -1085,7 +1101,8 @@ const gen9Info = [{
     info: {
         natDexNum: 1001,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Tablets of Ruin'
         },
         legendary: true
     },
@@ -1106,7 +1123,8 @@ const gen9Info = [{
     info: {
         natDexNum: 1002,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Sword of Ruin'
         },
         legendary: true
     },
@@ -1127,7 +1145,8 @@ const gen9Info = [{
     info: {
         natDexNum: 1003,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Vessel of Ruin'
         },
         legendary: true
     },
@@ -1148,7 +1167,8 @@ const gen9Info = [{
     info: {
         natDexNum: 1004,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Beads of Ruin'
         },
         legendary: true
     },
@@ -1169,7 +1189,8 @@ const gen9Info = [{
     info: {
         natDexNum: 1005,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Protosynthesis'
         },
         nonBreedable: true,
         paradoxPokemon: true
@@ -1191,7 +1212,8 @@ const gen9Info = [{
     info: {
         natDexNum: 1006,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Quark Drive'
         },
         nonBreedable: true,
         paradoxPokemon: true
@@ -1213,7 +1235,8 @@ const gen9Info = [{
     info: {
         natDexNum: 1007,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Orichalcum Pulse'
         },
         legendary: true
     },
@@ -1234,7 +1257,8 @@ const gen9Info = [{
     info: {
         natDexNum: 1008,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Hadron Engine'
         },
         legendary: true
     },
@@ -1255,7 +1279,8 @@ const gen9Info = [{
     info: {
         natDexNum: 1009,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Protosynthesis'
         },
         legendary: true,
         eventOnly: true
@@ -1277,7 +1302,8 @@ const gen9Info = [{
     info: {
         natDexNum: 1010,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Quark Drive'
         },
         legendary: true,
         eventOnly: true
@@ -1390,7 +1416,8 @@ const gen9Info = [{
     info: {
         natDexNum: 1017,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Defiant'
         },
         legendary: true
     },
@@ -1411,7 +1438,8 @@ const gen9Info = [{
     info: {
         natDexNum: 1020,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Protosynthesis'
         },
         legendary: true
     },
@@ -1432,7 +1460,8 @@ const gen9Info = [{
     info: {
         natDexNum: 1021,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Protosynthesis'
         },
         legendary: true
     },
@@ -1453,7 +1482,8 @@ const gen9Info = [{
     info: {
         natDexNum: 1022,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Quark Drive'
         },
         legendary: true
     },
@@ -1474,7 +1504,8 @@ const gen9Info = [{
     info: {
         natDexNum: 1023,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Quark Drive'
         },
         legendary: true
     },
@@ -1495,7 +1526,8 @@ const gen9Info = [{
     info: {
         natDexNum: 1024,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Tera Shift'
         },
         legendary: true
     },
@@ -1516,7 +1548,8 @@ const gen9Info = [{
     info: {
         natDexNum: 1025,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Poison Puppeteer'
         },
         legendary: true
     },

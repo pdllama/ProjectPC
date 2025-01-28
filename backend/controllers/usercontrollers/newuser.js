@@ -36,7 +36,7 @@ export async function createNewUser(req, res) {
         })
         await newUser.save()
         if (addCollection) {
-            const saveToDatabase = {...collectionData, owner: newUser._id, ownedPokemon: collectionData.ownedPokemon.map(p => {return {...p, imgLink: undefined, possibleGender: undefined}}), onHand: collectionData.onHand.map(p => {return {...p, imgLink: undefined}}), availableGamesInfo: undefined, eggMoveInfo: undefined, progress: undefined}
+            const saveToDatabase = {...collectionData, owner: newUser._id, ownedPokemon: collectionData.ownedPokemon.map(p => {return {...p, imgLink: undefined, possibleGender: undefined, haName: undefined}}), onHand: collectionData.onHand.map(p => {return {...p, imgLink: undefined}}), availableGamesInfo: undefined, eggMoveInfo: undefined, progress: undefined}
             const collection = new Collection(saveToDatabase)
             await collection.save()
 

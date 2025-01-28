@@ -361,6 +361,7 @@ const gen6Info =[{
         natDexNum: 676,
         HA: {
             hasHA: false,
+            regAbilityName: 'Fur Coat'
         }
     },
     specificGenInfo: {
@@ -415,7 +416,8 @@ const gen6Info =[{
     info: {
         natDexNum: 679,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'No Guard'
         }
     },
     specificGenInfo: {
@@ -618,7 +620,8 @@ const gen6Info =[{
     info: {
         natDexNum: 692,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Mega Launcher'
         }
     },
     specificGenInfo: {
@@ -1181,7 +1184,8 @@ const gen6Info =[{
     info: {
         natDexNum: 716,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Fairy Aura'
         },
         legendary: true
     },
@@ -1213,7 +1217,8 @@ const gen6Info =[{
     info: {
         natDexNum: 717,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Dark Aura'
         },
         legendary: true
     },
@@ -1245,7 +1250,8 @@ const gen6Info =[{
     info: {
         natDexNum: 718,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Aura Break'
         },
         legendary: true
     },

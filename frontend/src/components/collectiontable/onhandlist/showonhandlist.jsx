@@ -146,6 +146,7 @@ export default function ShowOnHandList({onhandList, collectionID, styles, collec
                 columns={byPokemonColumns}
                 styles={collectionListStyles}
                 isEditMode={isEditMode}
+                isHomeCollection={isHomeCollection}
                 demo={demo}
                 userData={userData}
                 {...availableGamesData}

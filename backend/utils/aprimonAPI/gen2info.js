@@ -1072,6 +1072,7 @@ const gen2Info= [{
         natDexNum: 200,
         HA: {
             hasHA: false,
+            regAbilityName: 'Levitate'
         }
     },
     specificGenInfo: {

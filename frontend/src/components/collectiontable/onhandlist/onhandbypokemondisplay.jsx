@@ -1,6 +1,6 @@
 import DataCell from "../tabledata/datacell";
 import { connect, useSelector, useDispatch } from "react-redux";
-import { TableCell, Box, Typography } from "@mui/material";
+import { TableCell, Box, Typography, useTheme } from "@mui/material";
 import ImgData from "../tabledata/imgdata";
 import { apriballs, homeDisplayGames, getGameColor } from "../../../../common/infoconstants/miscconstants.mjs";
 import { OnHandQtyDisplay } from "./bypokemoncomponents";
@@ -16,7 +16,10 @@ function OnHandByPokemonDisplay({columns, row, pokemonId, isEditMode, isSelected
     // console.log(row)
     // console.log(columns)
     const dispatch = useDispatch()
-    const displayAvailableGames = availableGames !== undefined
+    const theme = useTheme()
+    const haView = isHomeCollection ? useSelector((state) => state.collectionState.listDisplay.showHAView) : true
+    const nonHAMon = row.haName.includes('Non-HA')
+    const displayAvailableGames = availableGames !== undefined && !haView
     if (row === undefined) { //when switching between collections theres seems to be a bit of lag in updating the state, even though i tried to stop it.
         //this is also needed since deleting a single pokemon (via edit bar -> detailed edit), the delete dispatch also has lag for whatever reason
         // and that undefined pokemon is called in the list display. the selector accounts for this and returns undefined in that case.
@@ -50,6 +53,7 @@ function OnHandByPokemonDisplay({columns, row, pokemonId, isEditMode, isSelected
             const alignment = c.label === '#' ? {width: '90%', position: 'relative'} :
             (c.label === 'img') ? {width: '90%'} : {width: '90%', position: 'relative'}
             const displayHomeGames = c.dataKey === 'name' && displayAvailableGames
+            const displayHA = c.dataKey === 'name' && haView
             const deleteFlag = `${row.imgLink} ${c.dataKey}`
             const isLastBallQty = isBallQty && row.balls[c.dataKey] !== undefined && row.balls[c.dataKey].numTotal === 1 && Object.values(row.balls).map(bD => bD.numTotal).reduce((acc, cV) => acc+cV, 0) === 1
             const onClickFunc = isBallQty ? 
@@ -61,6 +65,7 @@ function OnHandByPokemonDisplay({columns, row, pokemonId, isEditMode, isSelected
             const leftMostCell = c.label === '#'
             const hoverSx = isEditMode && !isBallQty ? {':hover': {cursor: 'pointer'}} : {}
             
+
             return (
                 isBallQty ? 
                 <OnHandQtyDisplay 
@@ -129,6 +134,13 @@ function OnHandByPokemonDisplay({columns, row, pokemonId, isEditMode, isSelected
                                     )
                                 })}
                             </Box>
+                            }
+                            {displayHA && 
+                                <Box sx={{display: 'flex', position: 'absolute', width: '100%', bottom: '0px', left: '0px', ...theme.components.box.fullCenterRow}}>
+                                    <Typography sx={{fontSize: '11px', color: theme.palette.color1.light, opacity: nonHAMon ? 0.75 : 1}}>
+                                        {nonHAMon ? <i>{row.haName.slice(0, row.haName.indexOf(' - '))}</i> : <b>{row.haName}</b>}
+                                    </Typography>
+                                </Box>
                             }
                         </Box>
                     </Box>

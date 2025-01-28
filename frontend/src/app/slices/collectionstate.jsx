@@ -7,6 +7,7 @@ import displayOnHandByPokemon from "../../../utils/functions/display/displayonha
 import { filterList } from "../../../utils/functions/sortfilterfunctions/filterfunctions";
 import { changeList, setAllData, setPosRenderOHBallData } from "./editmode";
 import { hideFullSets } from "../../../utils/functions/display/fullsetview";
+import { hideEmptySets } from "../../../utils/functions/display/emptysetview";
 
 const backendurl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000'
 
@@ -83,10 +84,30 @@ const collectionState = createSlice({
                     genFilters: state.listDisplay.collectionFilters.filters.genFilters,
                     otherFilters: state.listDisplay.collectionFilters.filters.otherFilters
                 }
-                state.listDisplay.collection = filterList(useState ? state.collection.filter(p => p.disabled === undefined) : action.payload.collection, '', '', 'collection', useState ? state.collection.filter(p => p.disabled === undefined) : action.payload.collection, true, filtersData, state.listDisplay.collectionFilters.sort, state.availableGamesInfo)
+                const colDataToUse = useState ? state.collection.filter(p => p.disabled === undefined) : action.payload.collection
+                state.listDisplay.collection = filterList(colDataToUse, '', '', 'collection', colDataToUse, true, filtersData, state.listDisplay.collectionFilters.sort, state.availableGamesInfo)
             } else {
                 state.listDisplay.collection = hideFullSets(state.listDisplay.collection)
             }
+            return state
+        },
+        toggleEmptySetView: (state, action) => {
+            const useState = action.payload.useState
+            state.listDisplay.showEmptySets = !state.listDisplay.showEmptySets
+            if (state.listDisplay.showEmptySets) {
+                const filtersData = {
+                    ballFilters: state.listDisplay.collectionFilters.filters.ballFilters,
+                    genFilters: state.listDisplay.collectionFilters.filters.genFilters,
+                    otherFilters: state.listDisplay.collectionFilters.filters.otherFilters
+                }
+                const colDataToUse = useState ? state.collection.filter(p => p.disabled === undefined) : action.payload.collection
+                state.listDisplay.collection = filterList(colDataToUse, '', '', 'collection', colDataToUse, true, filtersData, state.listDisplay.collectionFilters.sort, state.availableGamesInfo)
+            } else {
+                state.listDisplay.collection = hideEmptySets(state.listDisplay.collection)
+            }
+        },
+        toggleAbilitiesView: (state) => {
+            state.listDisplay.showHAView = !state.listDisplay.showHAView
             return state
         },
         resetFilters: (state, action) => {
@@ -158,7 +179,8 @@ export const {
     initializeTotalState, setListDisplayInitialState, setIsHA, setEmCount, setEms, deleteEms,
     setIsOwned, setTags, setDefault, setMultipleIsOwned,
     setBall, setGender, setPokemonSpecies, setQty, setQtyByPokemon,
-    setListState, addOnHandPokemonToList, addOnHandPokemonToListByPokemon, removeOnHandPokemonFromList, setSortKey, setFilters, filterSearch, setScrollPosition, setOnHandView, toggleFullSetView, resetFilters,
+    setListState, addOnHandPokemonToList, addOnHandPokemonToListByPokemon, removeOnHandPokemonFromList, setSortKey, setFilters, filterSearch, 
+    setScrollPosition, setOnHandView, toggleFullSetView, toggleEmptySetView, toggleAbilitiesView, resetFilters,
     setRate, setBallScope, setSortingOptionsState, setTradePreferencesState, setItemState, setNameState, setGlobalDefaultState,
 } = collectionState.actions
 
