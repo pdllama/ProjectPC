@@ -544,7 +544,10 @@ export default function OnHandPokemonSelectionForm({collectionID, speciesEditOnl
                             text="You've added multiple on-hands!"
                             subText='Are you sure you want to exit without adding them?'
                             startingSecond={1}
-                            confirmDecisionFunc={handleCloseModal}
+                            confirmDecisionFunc={() => {
+                                handleCloseModal()
+                                setConfirmDecisionModal(false)
+                            }}
                             toggleModal={() => setConfirmDecisionModal(!confirmDecisionModal)}
                             open={confirmDecisionModal}
                             pendingTimeout={0}

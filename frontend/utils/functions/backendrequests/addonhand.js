@@ -2,7 +2,6 @@ import handleApiResponse from "./handleapiresponse"
 const backendurl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000'
 
 const newOnHandPutReq = async(newOnHand, collectionID, userID) => {
-    console.log(newOnHand)
     const res = await fetch(`${backendurl}/collections/${collectionID}`, {
         method: 'PUT',
         credentials: 'include',
@@ -11,7 +10,6 @@ const newOnHandPutReq = async(newOnHand, collectionID, userID) => {
         },
         body: JSON.stringify({editType: 'addOnHand', newOnHand})
     }).then(async(data) => {return await handleApiResponse(data)})
-
     return res
 }
 

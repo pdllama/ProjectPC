@@ -28,7 +28,7 @@ export default function CollectionOptionsModal({collectionGen, collectionId, own
         modalState.screen === 'collectionSort' || 
         modalState.screen === 'preferences' || 
         modalState.screen === 'other') ? 
-            '450px' : 
+            '600px' : 
         modalState.screen === 'pokemonScope' ? '730px' : '700px'
     const makeChangesScreens = modalState.screen === 'pokemonScope' || modalState.screen === 'ballScope' || modalState.screen === 'excludedCombos' ||
         modalState.screen === 'collectionSort' || modalState.screen === 'onhandSort' || modalState.screen === 'customSort' || modalState.screen === 'preferences'

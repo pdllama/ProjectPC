@@ -1625,7 +1625,7 @@ const gen5Info = [{
         natDexNum: 580,
         HA: {
             hasHA: true,
-            name: {reg: ""}
+            name: {reg: "Hydration"}
         }
     },
     specificGenInfo: {

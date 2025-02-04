@@ -6,6 +6,7 @@ import getNameDisplay from "../../../../utils/functions/display/getnamedisplay"
 import { hideFullSets } from "../../../../utils/functions/display/fullsetview"
 import {updateListWithNewOnHands} from "../../../../utils/functions/display/displayonhandbypokemon"
 import { removeByPokemonOhandsFromList } from "../../../components/collectiontable/onhandlist/onhandbypokemonupdates/ohbypokemonstateupdate"
+import { hideEmptySets } from "../../../../utils/functions/display/emptysetview"
 
 //operations related to editing the display state of the lists, to edit what is shown, how much is shown, etc.
 //used to give how much data is given to the table renderer (for filtering lists, for example)
@@ -180,7 +181,8 @@ const displayReducers = {
         }
         if (noFilters) {
             const totalListStep1 = listType === 'collection' && !state.listDisplay.showFullSets ? hideFullSets(totalList) : totalList
-            const correctlySortedTotalList = currentSortKey === '' ? totalListStep1 : sortList(currentSortKey, totalListStep1)
+            const totalListStep2 = listType === 'collection' && !state.listDisplay.showEmptySets ? hideEmptySets(totalListStep1) : totalListStep1
+            const correctlySortedTotalList = currentSortKey === '' ? totalListStep2 : sortList(currentSortKey, totalListStep2)
             state.listDisplay[listType] = correctlySortedTotalList
             state.listDisplay[`${listType}Filters`].filters = {ballFilters: [], genFilters: [], otherFilters: []}
             // const newState = {...state, [`${listType}Filters`]: {...state[`${listType}Filters`], filters: {ballFilters: [], genFilters: [], otherFilters: []}}, [listType]: correctlySortedTotalList}

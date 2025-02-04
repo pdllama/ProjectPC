@@ -107,11 +107,13 @@ const filterMultipleKeys = (totalList, genKeys, ballKeys, otherKeys, currentSort
             const isAvailableInAllGames = gameInfo !== undefined && !gameFilters.map(gF => gameInfo.includes(gF)).includes(false)
             return isAvailableInAllGames
         })
-        const finalFilteredList = showFullSets ? finalFilteredListStep : hideFullSets(finalFilteredListStep)
+        const finalFilteredListStep2 = showFullSets ? finalFilteredListStep : hideFullSets(finalFilteredListStep)
+        const finalFilteredList = showEmptySets ? finalFilteredListStep2 : hideEmptySets(finalFilteredListStep2)
         return currentSortKey === '' ? finalFilteredList : sortList(currentSortKey, finalFilteredList)
     }
 
-    const finalFilteredList = showFullSets ? filteredList : hideFullSets(filteredList)
+    const finalFilteredListStep = showFullSets ? filteredList : hideFullSets(filteredList)
+    const finalFilteredList = showEmptySets ? finalFilteredListStep : hideEmptySets(finalFilteredListStep)
     return currentSortKey === '' ? finalFilteredList : sortList(currentSortKey, finalFilteredList)
 }
 

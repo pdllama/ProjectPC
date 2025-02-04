@@ -85,7 +85,7 @@ const collectionState = createSlice({
                     otherFilters: state.listDisplay.collectionFilters.filters.otherFilters
                 }
                 const colDataToUse = useState ? state.collection.filter(p => p.disabled === undefined) : action.payload.collection
-                state.listDisplay.collection = filterList(colDataToUse, '', '', 'collection', colDataToUse, true, filtersData, state.listDisplay.collectionFilters.sort, state.availableGamesInfo)
+                state.listDisplay.collection = filterList(colDataToUse, '', '', 'collection', colDataToUse, true, filtersData, state.listDisplay.collectionFilters.sort, state.availableGamesInfo, state.listDisplay.showFullSets, state.listDisplay.showEmptySets)
             } else {
                 state.listDisplay.collection = hideFullSets(state.listDisplay.collection)
             }
@@ -101,7 +101,7 @@ const collectionState = createSlice({
                     otherFilters: state.listDisplay.collectionFilters.filters.otherFilters
                 }
                 const colDataToUse = useState ? state.collection.filter(p => p.disabled === undefined) : action.payload.collection
-                state.listDisplay.collection = filterList(colDataToUse, '', '', 'collection', colDataToUse, true, filtersData, state.listDisplay.collectionFilters.sort, state.availableGamesInfo)
+                state.listDisplay.collection = filterList(colDataToUse, '', '', 'collection', colDataToUse, true, filtersData, state.listDisplay.collectionFilters.sort, state.availableGamesInfo, state.listDisplay.showFullSets, state.listDisplay.showEmptySets)
             } else {
                 state.listDisplay.collection = hideEmptySets(state.listDisplay.collection)
             }

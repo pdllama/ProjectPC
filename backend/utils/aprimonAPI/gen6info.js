@@ -1056,7 +1056,7 @@ const gen6Info =[{
         natDexNum: 710,
         HA: {
             hasHA: true,
-            name: {reg: ""}
+            name: {reg: "Insomnia"}
         },
         alternateForm: {
             name: {1: 'Small', 2: 'Average', 3: 'Large', 4: 'Super'}

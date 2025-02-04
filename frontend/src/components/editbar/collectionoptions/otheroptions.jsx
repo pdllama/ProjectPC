@@ -1,21 +1,24 @@
 import {Modal, Fade, Backdrop, Box, Typography, Button, ToggleButton, ToggleButtonGroup} from '@mui/material'
 import ArrowForward from '@mui/icons-material/ArrowForward'
 import { useDispatch, useSelector } from 'react-redux'
-import { useNavigate } from 'react-router'
+import { useNavigate, useRouteLoaderData } from 'react-router'
 import { useState, useEffect, useContext, useRef } from 'react'
 import { AlertsContext } from '../../../alerts/alerts-context'
 import { ErrorContext } from '../../../app/contexts/errorcontext'
 import { changeModalState } from '../../../app/slices/editmode'
 import { setNameState, setGlobalDefaultState } from '../../../app/slices/collectionstate'
+import { apriballs } from '../../../../common/infoconstants/miscconstants.mjs'
 import { backendChangeOptions } from '../../../../utils/functions/backendrequests/collectionoptionsedit'
 import deleteCollectionRequest from '../../../../utils/functions/backendrequests/deletecollection'
 import ControlledTextInput from '../../functionalcomponents/controlledtextinput'
 import SaveChangesConfirmModal from './savechangesconfirmmodal'
 import ConfirmDecisionModal from '../../functionalcomponents/confirmdecisionmodal'
+import ExportCollectionModal from './otheroptionscomponents/exportcollectionmodal'
 
 export default function OtherOptions({elementBg, collectionId, collectionGen, collectionType, owner, demo, sw}) {
     const dispatch = useDispatch()
     const {handleError} = useContext(ErrorContext)
+    
     const collectionNameState = useSelector((state) => state.collectionState.options.collectionName)
     const globalDefaultInit = useSelector((state) => state.collectionState.options.globalDefaults)
     const collectionNameRef = useRef(collectionNameState)
@@ -23,6 +26,28 @@ export default function OtherOptions({elementBg, collectionId, collectionGen, co
 
     const [otherOptions, setOtherOptions] = useState({globalDefaults: globalDefaultInit, deleteCollectionModal: false, saveChangesConfirmOpen: false})
     const [deleteError, setDeleteError] = useState({error: false})
+    const [exportCol, setExportCol] = useState(false)
+
+    //stuff needed for exports
+    const userData = useRouteLoaderData("root").user
+    const ballOrderScope = useSelector((state) => state.collectionState.options.collectingBalls)
+    const userBallOrder = demo ? apriballs.filter(b => ballOrderScope.includes(b)) : userData.settings.display.ballOrder.filter(b => ballOrderScope.includes(b)) //note that this ball order should only contain the balls in the ball scope
+    const availableHomeGames = useSelector((state) => state.collectionState.availableGamesInfo)
+    const nameDisplaySettings = demo ? undefined : userData.settings.display.pokemonNames
+    const useOhByPViewInit = demo ? false : userData.settings.display.defaultOnhandView === 'byPokemon'
+
+    //convertOptions: {
+//  HAExport: Boolean, determines if that information should be exported when exporting isOwned
+//  EMExport: Boolean, same thing as above. exports as a column of checkboxes which is checked if ANY ball combos have it.
+//  addHANames: Boolean, adds a cell that tells you of the pokemon's HA
+//  imgOwned: Boolean, adds image if ball combo is owned
+//  getGameSprite: Boolean (only for home collections), selects whether 
+//                  to get the sprite from their most recent home game,
+//                  rather than their home sprite. 
+//  ballOrder: array, the ball order of the user from their settings.
+//  useByPView: boolean, used for onhand exports if they want to export the byPview
+//  gen: num/string, the gen of the collection
+//}
 
     const buttonStyles = {
         '&.MuiToggleButton-root': {
@@ -233,7 +258,11 @@ export default function OtherOptions({elementBg, collectionId, collectionGen, co
                     </Box>
                 </Box>
             </Box>
-            <Box sx={{width: '90%', height: '20%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: demo ? 0.5 : 1, position: 'absolute', bottom: '5%'}}>
+            <Box sx={{width: '90%', height: '20%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', mt: -1, gap: sw ? 1 : 0}}>
+                <Button size='large' onClick={() => setExportCol(!exportCol)}>Export Collection to CSV</Button>
+            </Box>
+            
+            <Box sx={{width: '90%', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: demo ? 0.5 : 1, position: 'absolute', bottom: '5%'}}>
                 <Button sx={{backgroundColor: '#ED4337', color: 'white', '&.Mui-disabled': {color: 'white'}}} onClick={toggleDeleteCollectionModal} disabled={demo}>Delete Collection</Button>
             </Box>
         </Box>
@@ -290,6 +319,17 @@ export default function OtherOptions({elementBg, collectionId, collectionGen, co
                 } : 
                 undefined
             }
+        />
+        <ExportCollectionModal 
+            sw={sw}
+            open={exportCol}
+            toggleModal={() => setExportCol(!exportCol)}
+            collectionGen={collectionGen}
+            userBallOrder={userBallOrder}
+            nameDisplaySettings={nameDisplaySettings}
+            availableHomeGames={availableHomeGames}
+            useOhByPInit={useOhByPViewInit}
+            collectionName={collectionNameState}
         />
         <SaveChangesConfirmModal 
             open={otherOptions.saveChangesConfirmOpen}

@@ -9,12 +9,11 @@ const allPokemonDexNums = allPokemon.map(p => p.info.special !== undefined ? [p.
 
 export function validateNewOnHand(req, res, next) {
     const {newOnHand, editType} = req.body
-
     if (editType === 'addOnHand') {
         if (Array.isArray(newOnHand)) {
             const validatedOh = []
             newOnHand.forEach(p => {
-                const pokemonSpeciesName = frontendToApiNameFormat(newOnHand.name).toLowerCase()
+                const pokemonSpeciesName = frontendToApiNameFormat(p.name).toLowerCase()
                 const pokemonIdx = allPokemonNames.map(pName => pokemonSpeciesName === pName.toLowerCase()).indexOf(true)
                 const validatedPokemon = pokemonIdx !== -1
                 const validQty = p.qty > 0 && p.qty <= 999
@@ -48,7 +47,6 @@ export function validateNewOnHand(req, res, next) {
             } 
         } 
     } 
-    
     next()
 }
 

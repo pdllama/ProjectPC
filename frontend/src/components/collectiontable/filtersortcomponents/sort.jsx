@@ -1,6 +1,6 @@
 import { Box, Typography, styled, Button, ToggleButton, ToggleButtonGroup, useTheme} from "@mui/material"
 import { useSelector, useDispatch } from 'react-redux'
-import { setSortKey } from "../../../app/slices/collectionstate"
+import { setSortKey, toggleEmptySetView } from "../../../app/slices/collectionstate"
 import MuiToggleButton from '@mui/material/ToggleButton'
 import hexToRgba from "hex-to-rgba"
 import { deselect } from "../../../app/slices/editmode"
@@ -20,6 +20,7 @@ export default function Sort({listType, isEditMode, collection, demo}) {
         }
     })
     const showFullSets = useSelector((state) => state.collectionState.listDisplay.showFullSets)
+    const showEmptySets = useSelector((state) => state.collectionState.listDisplay.showEmptySets)
 
     // const collectionSort = useSelector((state) => state.listDisplay.collectionFilters.sort)
     // const onhandSort = useSelector((state) => state.listDisplay.onhandFilters.sort)
@@ -74,27 +75,53 @@ export default function Sort({listType, isEditMode, collection, demo}) {
             </Box>
         </Box>
         {listType === 'collection' &&
-        <Box sx={{height: '20%', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative'}}>
-            <Button 
-                sx={{
-                    border: `1px solid ${theme.palette.color1.dark}`, 
-                    position: 'absolute',
-                    mt: 1.5, left: '5%',
-                    backgroundColor: hexToRgba(theme.palette.color3.main, 0.75), 
-                    color: theme.palette.color1.main,
-                    padding: 0.5, ml: 2,
-                    fontSize: '11px',
-                    zIndex: 15,
-                    ':hover': {cursor: 'pointer', backgroundColor: hexToRgba(theme.palette.color3.main, 0.75), opacity: 0.65}
-                }}
-                onClick={() => {
-                    dispatch(deselect())
-                    dispatch(toggleFullSetView({useState: (isEditMode || demo), collection: collection.ownedPokemon.filter(p => p.disabled === undefined)}))
-                }}
-            >
-                {showFullSets ? 'Hide' : 'Show'} Full Sets
-            </Button>
-            <Typography sx={{color: 'white', position: 'absolute', mt: 1.5, right: '5%', fontSize: '14px'}}>Full Sets: {showFullSets ? 'Shown' : 'Hidden'}</Typography>
+        <Box sx={{height: '30%', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative'}}>
+            <Box sx={{width: '50%', height: '100%', position: 'relative', ...theme.components.box.fullCenterCol}}>
+                <Button 
+                    sx={{
+                        border: `1px solid ${theme.palette.color1.dark}`, 
+                        position: 'absolute',
+                        top: '5px',
+                        backgroundColor: hexToRgba(theme.palette.color3.main, 0.75), 
+                        color: theme.palette.color1.main,
+                        padding: 0.5,
+                        fontSize: '11px',
+                        zIndex: 15,
+                        ':hover': {cursor: 'pointer', backgroundColor: hexToRgba(theme.palette.color3.main, 0.75), opacity: 0.65}
+                    }}
+                    onClick={() => {
+                        dispatch(deselect())
+                        dispatch(toggleFullSetView({useState: (isEditMode || demo), collection: collection.ownedPokemon.filter(p => p.disabled === undefined)}))
+                    }}
+                >
+                    {showFullSets ? 'Hide' : 'Show'} Full Sets
+                </Button>
+                <Typography sx={{color: 'white', position: 'absolute', fontSize: '11px', bottom: '0px'}}>Full Sets: {showFullSets ? 'Shown' : 'Hidden'}</Typography>
+            </Box>
+            <Box sx={{width: '50%', height: '100%', position: 'relative', ...theme.components.box.fullCenterCol}}>
+                <Button 
+                    sx={{
+                        border: `1px solid ${theme.palette.color1.dark}`, 
+                        position: 'absolute',
+                        top: '5px',
+                        backgroundColor: hexToRgba(theme.palette.color3.main, 0.75), 
+                        color: theme.palette.color1.main,
+                        padding: 0.5,
+                        fontSize: '11px',
+                        zIndex: 15,
+                        ':hover': {cursor: 'pointer', backgroundColor: hexToRgba(theme.palette.color3.main, 0.75), opacity: 0.65}
+                    }}
+                    onClick={() => {
+                        dispatch(deselect())
+                        dispatch(toggleEmptySetView({useState: (isEditMode || demo), collection: collection.ownedPokemon.filter(p => p.disabled === undefined)}))
+                        // dispatch(toggleFullSetView({useState: (isEditMode || demo), collection: collection.ownedPokemon.filter(p => p.disabled === undefined)}))
+                    }}
+                >
+                    {showEmptySets ? 'Hide' : 'Show'} Empty Sets
+                </Button>
+                <Typography sx={{color: 'white', position: 'absolute', fontSize: '11px', bottom: '0px'}}>Empty Sets: {showEmptySets ? 'Shown' : 'Hidden'}</Typography>
+            </Box>
+            
         </Box>
         }
         </>

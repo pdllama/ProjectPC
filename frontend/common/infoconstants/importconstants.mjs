@@ -85,9 +85,26 @@ const aprimonImportFormTemplate = {
     emImport: {import: false}
 }
 
+const exportGameSpriteLink = {
+    9: 'scarlet-violet',
+    'swsh': 'sword-shield',
+    'bdsp': 'brilliant-diamond-shining-pearl',
+    'home': 'home',
+    6: 'bank',
+    7: 'bank'
+}
+
+//for when the user has any-forms and but it needs to be translated to a base case.
+//used primarily for exporting
+const interchangeableAnyBaseCases = {
+    'burmy' : 'plant',
+    'deerling': 'spring',
+    'oricorio': 'pom-pom',
+}
+
 export {
     regions, gapIdentifiers, regionalFormNameIdentifiers, originalRegionalFormNameIdentifiers, 
     additionalOriginRegionalFormNameIdentifiers, allowedAprimonMultipleDexNums, allowedAprimonDuplicateNum, firstLetterAllowedAltForms,
     aprimonGeneralIdentifiers, aprimonSpecificIdentifiers, aprimonAsideInfo,
-    aprimonImportFormTemplate
+    aprimonImportFormTemplate, exportGameSpriteLink, interchangeableAnyBaseCases
 }

@@ -162,11 +162,11 @@ export default function ShowCollection({collection, isCollectionOwner, colorStyl
                         
                     </Tabs>
                     <Box sx={{width: '60%', display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
-                        {collectionLoaderData.gen === 'home' && 
-                            <ChangeAbilitiesView />
+                        {(collectionLoaderData.gen === 'home' && !smallScreen) && 
+                            <ChangeAbilitiesView sw={smallScreen} listType={list}/>
                         }
-                        {list === 'onHand' && 
-                            <ChangeOnHandView isEditMode={isEditMode} demo={demo} collectionLoaderData={collectionLoaderData}/>
+                        {(list === 'onHand' && !smallScreen) && 
+                            <ChangeOnHandView isEditMode={isEditMode} demo={demo} collectionLoaderData={collectionLoaderData} listType={list}/>
                         }
                         <Box sx={{width: '50%', height: '100%', display: 'flex', flexDirection: 'column'}}>
                         </Box>

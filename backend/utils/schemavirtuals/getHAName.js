@@ -35,10 +35,16 @@ export default function getHAName(pokemon) {
         const multipleRegionals = pApiData.info.regionalForm.forms.length !== 1
         if (multipleRegionals) {
             const formNum = pApiData.info.regionalForm.forms.findIndex(f => f.name === regionIdentifier) + 1
+            if (!pApiData.info.HA.name[`alt${formNum}`]) {
+                return pApiData.info.HA.name.reg
+            }
             const ha = pApiData.info.HA.name[`alt${formNum}`]
             return ha
         } else {
             const ha = pApiData.info.HA.name.alt1
+            if (!ha) {
+                return pApiData.info.HA.name.reg
+            }
             return ha
         }
     }

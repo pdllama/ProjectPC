@@ -263,8 +263,8 @@ export default function Filter({listType, collection, isOwner, isEditMode, demo}
                         {generateBallFilters()}
                     </Box>
                     {collection.gen === 'home' &&
-                    <Box sx={{height: '34%', width: '100%', ...theme.components.box.fullCenterRow, mt: 1}}>
-                        <Typography color='white' sx={{fontSize: '12px', textAlign: 'start', mr: 1}}>Available Game:</Typography>
+                    <Box sx={{height: '34%', width: '100%', ...theme.components.box.fullCenterRow, flexDirection: screenSize === 'lg' ? 'column' : 'row', alignItems: screenSize === 'lg' ? 'flex-end' : 'center', mt: 1}}>
+                        <Typography color='white' sx={{fontSize: '12px', textAlign: 'start', mr: 1, textAlign: 'center', width: screenSize === 'lg' ? '60%' : 'auto'}}>Available Game:</Typography>
                         {generateGameFilters()}
                     </Box>}
                 </Box>
