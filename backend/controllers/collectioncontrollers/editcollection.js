@@ -10,7 +10,6 @@ import deleteCollectionController from './deletecollection.js'
 
 export const editCollectionFunc = async(req, res) => {
     const {editType} = req.body
-    console.log('HIT HERE')
     switch(editType) {
         case 'singleValue': return await updateCollectionSingleValue(req, res) 
         case 'tagEdit': return await tagEdit(req, res)
