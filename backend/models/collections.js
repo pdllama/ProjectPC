@@ -266,7 +266,7 @@ collectionSchema.path('ownedPokemon').schema.virtual('imgLink').get(function() {
 })
 
 collectionSchema.path('ownedPokemon').schema.virtual('haName').get(function() {
-    return getHAName(this)
+    return getHAName(this, this.parent().gen)
 })
 
 collectionSchema.path('ownedPokemon').schema.virtual('possibleGender').get(function() {

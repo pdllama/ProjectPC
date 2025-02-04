@@ -111,7 +111,7 @@ export default function DataCell({label, styles, alignment='none', isEditMode, i
                     })}
                     {displayHA && 
                         <Box sx={{display: 'flex', position: 'absolute', width: '100%', bottom: '0px', ...theme.components.box.fullCenterRow}}>
-                            <Typography sx={{fontSize: label.length > 15 ? '9.5px' : '11px', color: theme.palette.color1.light, opacity: nonHAMon ? 0.75 : 1}}>
+                            <Typography sx={{fontSize: haName.length >= 24 ? '8.5px' : haName.length > 20 ? '9px' : '11px', color: theme.palette.color1.light, opacity: nonHAMon ? 0.75 : 1}}>
                                 {nonHAMon ? <i>{haName.slice(0, haName.indexOf(' - '))}</i> : <b>{haName}</b>}
                             </Typography>
                         </Box>

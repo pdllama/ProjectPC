@@ -1401,7 +1401,7 @@ const gen1Info = [{
         natDexNum: 58,
         HA: {
             hasHA: true,
-            name: {reg: "Justified", alt1: "Justified"}
+            name: {reg: "Justified", alt1: "Rock Head"}
         },
         regionalForm: {
             forms: [{name: "Hisuian", gen: 9}]

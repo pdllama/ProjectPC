@@ -113,7 +113,8 @@ const gen4Info = [{
         natDexNum: 393,
         HA: {
             hasHA: true,
-            name: {reg: "Defiant", gen9HA: 'Competitive'}
+            differentGenHA: true,
+            name: {gen9: {reg: 'Competitive'}, reg: "Defiant"}
         }
     },
     specificGenInfo: {
