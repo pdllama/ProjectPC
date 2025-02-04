@@ -278,7 +278,7 @@ collectionSchema.path('onHand').schema.virtual('imgLink').get(function() {
 })
 
 collectionSchema.path('onHand').schema.virtual('haName').get(function() {
-    return getHAName(this)
+    return getHAName(this, this.parent().gen)
 })
 
 collectionSchema.virtual('availableGamesInfo').get(function() {
