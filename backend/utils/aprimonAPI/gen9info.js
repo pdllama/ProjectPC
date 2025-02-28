@@ -1,4 +1,70 @@
 const gen9Info = [{
+    name: "sprigatito",
+    gen: 9,
+    info: {
+        natDexNum: 906,
+        HA: {
+            hasHA: true,
+            name: {reg: "Protean"}
+        }
+    },
+    specificGenInfo: {
+        gen9: {
+            eggmoves: {moves: ['Leech Seed', 'Copycat', 'Sucker Punch', 'Ally Switch', 'Petal Blizzard']},
+            balls: {
+                apriball: {isLegal: true, haIsLegal: true},
+                safari: {isLegal: true, haIsLegal: true},
+                sport: {isLegal: true, haIsLegal: true},
+                beast: {isLegal: true, haIsLegal: true},
+                dream: {isLegal: true, haIsLegal: true}
+            }
+        }
+    }
+}, {
+    name: "fuecoco",
+    gen: 9,
+    info: {
+        natDexNum: 909,
+        HA: {
+            hasHA: true,
+            name: {reg: "Unaware"}
+        }
+    },
+    specificGenInfo: {
+        gen9: {
+            eggmoves: {moves: ['Curse', 'Encore', 'Slack Off', 'Belch']},
+            balls: {
+                apriball: {isLegal: true, haIsLegal: true},
+                safari: {isLegal: true, haIsLegal: true},
+                sport: {isLegal: true, haIsLegal: true},
+                beast: {isLegal: true, haIsLegal: true},
+                dream: {isLegal: true, haIsLegal: true}
+            }
+        }
+    }
+}, {
+    name: "quaxly",
+    gen: 9,
+    info: {
+        natDexNum: 912,
+        HA: {
+            hasHA: true,
+            name: {reg: "Moxie"}
+        }
+    },
+    specificGenInfo: {
+        gen9: {
+            eggmoves: {moves: ['Detect', 'Rapid Spin', 'Roost', 'Last Resort']},
+            balls: {
+                apriball: {isLegal: true, haIsLegal: true},
+                safari: {isLegal: true, haIsLegal: true},
+                sport: {isLegal: true, haIsLegal: true},
+                beast: {isLegal: true, haIsLegal: true},
+                dream: {isLegal: true, haIsLegal: true}
+            }
+        }
+    }
+}, {
     name: "lechonk",
     gen: 9,
     info: {
