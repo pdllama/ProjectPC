@@ -1,6 +1,7 @@
 import Collection from '../../../models/collections.js'
 import { getIndividualPokemonInfo } from '../../../utils/createCollection.js'
 import { getImgLink, getPossibleGender, getPossibleEggMoves, getAvailableHomeGames } from '../../../utils/schemavirtuals/collectionvirtuals.js'
+import getHAName from '../../../utils/schemavirtuals/getHAName.js'
 import { sortList } from '../../../common/sortingfunctions/customsorting.mjs'
 
 export default async function ownedPokemonEdit(req, res) {
@@ -12,9 +13,10 @@ export default async function ownedPokemonEdit(req, res) {
         const newPokemonArr = getIndividualPokemonInfo(gen, newPokemon, ballScope)
         collection.ownedPokemon = collection.options.sorting.collection.reorder ? 
             sortList(collection.options.sorting.collection.default, [...newOwnedCollectionList, ...newPokemonArr]) : [...newOwnedCollectionList, ...newPokemonArr]
+        
         await collection.save()
         const newAddedPokemonState = newPokemonArr.map(mon => {
-            return {...mon, imgLink: getImgLink(mon), possibleGender: getPossibleGender(mon)}
+            return {...mon, imgLink: getImgLink(mon), possibleGender: getPossibleGender(mon), haName: getHAName(mon, collection.gen)}
         })
         const updatedEggMoves = (gen !== 'home') ? getPossibleEggMoves(collection.ownedPokemon, collection.gen) : {}
         const updatedHomeGames = (gen === 'home') ? getAvailableHomeGames(collection.ownedPokemon) : {}

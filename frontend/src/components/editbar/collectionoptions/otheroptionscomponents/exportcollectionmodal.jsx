@@ -4,7 +4,6 @@ import modalStyles from '../../../../../utils/styles/componentstyles/modalstyles
 import ImgData from '../../../collectiontable/tabledata/imgdata'
 import { useState, useRef } from 'react'
 import hexToRgba from 'hex-to-rgba'
-import {CSVLink} from 'react-csv'
 import { convertCollectionToCSV, convertOnHandToCSV } from '../../../../../utils/functions/export/exportmain'
 import { useSelector } from 'react-redux'
 import displayOnHandByPokemon from '../../../../../utils/functions/display/displayonhandbypokemon'

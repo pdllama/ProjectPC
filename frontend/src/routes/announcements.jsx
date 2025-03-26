@@ -7,36 +7,85 @@ export default function Announcements({}) {
     const theme = useTheme()
     const navigate = useNavigate()
 
-    return (
-        <InfoWrapper title='Announcements' wrapperSx={{...theme.components.box.fullCenterCol, justifyContent: 'start'}}>
-            <Box sx={{...theme.components.box.fullCenterCol, width: '100%', mb: 2}}>
-                <Box sx={{...theme.components.box.fullCenterCol, width: '90%', maxWidth: '800px', position: 'relative', border: `1px solid ${theme.palette.color1.dark}`, backgroundColor: hexToRgba(theme.palette.color1.main, 0.9), borderRadius: '10px'}}>
-                    <Box sx={{...theme.components.box.fullCenterCol, alignItems: 'start', height: '100%', justifyContent: 'start', width: '100%', ml: 4, mt: 3}}>
-                        <Typography sx={{fontSize: '36px', color: 'white', fontWeight: 700, '@media only screen and (max-width: 380px)': {fontSize: '28px'}}}>Export Update #1</Typography>
+{/* <Box sx={{...theme.components.box.fullCenterCol, alignItems: 'start', height: '100%', justifyContent: 'start', width: '100%', ml: 4, mt: 3}}>
+                        <Typography sx={{fontSize: '36px', color: 'white', fontWeight: 700, '@media only screen and (max-width: 380px)': {fontSize: '28px'}}}>Bugfixes #1</Typography>
                         <Typography sx={{fontSize: '15px', color: 'white', width: '95%'}}>
-                            A bit late on this update, but some new features and fixes are now available: 
+                            This is a small update regarding some bugs that were fixed. The first one may have affected some users' collections: 
                         </Typography>
                         <Box sx={{...theme.components.box.fullCenterCol, width: '90%', justifyContent: 'start', mt: 1}}>
                             <Box sx={{...theme.components.box.fullCenterCol, width: '100%', alignItems: 'start', gap: 1}}>
-                            <Typography sx={{fontSize: '14px', color: 'white', textIndent: '30px', fontWeight: 700}}>1. You can now export collections and onhands to a csv file by going to Collection Options -&gt; Other Options -&gt; Export Collection to CSV.</Typography>
-                                {/* <Typography sx={{fontSize: '13px', color: 'white', textIndent: '50px'}}> - These are the only two pages that are mobile friendly as of right now, but since they are undoubtedly the most difficult to translate to that format, the other pages shouldn't be too far off.</Typography> */}
-                                {/* <Typography sx={{fontSize: '12px', color: 'white', textIndent: '50px'}}> - Filter out completed sets of pokemon (where they have all ball combinations owned)</Typography>
-                                <Typography sx={{fontSize: '12px', color: 'white', textIndent: '50px'}}> - Reset filters</Typography> */}
-                            <Typography sx={{fontSize: '14px', color: 'white', textIndent: '30px', fontWeight: 700}}>2. Hidden Ability view is now available in all collections, and toggleable for HOME collections (between Available Game view). This shows you what hidden ability a pokemon in the row has.</Typography>
-                            <Typography sx={{fontSize: '14px', color: 'white', textIndent: '30px', fontWeight: 700}}>3. You can now filter by empty sets in collections.</Typography>
-                            <Typography sx={{fontSize: '14px', color: 'white', textIndent: '30px', fontWeight: 700}}>4. Fixed a bug that caused any new onhands to give an "ERROR 500" when trying to save.</Typography>
-                            {/* <Typography sx={{fontSize: '13px', color: 'white', textIndent: '30px'}}> - You can edit almost </Typography>
-                            <Typography sx={{fontSize: '13px', color: 'white', textIndent: '30px'}}> - Changed the color of wanted/pending tags so they pop out more</Typography>
-                            <Typography sx={{fontSize: '13px', color: 'white', textIndent: '30px'}}> - Slightly changed collection importing</Typography> */}
+                            <Typography sx={{fontSize: '14px', color: 'white', textIndent: '30px', fontWeight: 700}}>1. Fixed a bug where users could make multiple of the same type of collection.</Typography>
+                            <Typography sx={{fontSize: '13px', color: 'white', textIndent: '50px'}}> - This was disallowed in order to reduce space used. If you need to partition the same type of collection into different parts, please look forward to the upcoming May update which will allow you to have different sheets in the same collection.</Typography>
+                                <Typography sx={{fontSize: '13px', color: 'white', textIndent: '50px'}}> - Some users' <b>empty collections have been deleted</b> as a result. If you were one of those affected, you will receive a notification. </Typography>
+                                <Typography sx={{fontSize: '12px', color: 'white', textIndent: '50px'}}> - If you were one of the users affected, and want to regain access to the collection, please <a href="/info/contact-us">contact me</a> while logged in to either have the collection added as a sheet to your current one in the upcoming update, or have a link to the collection in a google sheet.</Typography>
+                            <Typography sx={{fontSize: '14px', color: 'white', textIndent: '30px', fontWeight: 700}}>2. Fixed a bug which caused an error when seeing a HOME collection with evolved regional pokemon in it (due to an oversight in the previous update).</Typography>
                         </Box>
                         <Box sx={{...theme.components.box.fullCenterCol, width: '100%', justifyContent: 'start', alignItems: 'start', mt: 1, gap: 1}}>
-                        <Typography sx={{color: 'white', fontSize: '15px', width: '95%', textIndent: '30px', mt: 2, textAlign: 'left'}}>The exporting functionality is still being refined so you can expect to see an improved interface, along with automatic google sheet construction, sometime in the future.</Typography>
+                        <Typography sx={{color: 'white', fontSize: '15px', width: '95%', textIndent: '30px', mt: 2, textAlign: 'left'}}>On top of this, the images column when exporting a collection will be updated to have more uniform images. This silent update will take place by the end of today.</Typography>
                         </Box>
                         <Typography sx={{color: 'white', fontSize: '14px', mt: 3}}>
                             Thanks again for using the site!
                         </Typography>
                         </Box>
-                        <Typography sx={{position: 'absolute', top: '3px', right: '5px', fontSize: '12px', color: 'white'}}>February 3, 2025</Typography>
+                        <Typography sx={{position: 'absolute', top: '3px', right: '5px', fontSize: '12px', color: 'white'}}>March 26, 2025</Typography>
+                    </Box> */}
+
+    return (
+        <InfoWrapper title='Announcements' wrapperSx={{...theme.components.box.fullCenterCol, justifyContent: 'start'}}>
+            <Box sx={{...theme.components.box.fullCenterCol, width: '100%', mb: 2}}>
+                <Box sx={{...theme.components.box.fullCenterCol, width: '90%', maxWidth: '800px', position: 'relative', border: `1px solid ${theme.palette.color1.dark}`, backgroundColor: hexToRgba(theme.palette.color1.main, 0.9), borderRadius: '10px'}}>
+                    <Box sx={{...theme.components.box.fullCenterCol, alignItems: 'start', height: '100%', justifyContent: 'start', width: '100%', ml: 4, mt: 3}}>
+                    <Typography sx={{fontSize: '36px', color: 'white', fontWeight: 700, '@media only screen and (max-width: 380px)': {fontSize: '28px'}}}>Bugfixes #1</Typography>
+                    <Typography sx={{fontSize: '15px', color: 'white', width: '95%'}}>
+                        This is a small update regarding some bugs that were fixed. The first one may have affected some users' collections: 
+                    </Typography>
+                    <Box sx={{...theme.components.box.fullCenterCol, width: '90%', justifyContent: 'start', mt: 1}}>
+                        <Box sx={{...theme.components.box.fullCenterCol, width: '100%', alignItems: 'start', gap: 1}}>
+                        <Typography sx={{fontSize: '14px', color: 'white', textIndent: '30px', fontWeight: 700}}>1. Fixed a bug where users could make multiple of the same type of collection.</Typography>
+                        <Typography sx={{fontSize: '13px', color: 'white', textIndent: '50px'}}> - This was disallowed in order to reduce space used. If you need to partition the same type of collection into different parts, please look forward to the upcoming May update which will allow you to have different sheets in the same collection.</Typography>
+                            <Typography sx={{fontSize: '13px', color: 'white', textIndent: '50px'}}> - Some users' <b>empty collections have been deleted</b> as a result. If you were one of those affected, you will receive a notification. </Typography>
+                            <Typography sx={{fontSize: '12px', color: 'white', textIndent: '50px'}}> - If you were one of the users affected, and want to regain access to the collection, please <a href="/info/contact-us">contact me</a> while logged in to either have the collection added as a sheet to your current one in the upcoming update, or have a link to the collection in a google sheet.</Typography>
+                        <Typography sx={{fontSize: '14px', color: 'white', textIndent: '30px', fontWeight: 700}}>2. Fixed a bug which caused an error when seeing a HOME collection with evolved regional pokemon in it (due to an oversight in the previous update).</Typography>
+                        </Box>
+                        <Box sx={{...theme.components.box.fullCenterCol, width: '100%', justifyContent: 'start', alignItems: 'start', mt: 1, gap: 1}}>
+                        <Typography sx={{color: 'white', fontSize: '15px', width: '95%', textIndent: '30px', mt: 2, textAlign: 'left'}}>On top of this, the images column when exporting a collection will be updated to have more uniform images. This silent update will take place by the end of today.</Typography>
+                        </Box>
+                        <Typography sx={{color: 'white', fontSize: '14px', mt: 3}}>
+                            Thanks again for using the site!
+                        </Typography>
+                    </Box>
+                    <Typography sx={{position: 'absolute', top: '3px', right: '5px', fontSize: '12px', color: 'white'}}>March 26, 2025</Typography>
+                </Box>
+                </Box>
+            </Box>
+            <Box sx={{...theme.components.box.fullCenterCol, width: '100%', mb: 2}}>
+                <Box sx={{...theme.components.box.fullCenterCol, width: '90%', maxWidth: '800px', position: 'relative', border: `1px solid ${theme.palette.color1.dark}`, backgroundColor: hexToRgba(theme.palette.color1.main, 0.9), borderRadius: '10px'}}>
+                    <Box sx={{...theme.components.box.fullCenterCol, alignItems: 'start', height: '100%', justifyContent: 'start', width: '100%', ml: 4, mt: 3}}>
+                    <Typography sx={{fontSize: '36px', color: 'white', fontWeight: 700, '@media only screen and (max-width: 380px)': {fontSize: '28px'}}}>Export Update #1</Typography>
+                <Typography sx={{fontSize: '15px', color: 'white', textIndent: '30px', width: '95%'}}>
+                    A bit late on this update, but some new features and fixes are now available: 
+                </Typography>
+                <Box sx={{...theme.components.box.fullCenterCol, width: '90%', justifyContent: 'start', mt: 1}}>
+                    <Box sx={{...theme.components.box.fullCenterCol, width: '100%', alignItems: 'start', gap: 1}}>
+                    <Typography sx={{fontSize: '14px', color: 'white', textIndent: '30px', fontWeight: 700}}>1. You can now export collections and onhands to a csv file by going to Collection Options -&gt; Other Options -&gt; Export Collection to CSV.</Typography>
+                        {/* <Typography sx={{fontSize: '13px', color: 'white', textIndent: '50px'}}> - These are the only two pages that are mobile friendly as of right now, but since they are undoubtedly the most difficult to translate to that format, the other pages shouldn't be too far off.</Typography> */}
+                        {/* <Typography sx={{fontSize: '12px', color: 'white', textIndent: '50px'}}> - Filter out completed sets of pokemon (where they have all ball combinations owned)</Typography>
+                        <Typography sx={{fontSize: '12px', color: 'white', textIndent: '50px'}}> - Reset filters</Typography> */}
+                    <Typography sx={{fontSize: '14px', color: 'white', textIndent: '30px', fontWeight: 700}}>2. Hidden Ability view is now available in all collections, and toggleable for HOME collections (between Available Game view). This shows you what hidden ability a pokemon in the row has.</Typography>
+                    <Typography sx={{fontSize: '14px', color: 'white', textIndent: '30px', fontWeight: 700}}>3. You can now filter by empty sets in collections.</Typography>
+                    <Typography sx={{fontSize: '14px', color: 'white', textIndent: '30px', fontWeight: 700}}>4. Fixed a bug that caused any new onhands to give an "ERROR 500" when trying to save.</Typography>
+                    {/* <Typography sx={{fontSize: '13px', color: 'white', textIndent: '30px'}}> - You can edit almost </Typography>
+                    <Typography sx={{fontSize: '13px', color: 'white', textIndent: '30px'}}> - Changed the color of wanted/pending tags so they pop out more</Typography>
+                    <Typography sx={{fontSize: '13px', color: 'white', textIndent: '30px'}}> - Slightly changed collection importing</Typography> */}
+                </Box>
+                <Box sx={{...theme.components.box.fullCenterCol, width: '100%', justifyContent: 'start', alignItems: 'start', mt: 1, gap: 1}}>
+                  <Typography sx={{color: 'white', fontSize: '15px', width: '95%', textIndent: '30px', mt: 2, textAlign: 'left'}}>The exporting functionality is still being refined so you can expect to see an improved interface, along with automatic google sheet construction, sometime in the future.</Typography>
+                </Box>
+                <Typography sx={{color: 'white', fontSize: '14px', mt: 3, mb: 5}}>
+                    Thanks again for using the site!
+                </Typography>
+                </Box>
+                <Typography sx={{position: 'absolute', top: '3px', right: '5px', fontSize: '12px', color: 'white'}}>February 3, 2025</Typography>
                     </Box>
                 </Box>
             </Box>

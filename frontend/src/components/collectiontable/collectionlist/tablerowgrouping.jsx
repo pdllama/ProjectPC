@@ -104,7 +104,7 @@ export function TableRowGroupingNoRedux({columns, row, id, collectionId, ownerId
 }
 
 //dont remove id, mapStateToProps uses it
-function TableRowGrouping({columns, row, id, collectionId, ownerId, styles, isSelected, setSelected, isEditMode, demo, isHomeCollection, userData}) {
+function TableRowGrouping({columns, row, id, collectionId, ownerId, styles, isSelected, setSelected, isEditMode, demo, isHomeCollection, userData}) {    
     const dispatch = useDispatch()
     // console.log(`rendered ${row.name}`)
 

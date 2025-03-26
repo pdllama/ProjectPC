@@ -64,8 +64,7 @@ export default function CollectionTypeCard({collectionType, idx, subTypes, subTy
                     const backgroundColor = evenIdx ? '#94918f' : '#545250'
                     const color = evenIdx ? 'black' : 'white'
                     const height = `${85/subTypes.length}%`
-                    const adjustedSubType = subType.includes('Gen') ? subType.slice(4, subType.length) : subType.includes('/') ? subType.replace('/', '').toLowerCase() : subType.toLowerCase()
-                    const disabledSelection = !demo && userData.collections.filter(col => col.gen === adjustedSubType).length !== 0
+                    const disabledSelection = !demo && userData.collections.filter(col => col.gen === subTypeValues[idx].toString()).length !== 0
                     return (
                         <Box sx={{width: '100%', backgroundColor, height, maxHeight: '50px', display: 'flex', alignItems: 'center'}} key={`${collectionType}-subtype-${subType}-selection`}>
                             <Button 
