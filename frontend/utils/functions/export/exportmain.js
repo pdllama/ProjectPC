@@ -23,6 +23,8 @@ import { capitalizeFirstLetter } from "../misc";
 // normal: just normal mon name
 // regionals: monName-regional(ian)
 // alts: monName-formidentifier
+
+//unused - we use our own 
 function getPokemonDBSpriteLink(name, spriteSrcGame, gameSpriteOverride=undefined) {
     const gameLinkKey = exportGameSpriteLink[gameSpriteOverride ? gameSpriteOverride : spriteSrcGame]
     let nameLinkKey = ''
@@ -63,14 +65,20 @@ function getPokemonDBSpriteLink(name, spriteSrcGame, gameSpriteOverride=undefine
     return `https://img.pokemondb.net/sprites/${gameLinkKey}/normal/${nameLinkKey}.png`
 }
 
+function getCloudinaryLink(imgLink, spriteSrcGame, gameSpriteOverride) {
+    const gameLinkKey = exportGameSpriteLink[gameSpriteOverride ? gameSpriteOverride : spriteSrcGame]
+    return `https://res.cloudinary.com/pokellectionspublic/image/upload/sprites/${gameLinkKey}/${imgLink}.png`
+}
+
+
 function convertBasicInfoLine(p, convertOptions, genOverride, nameDisplaySettings) {
-    return  `${p.natDexNum},IMAGE("${getPokemonDBSpriteLink(p.name, convertOptions.gen, genOverride)}"),${getNameDisplay(nameDisplaySettings, p.name, p.natDexNum)},`
+    return  `${p.natDexNum},IMAGE("${getCloudinaryLink(p.imgLink, convertOptions.gen, genOverride)}"),${getNameDisplay(nameDisplaySettings, p.name, p.natDexNum)},`
 }
 
 function convertIsOwnedData(bData, imgBallData, ball) {
     return bData === undefined ? ',' : 
         !imgBallData ? `${bData.isOwned ? 'TRUE' : 'FALSE'},` : 
-        bData.isOwned ? `IMAGE("${`https://res.cloudinary.com/duaf1qylo/image/upload/balls/${ball}.png`}"),` : ','
+        bData.isOwned ? `IMAGE("${`https://res.cloudinary.com/pokellectionspublic/image/upload/sprites/balls/${ball}.png`}"),` : ','
 }
 
 function convertIsHAData(bData) {
@@ -180,16 +188,12 @@ function convertOnHandToCSV(onhandList, convertOptions, nameDisplaySettings, ava
                 if (finalLabel) {
                     line+=finalLabel
                 } else {
-                    // if (isImgCol) {
-                    //     if (col === 'gender' && (p.gender === 'unknown' || p.gender === 'genderless')) {
-                    //         if (p.gender === 'unknown') {line+=',<i>Unknown</i>'} 
-                    //         else {line+=',<i>N/A</i>'}
-                    //     } else {
+
                     if (isImgCol) {
                         if (convertOptions.ohRawBallData) {
                             line+=`,${capitalizeFirstLetter(col === 'gender' ? p.gender : p.ball)}`
                         } else {
-                            line+=`,IMAGE("https://res.cloudinary.com/duaf1qylo/image/upload/${col === 'gender' ? 'icons' : 'balls'}/${col === 'gender' ? p.gender : p.ball}.png")` 
+                            line+=`,IMAGE("https://res.cloudinary.com/pokellectionspublic/image/upload/sprites/${col === 'gender' ? 'icons' : 'balls'}/${col === 'gender' ? p.gender : p.ball}.png")` 
                         }
                     } else if (col === 'isHA') {
                         line+=`,${p.isHA ? 'TRUE' : 'FALSE'}`

@@ -40,6 +40,8 @@ function getImgLink(p) {
                     //Alcremie (Strawberry Matcha Cream)
                     //         ^          ^      ^
                     //      startindex   2ndspac 3rdspace
+                    //result: 869-(sweetName)(creamName)(c for cream or s for swirl of cream)
+                    // ex: 869-berryrubys (Alcremie - Berry Sweet, Ruby Swirl)
                     const indexOfSecondSpace = p.name.indexOf(' ', startIndex)
                     
                     const indexOfThirdSpace = p.name.indexOf(' ', indexOfSecondSpace+1)

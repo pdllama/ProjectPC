@@ -4,7 +4,6 @@ import modalStyles from '../../../../../utils/styles/componentstyles/modalstyles
 import ImgData from '../../../collectiontable/tabledata/imgdata'
 import { useState, useRef } from 'react'
 import hexToRgba from 'hex-to-rgba'
-import {CSVLink} from 'react-csv'
 import { convertCollectionToCSV, convertOnHandToCSV } from '../../../../../utils/functions/export/exportmain'
 import { useSelector } from 'react-redux'
 import displayOnHandByPokemon from '../../../../../utils/functions/display/displayonhandbypokemon'
@@ -63,7 +62,11 @@ export default function ExportCollectionModal({sw, open, toggleModal, collection
     const generateCSV = () => {
         const listToUse = exportOptions.tab === 'collection' ? collectionList.filter(p => !p.disabled) : exportOptions.convertOptions.useByPView ? displayOnHandByPokemon(onhandList, collectionList) : onhandList
         const functionToUse = exportOptions.tab === 'collection' ? convertCollectionToCSV : convertOnHandToCSV
-        const blob = new Blob([functionToUse(listToUse, {...exportOptions.convertOptions, ballOrder: tentativeBallOrder}, nameDisplaySettings, availableHomeGames)], {type: 'text/csv'})
+        const blob = new Blob([
+            functionToUse(listToUse, {...exportOptions.convertOptions, ballOrder: tentativeBallOrder}, nameDisplaySettings, availableHomeGames)
+        ], 
+        {type: 'text/csv'}
+        )
 
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a')

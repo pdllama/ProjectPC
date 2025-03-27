@@ -85,13 +85,14 @@ const aprimonImportFormTemplate = {
     emImport: {import: false}
 }
 
+//the key to pokellectionspublic for the sprites when exporting
 const exportGameSpriteLink = {
-    9: 'scarlet-violet',
-    'swsh': 'sword-shield',
-    'bdsp': 'brilliant-diamond-shining-pearl',
+    9: 'sv',
+    'swsh': 'swsh',
+    'bdsp': 'bdsp',
     'home': 'home',
-    6: 'bank',
-    7: 'bank'
+    6: 'general',
+    7: 'general'
 }
 
 //for when the user has any-forms and but it needs to be translated to a base case.

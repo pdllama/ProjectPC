@@ -18,6 +18,8 @@
     "@reduxjs/toolkit": "^1.9.5",
     "@vitejs/plugin-react": "^4.0.3",
     "hex-to-rgba": "^2.0.1",
+    "jszip": "^3.10.1",
+    "jszip-utils": "^0.1.0",
     "letter-to-number": "^1.0.0",
     "react": "^18.2.0",
     "react-beautiful-dnd": "^13.1.1",

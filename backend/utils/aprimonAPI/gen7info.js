@@ -9,6 +9,18 @@ const gen7Info = [{
         }
     },
     specificGenInfo: {
+        gen8: {
+            eggmoves: {moves: ['Double Team', 'Confuse Ray', 'Knock Off', 'Defog']},
+            balls: {
+                swsh: {
+                    apriball: {isLegal: true, haIsLegal: true},
+                    safari: {isLegal: true, haIsLegal: true},
+                    sport: {isLegal: true, haIsLegal: true},
+                    beast: {isLegal: true, haIsLegal: true},
+                    dream: {isLegal: true, haIsLegal: true}
+                }
+            }
+        },
         gen9: {
             eggmoves: {moves: ['Double Team', 'Confuse Ray', 'Knock Off', 'Roost', 'Defog']},
             balls: {
@@ -33,6 +45,18 @@ const gen7Info = [{
         species: 'Decidueye'
     },
     specificGenInfo: {
+        gen8: {
+            eggmoves: {moves: ['Double Team', 'Confuse Ray', 'Knock Off', 'Defog']},
+            balls: {
+                swsh: {
+                    apriball: {isLegal: true, haIsLegal: true},
+                    safari: {isLegal: true, haIsLegal: true},
+                    sport: {isLegal: true, haIsLegal: true},
+                    beast: {isLegal: true, haIsLegal: true},
+                    dream: {isLegal: true, haIsLegal: true}
+                }
+            }
+        },
         gen9: {
             eggmoves: {moves: ['Double Team', 'Confuse Ray', 'Knock Off', 'Roost', 'Defog']},
             balls: {
@@ -55,6 +79,18 @@ const gen7Info = [{
         }
     },
     specificGenInfo: {
+        gen8: {
+            eggmoves: {moves: ['Fake Out', 'Parting Shot', 'Power Trip']},
+            balls: {
+                swsh: {
+                    apriball: {isLegal: true, haIsLegal: true},
+                    safari: {isLegal: true, haIsLegal: true},
+                    sport: {isLegal: true, haIsLegal: true},
+                    beast: {isLegal: true, haIsLegal: true},
+                    dream: {isLegal: true, haIsLegal: true}
+                }
+            }
+        },
         gen9: {
             eggmoves: {moves: ['Fake Out', 'Parting Shot', 'Power Trip']},
             balls: {
@@ -77,6 +113,18 @@ const gen7Info = [{
         }
     },
     specificGenInfo: {
+        gen8: {
+            eggmoves: {moves: ['Perish Song', 'Aqua Ring', 'Life Dew']},
+            balls: {
+                swsh: {
+                    apriball: {isLegal: true, haIsLegal: true},
+                    safari: {isLegal: true, haIsLegal: true},
+                    sport: {isLegal: true, haIsLegal: true},
+                    beast: {isLegal: true, haIsLegal: true},
+                    dream: {isLegal: true, haIsLegal: true}
+                }
+            }
+        },
         gen9: {
             eggmoves: {moves: ['Perish Song', 'Aqua Ring', 'Life Dew']},
             balls: {
