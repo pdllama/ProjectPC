@@ -237,7 +237,7 @@ export default function NewCollection({demo=false}) {
             <Box sx={{height: '100%', mt: 3, mx: 1, width: '100%', maxWidth: '1200px'}}> 
                 <CreationProgress progress={creationProgress} />
                 {(formBodyProgress === 0 || slideClasses.step1 !== 'none') && 
-                    <CollectionTypeSelection handleChange={handleCollectionTypeChange} cssClass={slideClasses.step1} userData={userData} demo={true}/>
+                    <CollectionTypeSelection handleChange={handleCollectionTypeChange} cssClass={slideClasses.step1} userData={userData} demo={demo}/>
                 }
                 {(formBodyProgress === 25 || slideClasses.step2 !== 'none') && 
                     <ImportSelection 

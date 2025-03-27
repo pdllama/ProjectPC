@@ -132,28 +132,41 @@ function getIndividualPokemonInfo(gen, newPokemon, ballScope) {
     const formattedGen = `gen${parsedGen}` //this formats gen to how its organized in the database
     return (
         allPokemon.map(pokemon => {
-            const pokemonInNewPokemonArr = pokemon.info.special !== undefined ? (newPokemon.filter(nPoke => nPoke.natDexNum === pokemon.info.natDexNum || nPoke.natDexNum === pokemon.info.special.child.natDexNum)[0]) : newPokemon.filter(nPoke => nPoke.natDexNum === pokemon.info.natDexNum)[0]
-            const getPokemonInfo = pokemonInNewPokemonArr !== undefined
+            const pokemonInNewPokemonArr = pokemon.info.special !== undefined ? (newPokemon.filter(nPoke => nPoke.natDexNum === pokemon.info.natDexNum || nPoke.natDexNum === pokemon.info.special.child.natDexNum)) : newPokemon.filter(nPoke => nPoke.natDexNum === pokemon.info.natDexNum)
+            const getPokemonInfo = pokemonInNewPokemonArr[0] !== undefined
             if (getPokemonInfo) {
-                // const ballsPath = parsedGen === 8 ? pokemon.specificGenInfo[formattedGen].balls[game] : pokemon.specificGenInfo[formattedGen].balls
-                const ballsPath = getBallPath(pokemon, gen, formattedGen, game)
-                const isBabyPokemon = pokemon.info.special !== undefined && pokemon.info.special.child.natDexNum === pokemonInNewPokemonArr.natDexNum
-                const ownedBallList = setOwnedBallList(formattedGen, ballsPath, pokemon, false, gen === 'home')
-                const pokemonInfo = {
-                    //below condition true means it's interchangeable any
-                    name: interchangeableAltFormMons.includes(pokemonInNewPokemonArr.name) ? `${pokemonInNewPokemonArr.name} (Any)` : pokemonInNewPokemonArr.name, 
-                    natDexNum: pokemonInNewPokemonArr.natDexNum,
-                    gen: isBabyPokemon ? pokemon.info.special.child.gen : pokemon.gen,
-                    balls: ownedBallList
+                const multipleToBeAdded = pokemonInNewPokemonArr.length > 1
+                if (multipleToBeAdded) {
+                    const pokemonData = pokemonInNewPokemonArr.map(p => {
+                        return setIndividualPokemonData(pokemon, p, gen, formattedGen, game, ballScope)
+                    })
+                    return pokemonData
+                } else {
+                    //i put it in an array just so the .flat (which is needed in case of above) doesnt cause any potential issues.
+                    return [setIndividualPokemonData(pokemon, pokemonInNewPokemonArr[0], gen, formattedGen, game, ballScope)]
                 }
-                // pokemonInfo.imgLink = getImgLink(pokemonInfo)
-                // pokemonInfo.possibleGender = getPossibleGender(pokemonInfo)
-                return removeBallsOutsideScope(pokemonInfo, ballScope, {}, undefined)
             } else {
                 return undefined
             }
-        }).filter(mon => mon !== undefined)
+        }).filter(mon => mon !== undefined).flat()
     )
+}
+
+function setIndividualPokemonData(apiPokemon, pokemonInNewPokemonArr, gen, formattedGen, game, ballScope) {
+    // const ballsPath = parsedGen === 8 ? pokemon.specificGenInfo[formattedGen].balls[game] : pokemon.specificGenInfo[formattedGen].balls
+    const ballsPath = getBallPath(apiPokemon, gen, formattedGen, game)
+    const isBabyPokemon = apiPokemon.info.special !== undefined && apiPokemon.info.special.child.natDexNum === pokemonInNewPokemonArr.natDexNum
+    const ownedBallList = setOwnedBallList(formattedGen, ballsPath, apiPokemon, false, gen === 'home')
+    const pokemonInfo = {
+        //below condition true means it's interchangeable any
+        name: interchangeableAltFormMons.includes(pokemonInNewPokemonArr.name) ? `${pokemonInNewPokemonArr.name} (Any)` : pokemonInNewPokemonArr.name, 
+        natDexNum: pokemonInNewPokemonArr.natDexNum,
+        gen: isBabyPokemon ? apiPokemon.info.special.child.gen : apiPokemon.gen,
+        balls: ownedBallList
+    }
+    // pokemonInfo.imgLink = getImgLink(pokemonInfo)
+    // pokemonInfo.possibleGender = getPossibleGender(pokemonInfo)
+    return removeBallsOutsideScope(pokemonInfo, ballScope, {}, undefined)
 }
 
 class Collection {

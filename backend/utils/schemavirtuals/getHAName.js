@@ -42,8 +42,7 @@ const handleForRegionalAndAlt = (pApiData, pName, altWithDifferentHAs, isRegiona
 export default function getHAName(pokemon, collectionGen) {
     const pApiData = selectPokemonInfo(pokemon.name, pokemon.gen, pokemon.natDexNum)
     const altWithDifferentHAs = pApiData.info.alternateForm !== undefined && pApiData.info.alternateForm.ha !== undefined
-    const isRegional = pokemon.name.includes(' ') && (!pokemon.name.includes('(') || pokemon.name.includes('Tauros')) 
-        && !pokemonNamesWithSpaces.includes(pokemon.name)
+    const isRegional = pApiData.info.regionalForm !== undefined
 
     if (pApiData.info.HA.differentGenHA) { //currently only applies to piplup. can only reach this route if they have an ha
         const formattedGen = getAPIGenFormat(collectionGen)
