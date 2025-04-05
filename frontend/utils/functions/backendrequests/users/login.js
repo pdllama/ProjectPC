@@ -18,7 +18,14 @@ const userLoginRequest = async(userData) => {
         else if (data.status === 500) {return {ok: false, load: intServerError}}
         else if (!data.ok) {return {ok: false, load: await data.json()}}
         else  { return {ok: true, load: {successful: true, sessionID: data.text()}}}
-    })
+    }).catch(e => {return {
+        ok: false,
+        load: {
+            name: 'Internal Server Error',
+            message: "Our server has encountered an unexpected error!",
+            status: 500
+        }
+    }})
 }
 
 export default userLoginRequest

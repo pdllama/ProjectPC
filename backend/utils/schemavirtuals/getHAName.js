@@ -1,6 +1,7 @@
 import { pokemonNamesWithSpaces } from "../../common/infoconstants/pokemonconstants.mjs";
 import { getAPIGenFormat } from "../CreateCollection/createutils.js";
 import allPokemon from "../aprimonAPI/allpokemoninfo.js";
+import { regionIdentifiers } from "../../common/infoconstants/miscconstants.mjs";
 import { selectPokemonInfo } from "./infoandotherfuncs.js";
 
 // const extractHA = (haObj, ) => {
@@ -42,7 +43,7 @@ const handleForRegionalAndAlt = (pApiData, pName, altWithDifferentHAs, isRegiona
 export default function getHAName(pokemon, collectionGen) {
     const pApiData = selectPokemonInfo(pokemon.name, pokemon.gen, pokemon.natDexNum)
     const altWithDifferentHAs = pApiData.info.alternateForm !== undefined && pApiData.info.alternateForm.ha !== undefined
-    const isRegional = pApiData.info.regionalForm !== undefined
+    const isRegional = pApiData.info.regionalForm !== undefined && regionIdentifiers.filter(rP => pokemon.name.includes(rP)).length !== 0
 
     if (pApiData.info.HA.differentGenHA) { //currently only applies to piplup. can only reach this route if they have an ha
         const formattedGen = getAPIGenFormat(collectionGen)

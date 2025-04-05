@@ -12,7 +12,7 @@ import { hideEmptySets } from "../../../utils/functions/display/emptysetview";
 const backendurl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000'
 
 export const fetchCollectionData = createAsyncThunk('collection/fetchCollectionStatus', async(colId) => {
-    const response = await fetch(`${backendurl}/collections/${colId}`).then(res => res.json())
+    const response = await fetch(`${backendurl}/collections/${colId}`).then(res => res.json()).catch(e => {return {status: 500, name: 'Internal Server Error', message: 'We cannot communicate with our servers at the moment. Please try again later.'}})
     return response
 })
 
@@ -133,6 +133,9 @@ const collectionState = createSlice({
     extraReducers: (builder) => {
         builder
             .addCase(fetchCollectionData.fulfilled, (state, action) => {
+                if (action.payload.status === 500) {
+                    return state
+                }
                 state.collection = action.payload.ownedPokemon
                 if (state.listDisplay.collection.length === 0) {state.listDisplay.collection = action.payload.ownedPokemon.filter(p => !p.disabled)}
 

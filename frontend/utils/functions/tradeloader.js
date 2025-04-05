@@ -8,6 +8,7 @@ export default async function tradeLoader({params}, getFullCollectionData=false)
             "Content-Type": "application/json",
         }
     }).then(res => res.json())
+    .catch(e => {return {status: 500, name: 'Internal Server Error', message: 'We cannot communicate with our servers at the moment. Please try again later.'}})
     // .then(async(res) => {
     //     const data = await res.json()
     //     if (res.ok) {return data}

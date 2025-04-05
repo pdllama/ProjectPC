@@ -1,4 +1,5 @@
-import { useTheme, Box, Typography, ToggleButton, ToggleButtonGroup, Button } from "@mui/material"; 
+import { useTheme, Box, Typography, ToggleButton, ToggleButtonGroup, Button, CircularProgress} from "@mui/material"; 
+import DotWaitingText from "../components/functionalcomponents/dotwaitingtext";
 import { useState, useRef, useEffect, useTransition, useContext } from "react";
 import { ErrorContext } from "../app/contexts/errorcontext";
 import SearchIcon from '@mui/icons-material/Search';
@@ -48,7 +49,7 @@ export default function Search({}) {
         const errorFunc = (errorData) => {
             setSearchData({...searchData, error: true, errorData, searching: false})
         }
-        handleError(backendFunc, false, successFunc, errorFunc)
+        handleError(backendFunc, false, successFunc, errorFunc, false, true)
         // if (changeSearchType) {
         //     const newSearchResult = await searchDB(newSearchType, query, pageNum)
         //     setSearchData({...searchData, queryFunction: query, result: newSearchResult, page: 1, type: newSearchType})
@@ -120,6 +121,17 @@ export default function Search({}) {
                 useRegex={true}
             />
             {searchData.error ? 
+            searchData.searching ? 
+            <Box sx={{width: '80%', minHeight: '600px', mt: 2}}>
+                <Box sx={{...theme.components.box.fullCenterCol, width: '100%', height: '50px', mt: 10}}>
+                    <Typography sx={{color: 'grey', mb: 2}}>
+                    <i>
+                        Searching<DotWaitingText/>
+                    </i>
+                    </Typography>
+                    <CircularProgress/>
+                </Box>
+            </Box> : 
             <Box sx={{width: '80%', minHeight: '600px', mt: 2, ...theme.components.box.fullCenterCol, justifyContent: 'start'}}>
                 <Typography sx={{fontSize: '24px', color: 'rgb(200, 50, 50)', fontWeight: 700, mb: 2, mt: 10}}>
                     Error {searchData.errorData.status}: {searchData.errorData.name}

@@ -150,6 +150,7 @@ export default function OnHandPokemonSelectionForm({collectionID, speciesEditOnl
             dispatch(setPokemonSpecies({
                 id: initialPokemonData._id,
                 imgLink: pokemonData.selection.imgLink,
+                haName: pokemonData.selection.haName,
                 pokemonData: sharedData,
                 sortingOptions
             }))
@@ -341,7 +342,8 @@ export default function OnHandPokemonSelectionForm({collectionID, speciesEditOnl
         }
         const stateInfo = {
             ...saveToDataBase,
-            imgLink: data.selection.imgLink
+            imgLink: data.selection.imgLink,
+            haName: data.selection.haName
         }
         return {saveToDataBase, stateInfo}
     }

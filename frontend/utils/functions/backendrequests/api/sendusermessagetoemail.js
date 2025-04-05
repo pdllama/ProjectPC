@@ -9,4 +9,12 @@ export default async function sendUserMessageToEmailBackend(reason, subject, tex
         },
         body: JSON.stringify({reason, subject, text, username}),
     }).then(async(data) => {return await handleApiResponse(data, false)})
+    .catch(e => {return {
+        ok: false,
+        load: {
+            name: 'Internal Server Error',
+            message: "Our server has encountered an unexpected error!",
+            status: 500
+        }
+    }})
 } 

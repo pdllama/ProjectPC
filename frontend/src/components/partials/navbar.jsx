@@ -44,6 +44,8 @@ export default function NavBar() {
         }
     }
 
+    const cannotCommunicateWithServer = userData.connectionFailed
+
     const screenBreakpoint = useSelector((state) => selectScreenBreakpoint(state, 'navbar'))
     
     const superSmallSc = screenBreakpoint === 'super-sm' || screenBreakpoint === 'tiny'
@@ -139,10 +141,10 @@ export default function NavBar() {
         handleError(backendFunc, false, successFunc, () => {setLoggingInOrOut(false)})
     }
 
-    const icons = userData.loggedIn ? ['homeicon', 'search', 'createcollection', 'user'] : ['homeicon', 'search', 'createcollection', 'login']
-    const iconLinks = userData.loggedIn ? ['/', '/search', '/collections/new', `/users/${userData.username}`] : ['/', '/search', '/demo-collection/new', '/login']
+    const icons = !cannotCommunicateWithServer && userData.loggedIn ? ['homeicon', 'search', 'createcollection', 'user'] : ['homeicon', 'search', 'createcollection', 'login']
+    const iconLinks = !cannotCommunicateWithServer && userData.loggedIn ? ['/', '/search', '/collections/new', `/users/${userData.username}`] : ['/', '/search', '/demo-collection/new', '/login']
     const userProfileOptions = ['Notifications', 'Profile', 'Collections', 'Trades', 'Settings', 'Logout']
-    const unreadNotificationsAmount = userData.loggedIn && userData.user.notifications.map((noti) => noti.unread ? 1 : 0).reduce((accumulator, currValue) => accumulator+currValue, 0)
+    const unreadNotificationsAmount = !cannotCommunicateWithServer && userData.loggedIn && userData.user.notifications.map((noti) => noti.unread ? 1 : 0).reduce((accumulator, currValue) => accumulator+currValue, 0)
 
     const loginFieldStyles = {
         '& .MuiInputBase-input': {
@@ -178,10 +180,23 @@ export default function NavBar() {
         navigate('/forgot-password')
     }
 
+    useEffect(() => {
+        if (userData.connectionFailed) {
+            addAlert({
+                isErrorLiteral: true, 
+                errName: 'Internal Server Error',
+                errStatus: 500,
+                severity: 'error', 
+                message: 'Cannot communicate with our servers at the moment!', 
+                timeout: 3
+            })
+        }
+    }, [])
+
     return (
         <>
         {/* below box covers the page when someone tries logging in, but it needs to be outside the navbar so the navbar can still be clickable */}
-        {loginArea.open && <Box onClick={toggleLoginArea} sx={{width: '100vw', height: '100vh', position: 'fixed', opacity: 0.5, backgroundColor: 'black', zIndex: 250}}></Box> }
+        {!cannotCommunicateWithServer && loginArea.open && <Box onClick={toggleLoginArea} sx={{width: '100vw', height: '100vh', position: 'fixed', opacity: 0.5, backgroundColor: 'black', zIndex: 250}}></Box> }
         <Box sx={{width: '100%', height: '61px', zIndex: 300}}>
             <AppBar position="relative">
                 <div className="NavBar" style={{justifyContent: tinyScreen ? 'center' : 'end'}}>
@@ -201,7 +216,7 @@ export default function NavBar() {
                         <Link href="/" sx={{color: '#FFF'}} underline="none">Pokellections</Link>
                     </Typography>}
                     
-                    {(!userData.loggedIn && loginArea.open) && 
+                    {(!(!cannotCommunicateWithServer && userData.loggedIn) && loginArea.open) && 
                     <Box sx={{position: 'absolute', width: '50%', minWidth: '360px', maxWidth: '500px', height: '175px', top: '100%', right: '0.01%', zIndex: 1, ...theme.components.box.fullCenterCol}}>
                         <Box sx={{...theme.components.box.fullCenterCol, zIndex: 1, backgroundColor: theme.palette.color1.dark, width: '100%', height: '100%', borderBottom: '1px solid black', borderLeft: '1px solid black', borderBottomLeftRadius: '10px'}}>
                             <Typography sx={{fontWeight: 700, mb: 0.75}}>Login</Typography>
@@ -233,7 +248,7 @@ export default function NavBar() {
                             </Box>
                         </Box>
                     </Box>}
-                    {(userData.loggedIn && userArea.open && !smallBreakpoint) &&
+                    {(!cannotCommunicateWithServer && userData.loggedIn && userArea.open && !smallBreakpoint) &&
                     <Box sx={{position: 'absolute', width: '50%', minWidth: '200px', maxWidth: '300px', height: '315px', top: '100%', right: '0.01%', zIndex: 1, ...theme.components.box.fullCenterCol}}>
                         <Box sx={{...theme.components.box.fullCenterCol, zIndex: 1, backgroundColor: theme.palette.color1.dark, width: '100%', height: '100%', borderBottom: '1px solid black', borderLeft: '1px solid black', borderBottomLeftRadius: '10px'}}>
                             <Box sx={{width: '90%', height: '40%', ...theme.components.box.fullCenterCol}}>
@@ -336,7 +351,7 @@ export default function NavBar() {
                         </Box>
                     </Box>
                     }
-                    {(userData.loggedIn && userArea.open && smallBreakpoint) && 
+                    {(!cannotCommunicateWithServer && userData.loggedIn && userArea.open && smallBreakpoint) && 
                         <SmallWidthDashboard 
                             toggleDashboard={() => setUserArea({...userArea, open: !userArea.open})}
                             userData={userData.user}

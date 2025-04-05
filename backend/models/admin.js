@@ -9,3 +9,4 @@ const announcementSchema = new Schema ({
     body: {type: String, required: true},
     noNotification: {type: Boolean}, //if i want to exclude this announcement from giving an notification.
 }, opts)
+

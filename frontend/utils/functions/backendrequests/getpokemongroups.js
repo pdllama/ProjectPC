@@ -11,7 +11,14 @@ const getPokemonGroups = async(gen) => {
             ok: data.ok,
             load: await data.json()
         }
-    })
+    }).catch(e => {return {
+        ok: false,
+        load: {
+            name: 'Internal Server Error',
+            message: "Our server has encountered an unexpected error!",
+            status: 500
+        }
+    }})
     return pokemonGroups
 }
 

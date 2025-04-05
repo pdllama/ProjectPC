@@ -21,8 +21,12 @@ export default async function getSession() {
         const data = await res.json()
         if (res.ok) {return data} 
         else {throw data}
-    }) 
+    }).catch(e => {
+        return {connectionFailed: true}
+    })
+    if (userData.connectionFailed) {return {loggedIn: false, connectionFailed: true}}
     const userIsLoggedIn = Object.keys(userData).length !== 0
     const loggedInData = userIsLoggedIn ? {loggedIn: true, user: userData} : {loggedIn: false}
-    return loggedInData 
+    return loggedInData
+    // return {}
 }

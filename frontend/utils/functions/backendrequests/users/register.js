@@ -9,6 +9,14 @@ const userRegisterRequest = async(username, email, password, securityQuestionDat
         },
         body: JSON.stringify({username, email, password, ...securityQuestionData, addCollection, collectionData})
     }).then(async(data) => {return await handleApiResponse(data, true)})
+    .catch(e => {return {
+        ok: false,
+        load: {
+            name: 'Internal Server Error',
+            message: "Our server has encountered an unexpected error!",
+            status: 500
+        }
+    }})
 }
 
 export {userRegisterRequest}

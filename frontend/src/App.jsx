@@ -6,7 +6,8 @@ import {
   Outlet,
   useLoaderData,
   useLocation, defer, Await,
-  useRouteLoaderData
+  useRouteLoaderData,
+  redirect
 } from "react-router-dom"
 import Root from './routes/root'
 import Collections from './routes/collections'
