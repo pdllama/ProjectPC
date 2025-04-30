@@ -134,7 +134,7 @@ export default function ContactUsDirectlyComponents({containerSx={}}) {
                 }
             </Box>
             {userData.loggedIn && 
-            <Box sx={{...theme.components.box.fullCenterRow}}>
+            <Box sx={{...theme.components.box.fullCenterRow, '@media only screen and (max-width: 349px)': {flexDirection: 'column', mt: 1}}}>
                 <Typography sx={{position: 'relative', mr: 2}}>
                     Send Anonymously:
                     <Tooltip sx={{position: 'absolute', bottom: '75%', left: '95%', ':hover': {cursor: 'pointer'}, fontSize: '12px'}} title={"Choose to omit your username from the message. Check only if you don't care about receiving a response."} arrow>
@@ -144,7 +144,7 @@ export default function ContactUsDirectlyComponents({containerSx={}}) {
                 <Checkbox value={stateData.anonymous} onChange={() => setStateData({...stateData, anonymous: !stateData.anonymous})}/>
             </Box>
             }
-            <Button variant='contained' size='large' disabled={stateData.sending} sx={{'&.Mui-disabled': {color: 'white'}}} onClick={sendMessage}>{stateData.sending ? <>Sending Message<DotWaitingText/></> : 'Send Message'}</Button>
+            <Button variant='contained' size='large' disabled={stateData.sending} sx={{'&.Mui-disabled': {color: 'white'}, '@media only screen and (max-width: 480px)': {mt: 3}}} onClick={sendMessage}>{stateData.sending ? <>Sending Message<DotWaitingText/></> : 'Send Message'}</Button>
         </Box>
         </>
     )

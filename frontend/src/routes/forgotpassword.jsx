@@ -33,7 +33,7 @@ export default function ForgotPassword({}) {
         mx: 5,
         '& .MuiOutlinedInput-root': {
             width: '100%',
-        }
+        },
     }
 
     const generateToken = () => {
@@ -52,7 +52,7 @@ export default function ForgotPassword({}) {
     }
 
     return (
-        <BodyWrapper sx={{...theme.components.box.fullCenterCol, justifyContent: 'start'}}>
+        <BodyWrapper sx={{...theme.components.box.fullCenterCol, justifyContent: 'start', '@media only screen and (max-width: 400px)': {mx: 2}}}>
             <Box sx={{...theme.components.box.fullCenterCol, justifyContent: 'start', maxWidth: '800px', minHeight: '700px', width: '80%'}}>
                 <Typography sx={{fontWeight: 700, mb: (tokenError) ? 0 : 3, fontSize: '36px'}}>Forgot Password</Typography>
                 {(tokenError) && 
@@ -66,7 +66,7 @@ export default function ForgotPassword({}) {
                     {stateData.type === 'expired' ? 'Token expired. Please try again!' : 'Invalid Token. Please try again!'}
                 </Alert>}
                 <Typography sx={{width: '100%', textAlign: 'center', mb: 1}}>Please enter the e-mail address associated with your account:</Typography>
-                <Box sx={{...theme.components.box.fullCenterCol, width: '60%', position: 'relative'}}>
+                <Box sx={{...theme.components.box.fullCenterCol, width: '60%', position: 'relative', '@media only screen and (max-width: 599px)': {width: '100%'}}}>
                     <ControlledTextInput 
                         textFieldStyles={textFieldStyles} 
                         textFieldProps={{

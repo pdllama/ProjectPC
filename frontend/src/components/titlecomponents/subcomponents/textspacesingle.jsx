@@ -1,6 +1,6 @@
 import {Box, Typography, Tooltip, useTheme} from '@mui/material'
 
-export default function TextSpaceSingle({colorStyles, text, textTag=undefined, textTagStyle, multipleTexts, multipleTextTooltips, label, width, otherStyles, otherLabelStyles, otherTextStyles, textBgColor, displayingTags, tagAreaStyles, largeTextArea, largeTextAreaStyles, largeTextStyles, buttonAdornmentFunc, noRounding=false}) {
+export default function TextSpaceSingle({colorStyles, text, textTag=undefined, textTagWrapperStyles={}, textTagStyle, multipleTexts, multipleTextTooltips, label, width, otherStyles, otherLabelStyles, otherTextStyles, buttonArea=false, textBgColor, displayingTags, tagAreaStyles, largeTextArea, largeTextAreaStyles, largeTextStyles, buttonAdornmentFunc, noRounding=false}) {
     //displayingTags is for when there's no uniform text for the area, but rather they display text blurbs of user preferences. Refer to show collection under trade status
     const theme = useTheme()
     const hasLabel = label !== undefined
@@ -20,7 +20,7 @@ export default function TextSpaceSingle({colorStyles, text, textTag=undefined, t
             borderTopLeftRadius: noRounding ? '0px' : '15px', 
             borderBottomLeftRadius: noRounding ? '0px' : '15px'
         }}>
-            <Box sx={{margin: 0, width: '25%'}}>
+            <Box sx={{margin: 0, width: '25%', ...textTagWrapperStyles}}>
                 <Typography sx={{color: textColor, fontWeight: 700, margin: 0, padding: '4px', backgroundColor: labelBgColor, borderRadius: '15px', ...otherLabelStyles}}>{label}</Typography>
             </Box>
             <Box sx={{...theme.components.box.fullCenterRow, justifyContent: 'start', margin: 0, marginLeft: '0.8rem'}}>
@@ -105,6 +105,21 @@ export default function TextSpaceSingle({colorStyles, text, textTag=undefined, t
                 </Box>
             }
         </Box> : 
+        buttonArea ? 
+        <Box
+            sx={{
+                width, 
+                ...bgStyle,
+                ...otherStyles,
+                borderTopLeftRadius: noRounding ? '0px' : '15px', 
+                borderBottomLeftRadius: noRounding ? '0px' : '15px'
+            }}
+        >
+            {buttonAdornmentFunc !== undefined && 
+                buttonAdornmentFunc()
+            }
+        </Box> : 
+
         <Box sx={{display: 'flex', justifyContent: 'start', flexDirection: 'row', height: '2rem', width, ...bgStyle, ...otherStyles, borderTopLeftRadius: noRounding ? '0px' : '15px', borderBottomLeftRadius: noRounding ? '0px' : '15px'}}>
             <Box sx={{margin: 0, width: '100%', display: 'flex', alignItems: 'center'}}>
                 <Typography sx={{color: textColor, ...otherTextStyles}}>{text}</Typography>

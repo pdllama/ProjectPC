@@ -25,6 +25,18 @@ const getComponentBreakpoints = (screenWidth, component) => {
     } else if (component === 'compareDisplayMod') {
         const breakpoint = screenWidth < 380 ? 'sm' : screenWidth < 550 ? 'md' : 'lg'
         return breakpoint
+    } else if (component === 'announcementEditor') {
+        const breakpoint = screenWidth < 850 ? 'sm' : 'lg'
+        return breakpoint
+    } else if (component === 'root') {
+        const breakpoint = screenWidth < 400 ? 'sm' : 'reg'
+        return breakpoint
+    } else if (component === 'whatareaprimon') {
+        const breakpoint = screenWidth < 470 ? 'sp-sm' : screenWidth < 700 ? 'sm' : 'reg'
+        return breakpoint
+    } else if (component === 'userTrades') {
+        const breakpoint = screenWidth < 500 ? 'tiny' : screenWidth < 600 ? 'smr' : screenWidth < 768 ? 'sm' : 'reg'
+        return breakpoint
     } else {
         return screenWidth >= 768 ? 'md' : 'sm'
     }

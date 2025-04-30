@@ -60,6 +60,11 @@ export default function LoginPage({}) {
             '& .Mui-focused': {
 
             }
+        },
+        '@media only screen and (max-width: 564px)': {
+            '&.MuiTextField-root': {
+                width: '100%'
+            }
         }
     }
 
@@ -95,7 +100,7 @@ export default function LoginPage({}) {
     }
 
     return (
-        <BodyWrapper sx={{...theme.components.box.fullCenterCol, justifyContent: 'start'}}>
+        <BodyWrapper sx={{...theme.components.box.fullCenterCol, justifyContent: 'start', '@media only screen and (max-width: 449px)': {mx: 2}}}>
             <Box sx={{...theme.components.box.fullCenterCol, justifyContent: 'start', maxWidth: '800px', minHeight: '500px', width: '80%'}}>
                 <Typography sx={{fontWeight: 700, mb: (error.error || successInit === true) ? 0 : 3, fontSize: '36px'}}>Login</Typography>
                 {(error.error || successInit === true) && 
@@ -109,10 +114,10 @@ export default function LoginPage({}) {
                 >
                     {error.errorMessage}
                 </Alert>}
-                <Box sx={{...theme.components.box.fullCenterRow, width: '100%'}}>
-                    <Typography sx={{width: '30%', textAlign: 'end'}}>Username/Email:</Typography>
+                <Box sx={{...theme.components.box.fullCenterRow, width: '100%', '@media only screen and (max-width: 564px)': {flexDirection: 'column'}}}>
+                    <Typography sx={{width: '30%', textAlign: 'end', '@media only screen and (max-width: 564px)': {width: '100%', textAlign: 'start'}}}>Username/Email:</Typography>
                     <ControlledTextInput 
-                        textFieldStyles={loginFieldStyles} 
+                        textFieldStyles={{...loginFieldStyles}} 
                         textFieldProps={{
                             inputRef: usernameFieldRef,
                             error: error.username,
@@ -120,8 +125,8 @@ export default function LoginPage({}) {
                         }}
                     />
                 </Box>
-                <Box sx={{...theme.components.box.fullCenterRow, mt: 3, width: '100%'}}>
-                    <Typography sx={{width: '30%', textAlign: 'end'}}>Password:</Typography>
+                <Box sx={{...theme.components.box.fullCenterRow, mt: 3, width: '100%', '@media only screen and (max-width: 564px)': {flexDirection: 'column'}}}>
+                    <Typography sx={{width: '30%', textAlign: 'end', '@media only screen and (max-width: 564px)': {width: '100%', textAlign: 'start'}}}>Password:</Typography>
                     <ControlledTextInput 
                         textFieldStyles={loginFieldStyles}
                         textFieldProps={{

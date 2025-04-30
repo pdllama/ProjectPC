@@ -1,5 +1,6 @@
 import {Box, Typography, useTheme, ToggleButton, ToggleButtonGroup, Button} from '@mui/material'
 import { useState, useContext } from 'react'
+import { useSelector } from 'react-redux'
 import { ErrorContext } from '../../app/contexts/errorcontext'
 import { AlertsContext } from '../../alerts/alerts-context'
 import BodyWrapper from '../../components/partials/routepartials/bodywrapper'
@@ -7,13 +8,19 @@ import ControlledTextInput from '../../components/functionalcomponents/controlle
 import hexToRgba from 'hex-to-rgba'
 import DotWaitingText from '../../components/functionalcomponents/dotwaitingtext'
 import sendNotifications from '../../../utils/functions/backendrequests/api/sendnotifications'
+import RichTextEditor from '../../components/functionalcomponents/textinput/richtexteditor'
+import { selectScreenBreakpoint } from '../../app/selectors/windowsizeselectors'
+import NotificationBlock from '../../components/functionalcomponents/admin/notifications/notificationblock'
 
 export default function SendMessagesPage({}) {
     const theme = useTheme()
     const {handleError} = useContext(ErrorContext)
     const {addAlert} = useContext(AlertsContext)
-    const [data, setData] = useState({username: '', title: '', message: '', overrideNotiType: '', sending: false})
+    const sizeBkpt = useSelector((state) => selectScreenBreakpoint(state, 'announcementEditor'))
+    const [data, setData] = useState({username: '', title: '', message: '', overrideNotiType: '', preview: false, sending: false})
 
+
+    // overrideNotiType ? overrideNotiType : !username ? 'site update' : 'system'
     const sendNotificationsFinalize = () => {
         setData({...data, sending: true})
         const backendFunc = async() => sendNotifications(data.title, data.message, data.username, data.overrideNotiType)
@@ -24,6 +31,8 @@ export default function SendMessagesPage({}) {
         const errorFunc = () => {setData({...data, sending: false})}
         handleError(backendFunc, false, successFunc, errorFunc)
     }
+
+    const minWidthProp = sizeBkpt === 'sm' ? {} : {minWidth: '800px'}
 
     return (
         <BodyWrapper sx={{...theme.components.box.fullCenterCol, gap: 1}}>
@@ -36,7 +45,8 @@ export default function SendMessagesPage({}) {
                 textFieldStyles={{
                     '&.MuiTextField-root': {
                         width: '60%',
-                        minWidth: '200px'
+                        minWidth: '200px',
+                        maxWidth: '768px'
                     },
                 }}
                 defaultValue={data.username}
@@ -49,13 +59,30 @@ export default function SendMessagesPage({}) {
                 textFieldStyles={{
                     '&.MuiTextField-root': {
                         width: '60%',
-                        minWidth: '200px'
+                        minWidth: '200px', 
+                        maxWidth: '768px'
                     },
                 }}
                 defaultValue={data.title}
                 controlInputFunc={(newVal) => setData({...data, title: newVal})}
             />
-            <ControlledTextInput
+            {data.preview ? 
+            <NotificationBlock
+                notification={{
+                    message: data.message, 
+                    title: data.title, 
+                    type: data.overrideNotiType ? data.overrideNotiType : !data.username ? 'site update' : 'system'
+                }}
+            /> : 
+            <RichTextEditor 
+                value={data.message}
+                onChange={(e) => {setData({...data, message: e.htmlValue})}}
+                isAdminEditor={true}
+                sx={{backgroundColor: hexToRgba(theme.palette.color1.main, 0.9), color: 'white', ...minWidthProp}}
+            />
+            }
+            <Button onClick={() => {setData({...data, preview: !data.preview})}}>See {data.preview ? 'Editor' : 'Preview'}</Button>
+            {/* <ControlledTextInput
                 textFieldProps={{
                     multiline: true,
                     rows: 15,
@@ -82,7 +109,7 @@ export default function SendMessagesPage({}) {
                 }}
                 defaultValue={data.message}
                 controlInputFunc={(newVal) => setData({...data, message: newVal})}
-            />
+            /> */}
             <Typography>Override Notification Type:</Typography>
             <ToggleButtonGroup value={data.overrideNotiType} exclusive onChange={(e, newVal) => setData({...data, overrideNotiType: newVal})}>
                 <ToggleButton value='system'>System Message</ToggleButton>

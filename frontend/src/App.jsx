@@ -72,7 +72,9 @@ import { ShowCollectionSkeleton, ShowUserSkeleton, ShowTradeSkeleton, UserNotifi
 import AdminMain from './routes/admin/adminmain'
 import SendMessagesPage from './routes/admin/sendmessagespage'
 import ChangeTableData from './routes/admin/changetabledata'
+import adminRouter from './routebrowserobjects/adminrouter'
 import BodyWrapper from './components/partials/routepartials/bodywrapper'
+import getAnnouncementsFromBackend from '../utils/functions/backendrequests/api/announcements/getannouncements'
 
 //can add a bit of debounce by adding number parameter in case the event causes performance issues
 resizeEvent(store)
@@ -127,8 +129,8 @@ function InitializeStateFunc({children, postLoaderFunc, postCompleteTools, resol
   // }
 }
 
-function DeferLoaderComponent({Component, SkeletonComponent, postCompleteTools, postLoaderFunc, loaderDataKey, isProtectedRoute=false, isPrivateRoute=false, privateProtectedRouteProps={}, isShowCollection=false}) {
-  const promise = useLoaderData()
+function DeferLoaderComponent({Component, SkeletonComponent, postCompleteTools, postLoaderFunc, loaderDataKey, isProtectedRoute=false, isPrivateRoute=false, privateProtectedRouteProps={}, isShowCollection=false, otherResolvedProps={}, routeLoaderDataInstead, routeLoaderId}) {
+  const promise = routeLoaderDataInstead ? useRouteLoaderData(routeLoaderId) : useLoaderData()
   const dispatch = useDispatch()
   const userData = useRouteLoaderData('root')
   const locationData = useLocation()
@@ -150,7 +152,7 @@ function DeferLoaderComponent({Component, SkeletonComponent, postCompleteTools, 
           const postCompleteAdjust = (isShowCollection && userData.loggedIn) ? {dispatch, initList: (col) => setListDisplayInitialState({col, initOnHandView: userData.user.settings.display.defaultOnhandView, currColUrl: currColPath})} : 
             isShowCollection ? {dispatch, initList: (col) => setListDisplayInitialState({col})} : postCompleteTools
           const additionalProp = (isShowCollection) ? {isCollectionOwner} : {}
-          const loaderProp = {[loaderDataKey]: resolvedData}
+          const loaderProp = {[loaderDataKey]: resolvedData, ...otherResolvedProps}
           return (
             <InitializeStateWrapper
               postLoaderFunc={postLoaderFunc} postCompleteTools={postCompleteAdjust} resolvedData={resolvedData}
@@ -230,6 +232,7 @@ function Router() {
         {
           path: "/",
           element: <Root />,
+          loader: () => getAnnouncementsFromBackend(true)
         },
         {
           path: '/error',
@@ -237,7 +240,21 @@ function Router() {
         },
         {
           path: "/search",
-          element: <Search />
+          element: <Outlet/>,
+          children: [
+            {
+              path: '',
+              element: <Search type='all'/>
+            },
+            {
+              path: 'users',
+              element: <Search type='users'/>
+            },
+            {
+              path: 'collections',
+              element: <Search type='collections'/>
+            }
+          ]
         },
         {
           path: '/register',
@@ -257,7 +274,8 @@ function Router() {
         },
         {
           path: '/announcements',
-          element: <Announcements />
+          element: <Announcements />,
+          // loader: () => getAnnouncementsFromBackend(false, 0)
         },
         {
           path: '/auth',
@@ -404,16 +422,46 @@ function Router() {
         {
           path: '/users/:username/notifications',
           // element: <PrivateRoute Component={UserNotifications} routeType='userNotifications'/>,
-          element: 
-            <DeferLoaderComponent 
-              Component={UserNotifications}
-              SkeletonComponent={UserNotificationsTradesSkeleton}
-              loaderDataKey='userData'
-              isPrivateRoute={true}
-              privateProtectedRouteProps={{routeType: 'userNotifications'}}
-            />,
+          element: <Outlet/>,
           loader: userLoader,
-          id: 'user', 
+          id: 'userNotifications', 
+          shouldRevalidate: ({ currentUrl, nextUrl }) => {
+          },
+          children: [
+            {
+              path: '',
+              element: 
+                <DeferLoaderComponent 
+                  Component={UserNotifications}
+                  SkeletonComponent={UserNotificationsTradesSkeleton}
+                  loaderDataKey='userData'
+                  isPrivateRoute={true}
+                  privateProtectedRouteProps={{routeType: 'userNotifications'}}
+                  routeLoaderDataInstead={true}
+                  routeLoaderId={'userNotifications'}
+                />
+            },
+            {
+              path: ':notificationId',
+              element: 
+              <DeferLoaderComponent 
+                Component={UserNotifications}
+                SkeletonComponent={UserNotificationsTradesSkeleton}
+                loaderDataKey='userData'
+                isPrivateRoute={true}
+                privateProtectedRouteProps={{routeType: 'userNotifications', routeSubType: 'singleNotification'}}
+                otherResolvedProps={{useNoteId: true}}
+                routeLoaderDataInstead={true}
+                routeLoaderId={'userNotifications'}
+              />
+              // <PrivateRoute 
+              //   Component={UserNotifications}
+              //   SkeletonComponent={UserNotificationsTradesSkeleton}
+              //   routeType='userNotifications'
+              //   customRouteLoaderDataProp={{name: 'userData', id: 'userNotifications'}}
+              // />
+            }
+          ]
         },
         {
           path: "/users/:username/settings",
@@ -429,18 +477,7 @@ function Router() {
           loader: userLoader,
           id: 'userSettings',
         },
-        {
-          path: '/admin',
-          element: <PreRouteLogic logicType='admin-route' Component={AdminMain} />
-        },
-        {
-          path: '/admin/send-notifications',
-          element: <PreRouteLogic logicType='admin-route' Component={SendMessagesPage} />
-        },
-        {
-          path: '/admin/table-data',
-          element: <PreRouteLogic logicType='admin-route' Component={ChangeTableData} />
-        },
+        ...adminRouter,
         {
           path: "*",
           element: <UnknownPath/>

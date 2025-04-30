@@ -18,6 +18,8 @@ import BlockIcon from '@mui/icons-material/Block';
 import userSettingsBackendRequest from '../../utils/functions/backendrequests/users/settings'
 import 'simplebar-react/dist/simplebar.min.css'
 import "./showUser.css"
+import { useSelector } from 'react-redux'
+import { selectScreenBreakpoint } from '../app/selectors/windowsizeselectors'
 
 const badgeData = {
     'apri-novice' : {display: 'Aprimon Novice', tooltip: 'Start an aprimon collection'},
@@ -39,6 +41,7 @@ export default function ShowUser({userData}) {
     const navigate = useNavigate()
     // const userData = useLoaderData()
     const revalidator = useRevalidator()
+    const breakpoint = useSelector((state) => selectScreenBreakpoint(state))
     const {handleError} = useContext(ErrorContext)
     const {addAlert} = useContext(AlertsContext)
     const loggedInUserData = useRouteLoaderData("root")
@@ -47,6 +50,8 @@ export default function ShowUser({userData}) {
     
     const theme = useTheme()
     const gameScrollRef = useRef()
+
+    const sw = breakpoint === 'sm'
 
     const textColor1 = {
         bgColor: `linear-gradient(90deg, ${hexToRgba(theme.palette.color1.main)} 90%, rgba(60,165,186,0) 100%)`,
@@ -124,27 +129,49 @@ export default function ShowUser({userData}) {
         handleError(backendFunc, false, successFunc, () => {})
     }
     
+    const generateButtons = () => {
+        return (
+            <Box sx={{width: '100%', position: 'relative', height: '100%'}}>
+                {isUser ? 
+                    <Box sx={{position: 'absolute', right: '5%'}}>
+                        {generateEditBioButton()}
+                        {generateSettingsButton()}
+                    </Box> : 
+                loggedInUserData.loggedIn ? 
+                    <Box sx={{position: 'absolute', right: '5%'}}>
+                        {generateBlockButton()}
+                    </Box> : 
+                    <></>
+                }
+            </Box>
+        )
+    }
+
     const generateEditBioButton = () => {
         return (
-            <Button sx={{borderRadius: '50%'}} onClick={() => navigate(`/users/${userData.username}/settings`, {state: {catInit: 'profile'}})}>
-                <EditIcon/>
-            </Button>
+            <Tooltip title={'Edit Bio'}>
+                <Button sx={{borderRadius: '50%', backgroundColor: 'rgba(255,255,255, 0.25)', ':hover': {backgroundColor: 'rgba(255,255,255, 0.2)'}, mr: 1}} onClick={() => navigate(`/users/${userData.username}/settings`, {state: {catInit: 'profile'}})}>
+                    <EditIcon/>
+                </Button>
+            </Tooltip>
         )
     }
 
     const generateSettingsButton = () => {
         return (
-            <Button sx={{borderRadius: '50%', padding: 0, height: '100%', color: 'grey'}} onClick={() => navigate(`/users/${userData.username}/settings`)}>
-                <SettingsIcon color='grey'/>
-            </Button>
+            <Tooltip title={'User Settings'}>
+                <Button sx={{borderRadius: '50%', height: '100%', color: 'grey', backgroundColor: 'rgba(255,255,255, 0.25)', ':hover': {backgroundColor: 'rgba(255,255,255, 0.2)'}}} onClick={() => navigate(`/users/${userData.username}/settings`)}>
+                    <SettingsIcon color='grey'/>
+                </Button>
+            </Tooltip>
         )
     }
 
     const generateBlockButton = () => {
-        const bgStyle = userIsBlocked ? {':hover': {backgroundColor: 'rgba(200, 100, 100, 0.5)'}, width: '32px', backgroundColor: 'rgba(200, 100, 100, 0.5)', boxShadow: '0px 5px 4px -4px rgba(200,100,100,0.4), 0px 5px 5px 0px rgba(200,100,100,0.14), 0px 5px 7px 0px rgba(200,100,100,0.12)'} : {}
+        const bgStyle = userIsBlocked ? {':hover': {backgroundColor: 'rgba(200, 100, 100, 0.5)'}, width: '32px', backgroundColor: 'rgba(200, 100, 100, 0.5)', boxShadow: '0px 5px 4px -4px rgba(200,100,100,0.4), 0px 5px 5px 0px rgba(200,100,100,0.14), 0px 5px 7px 0px rgba(200,100,100,0.12)'} : {backgroundColor: 'rgba(255,255,255, 0.25)', ':hover': {backgroundColor: 'rgba(255,255,255, 0.2)'}}
         return (
             <Tooltip title={`${userIsBlocked ? 'Unb' : 'B'}lock User`}>
-                <Button size='small' sx={{borderRadius: '50%', padding: 0, width: '100%', height: '100%', color: 'red', ...bgStyle}} onClick={blockUserRequest}>
+                <Button size='small' sx={{borderRadius: '50%', width: '100%', py: '6px', height: '100%', color: 'red', ...bgStyle}} onClick={blockUserRequest}>
                     <BlockIcon color='red'/>
                 </Button>
             </Tooltip>
@@ -152,18 +179,19 @@ export default function ShowUser({userData}) {
     }
 
     return (
-        <BodyWithBanner bannerSx={{backgroundColor: theme.palette.color1.light, color: theme.palette.color1.contrastTextLight}} bodySx={{mb: 0, mt: 2}} text={`${userData.username}'s profile`}>
-            <Box sx={{minHeight: '250px', ...theme.components.box.fullCenterRow}}>
+        <BodyWithBanner bannerSx={{backgroundColor: theme.palette.color1.light, color: theme.palette.color1.contrastTextLight}} bodySx={{mb: 0, mt: 2, mx: sw ? 1 : 5}} text={`${userData.username}'s profile`}>
+            <Box sx={{minHeight: '250px', ...theme.components.box.fullCenterRow, flexDirection: sw ? 'column' : 'row'}}>
                 <Box sx={{opacity: 0.5}}><ImgData type='icons' linkKey='user' size='200px'/></Box>
-                <Box sx={{width: '70%', ml: 3, ...theme.components.box.fullCenterCol}}>
+                <Box sx={{width: sw ? '100%' : '70%', ml: sw ? 0 : 3, ...theme.components.box.fullCenterCol}}>
                     <TextSpaceSingle 
                         colorStyles={textColor1}
                         otherStyles={{borderBottom: '1px solid white', marginBottom: 0, position: 'relative'}} 
+                        otherTextStyles={{'@media only screen and (max-width: 370px)': {fontSize: '14px'}}}
                         text={userData.username}
                         label={'Username'}
                         width='100%'
-                        buttonAdornmentFunc={isUser ? generateSettingsButton : loggedInUserData.loggedIn ? generateBlockButton : undefined}
                         textTag={userData.accountType !== 'regular' ? `${userData.accountType[0].toUpperCase()}${userData.accountType.slice(1, userData.accountType.length)}` : undefined}
+                        textTagWrapperStyles={{minWidth: '90px'}}
                         textTagStyle={{backgroundColor: theme.palette.color3.main}}
                     />
                     <TextSpaceSingle 
@@ -178,18 +206,24 @@ export default function ShowUser({userData}) {
                         width='100%'
                     />
                     <TextSpaceSingle 
-                        colorStyles={textColor1}
+                        colorStyles={sw ? {...textColor1, bgColor: theme.palette.color1.main, isGradient: false} : textColor1}
                         otherStyles={{borderBottom: '1px solid white', marginBottom: 0}} 
                         largeTextArea={true}
-                        largeTextAreaStyles={{height: '50%', minHeight: '80px', display: 'flex', alignItems: 'center', position: 'relative'}}
-                        largeTextStyles={{textAlign: 'start', color: textColor1.textColor, mx: 2, mr: '10%', fontSize: '12px', ...noBioStyles}}
+                        largeTextAreaStyles={{minHeight: '80px', display: 'flex', alignItems: 'center', position: 'relative', borderTopRightRadius: '10px', borderBottomRightRadius: '10px', borderBottom: '1px solid white', marginBottom: 0, wordWrap: 'break-word', display: bio === '' ? 'flex' : 'inline-block'}}
+                        largeTextStyles={{textAlign: 'start', color: textColor1.textColor, py: 0.5, px: bio === '' ? 0 : 2, pr: (sw && bio === '') ? 0 : sw ? 2 : '10%', fontSize: '12px', ...noBioStyles}}
                         text={bio === '' ? 'No Bio' : bio}
                         width='100%'
-                        buttonAdornmentFunc={isUser ? generateEditBioButton : undefined}
+                    />
+                    <TextSpaceSingle 
+                        colorStyles={{...textColor2, bgColor: theme.palette.color3.main, isGradient: false}}
+                        otherStyles={{borderBottom: '1px solid white', marginBottom: 0, borderTopRightRadius: '10px', borderBottomRightRadius: '10px', height: '36px'}} 
+                        buttonArea={true}
+                        buttonAdornmentFunc={(isUser || loggedInUserData.loggedIn) ? generateButtons : undefined}
+                        width='100%'
                     />
                 </Box>
             </Box>
-            <Box sx={{minHeight: '80px', ...theme.components.box.fullCenterCol, mt: -3}}>
+            <Box sx={{minHeight: '80px', ...theme.components.box.fullCenterCol, mt: sw ? 0 : -3}}>
                 <Box sx={{width: '100%', position: 'relative', display: 'flex', justifyContent: 'center'}}>
                     {userGames.length !== 0 ? 
                     <Box 

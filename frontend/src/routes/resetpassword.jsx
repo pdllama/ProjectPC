@@ -48,7 +48,10 @@ export default function ResetPassword({}) {
         mx: 5,
         '& .MuiOutlinedInput-root': {
             width: '100%'
-        }
+        },
+        '@media only screen and (max-width: 563px)': {'&.MuiTextField-root': {
+            width: '100%'
+        }}
     }
 
     const finalizeReset = async() => {
@@ -79,10 +82,10 @@ export default function ResetPassword({}) {
 
     return (
         <BodyWrapper sx={{...theme.components.box.fullCenterCol, justifyContent: 'start'}}>
-            <Box sx={{...theme.components.box.fullCenterCol, justifyContent: 'start', maxWidth: '800px', minHeight: '700px', width: '80%'}}>
+            <Box sx={{...theme.components.box.fullCenterCol, justifyContent: 'start', maxWidth: '800px', minHeight: '700px', width: '100%'}}>
                 <Typography sx={{fontWeight: 700, mb: 3, fontSize: '36px'}}>Reset Password</Typography>
-                <Box sx={{...theme.components.box.fullCenterRow, mt: 3, width: '100%'}}>
-                    <Typography sx={{width: '30%', textAlign: 'end'}}>New Password:</Typography>
+                <Box sx={{...theme.components.box.fullCenterRow, mt: 3, width: '100%', '@media only screen and (max-width: 719px)': {flexDirection: 'column'}}}>
+                    <Typography sx={{width: '30%', textAlign: 'end', '@media only screen and (max-width: 719px)': {width: '70%', textAlign: 'start'}, '@media only screen and (max-width: 563px)': {width: '100%', textAlign: 'start'}}}>New Password:</Typography>
                     <ControlledTextInput 
                         textFieldStyles={textFieldStyles}
                         textFieldProps={{
@@ -98,17 +101,17 @@ export default function ResetPassword({}) {
                         defaultValue={password.value}
                     />
                 </Box>
-                <Box sx={{...theme.components.box.fullCenterRow, alignItems: 'start', justifyContent: 'end', mt: 0.5, width: '100%', height: '30%'}}>
-                    <Box sx={{...theme.components.box.fullCenterCol, alignItems: 'start', width: '70%', height: '100%', color: 'grey'}}>
-                        <Typography sx={{fontSize: '12px', ml: 2}}>Password must: </Typography>
-                        <Typography sx={{fontSize: '12px', ml: 2, ...passwordSpecificationsTextColor(password.eightChars)}}>-  Be minimum 8 characters long</Typography>
-                        <Typography sx={{fontSize: '12px', ml: 2, ...passwordSpecificationsTextColor(password.oneUpper)}}>-  Contain one upper-case letter</Typography>
-                        <Typography sx={{fontSize: '12px', ml: 2, ...passwordSpecificationsTextColor(password.oneLower)}}>-  Contain one lower-case letter</Typography>
-                        <Typography sx={{fontSize: '12px', ml: 2, ...passwordSpecificationsTextColor(password.oneNumber)}}>-  Contain one number</Typography>
+                <Box sx={{...theme.components.box.fullCenterRow, alignItems: 'start', justifyContent: 'end', mt: 0.5, width: '100%', height: '30%', '@media only screen and (max-width: 719px)': {width: '70%', textAlign: 'start'}, '@media only screen and (max-width: 563px)': {width: '100%', textAlign: 'start'}}}>
+                    <Box sx={{...theme.components.box.fullCenterCol, alignItems: 'start', width: '70%', height: '100%', color: 'grey', '@media only screen and (max-width: 719px)': {width: '100%'}, '@media only screen and (max-width: 563px)': {width: '100%'}}}>
+                        <Typography sx={{fontSize: '12px', ml: 2, '@media only screen and (max-width: 719px)': {ml: 0}}}>Password must: </Typography>
+                        <Typography sx={{fontSize: '12px', ml: 2, '@media only screen and (max-width: 719px)': {ml: 0}, ...passwordSpecificationsTextColor(password.eightChars)}}>-  Be minimum 8 characters long</Typography>
+                        <Typography sx={{fontSize: '12px', ml: 2, '@media only screen and (max-width: 719px)': {ml: 0}, ...passwordSpecificationsTextColor(password.oneUpper)}}>-  Contain one upper-case letter</Typography>
+                        <Typography sx={{fontSize: '12px', ml: 2, '@media only screen and (max-width: 719px)': {ml: 0}, ...passwordSpecificationsTextColor(password.oneLower)}}>-  Contain one lower-case letter</Typography>
+                        <Typography sx={{fontSize: '12px', ml: 2, '@media only screen and (max-width: 719px)': {ml: 0}, ...passwordSpecificationsTextColor(password.oneNumber)}}>-  Contain one number</Typography>
                     </Box>
                 </Box>
-                <Box sx={{...theme.components.box.fullCenterRow, mt: 3, width: '100%'}}>
-                    <Typography sx={{width: '30%', textAlign: 'end', fontSize: '0.95rem'}}>Confirm New Password:</Typography>
+                <Box sx={{...theme.components.box.fullCenterRow, mt: 3, width: '100%', '@media only screen and (max-width: 719px)': {flexDirection: 'column'}}}>
+                    <Typography sx={{width: '30%', textAlign: 'end', fontSize: '0.95rem', '@media only screen and (max-width: 719px)': {width: '70%', textAlign: 'start'}, '@media only screen and (max-width: 563px)': {width: '100%', textAlign: 'start'}}}>Confirm New Password:</Typography>
                     <ControlledTextInput 
                         textFieldStyles={textFieldStyles}
                         textFieldProps={{

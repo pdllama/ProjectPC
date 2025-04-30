@@ -12,6 +12,7 @@ export default function AdminMain({}) {
             <Box sx={{...theme.components.box.fullCenterCol, gap: 1}}>
                 <Button size='large' variant='contained' onClick={() => navigate('/admin/table-data')}>Change Collection Table Data</Button>
                 <Button size='large' variant='contained' onClick={() => navigate('/admin/send-notifications')}>Send Notifications</Button>
+                <Button size='large' variant='contained' onClick={() => navigate('/admin/make-announcements')}>Make Announcement</Button>
             </Box>
         </BodyWrapper>
     )

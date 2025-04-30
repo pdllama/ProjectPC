@@ -156,9 +156,9 @@ function SmallWidthOnHandRowContent({row, pokemonId, collectionId, styles, isSel
                 </Box>
                 <Box sx={{...theme.components.box.fullCenterRow, alignItems: 'center', width: '10%', position: 'relative'}}>
                     <Typography><b>x{row.qty}</b></Typography>
-                    {(row.reserved !== undefined && p.reserved > 0) && 
+                    {(row.reserved !== undefined && row.reserved > 0) && 
                         <Tooltip title='This On-Hand is reserved and is pending in an accepted trade/trade offer. The number indicates the reserved quantity.' arrow>
-                            <Typography sx={{fontSize: '11px', width: '100%', position: 'absolute', bottom: '2px', ':hover': {cursor: 'pointer'}}}>
+                            <Typography sx={{fontSize: '11px', width: '50px', position: 'absolute', bottom: '-15px', ':hover': {cursor: 'pointer'}}}>
                                 Res: {row.reserved}
                             </Typography>
                         </Tooltip>

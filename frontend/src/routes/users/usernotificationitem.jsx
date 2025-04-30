@@ -5,7 +5,22 @@ import ArrowForward from '@mui/icons-material/ArrowForward'
 import MultipleStopIcon from '@mui/icons-material/MultipleStop';
 import ImgData from '../../components/collectiontable/tabledata/imgdata'
 
-export default function UserNotificationItem({notiType, notiTradeData, notiTitle, notiMessage, unread, onClickFunc}) {
+function extractContent(s) {
+    const span = document.createElement('span')
+    span.innerHTML = s
+    let children = span.querySelectorAll('*:not(OL)');
+    for(let i = 0 ; i < children.length ; i++) { 
+        if(children[i].textContent)
+            children[i].textContent+= ' ';
+        else
+            children[i].innerText+= ' ';
+       
+    }
+    const result  = [span.textContent || span.innerText].toString().replace(/ +/g,' ')
+    return result;
+}
+
+export default function UserNotificationItem({notiType, notiTradeData, notiTitle, notiMessage, unread, onClickFunc, sw, spSw}) {
     const theme = useTheme()
     const isTradeNoti = notiType.includes('trade-offer')
     const typeDisplay = isTradeNoti ? '[TRADE]' : notiType === 'system' ?  '[SYSTEM]' : '[UPDATE]'
@@ -27,20 +42,27 @@ export default function UserNotificationItem({notiType, notiTradeData, notiTitle
         notiType.includes('reject') ? '#DC3545' :
         notiType.includes('cancel') && '#B30C1C'
     ) : theme.palette.color1.darker
-
     return (
-        <SearchItemWrapper customColor={customColor} customStyles={{position: 'relative', mt: 1}} onClickFunc={onClickFunc}>
+        <SearchItemWrapper customColor={customColor} customStyles={{
+            position: 'relative', mt: 1, height: sw ? '70px' : '50px', 
+            '@media only screen and (max-width: 575px)': {
+                flexDirection: (isTradeNoti) ? 'column' : 'row', 
+                alignItems: (isTradeNoti) ? 'start' : 'center'
+            }
+        }} 
+            onClickFunc={onClickFunc}
+        >
             {unread && <Box sx={{width: '10px', height: '100%', backgroundColor: customColor, borderTopLeftRadius: '5px', borderBottomLeftRadius: '5px', position: 'absolute', left: '0px'}}></Box>}
             {isTradeNoti ? 
-            <Box sx={{...theme.components.box.fullCenterRow, width: '25%', maxWidth: '170px', ml: 2}}>
+            <Box sx={{...theme.components.box.fullCenterRow, width: '50%', maxWidth: '170px', ml: 2}}>
                 <ImgData type='icons' linkKey='user' size='40px'/>
                 <MultipleStopIcon sx={{fontSize: '50px'}}/>
                 <ImgData type='icons' linkKey='user' size='40px'/>
             </Box> :
             <></>
             }
-            <Box sx={{...theme.components.box.fullCenterCol, alignItems: 'start', ml: !isTradeNoti ? 2.5 : 0}}>
-                <Typography sx={{fontSize: '13.5px', fontWeight: unread ? 700 : 400}}>
+            <Box sx={{...theme.components.box.fullCenterCol, alignItems: 'start', ml: (!isTradeNoti) ? sw ? 2 : 2.5 : 0, mt: (sw && !isTradeNoti) ? 1.5 : 0, '@media only screen and (max-width: 575px)': {ml: (!isTradeNoti) ? sw ? 2 : 2.5 : 2}}}>
+                <Typography sx={{fontSize: (spSw && !isTradeNoti) ? '16px' : '13.5px', fontWeight: unread ? 700 : 400, textAlign: 'start'}}>
                     {isTradeNoti ? 
                         notiType.includes('new') ? `You have a new trade offer from ${otherParticipantDisplay}!` : 
                         notiType.includes('counter') ? `${otherParticipantDisplay} countered your trade offer!` :
@@ -50,14 +72,16 @@ export default function UserNotificationItem({notiType, notiTradeData, notiTitle
                         notiTitle
                     }
                 </Typography>
-                <Typography sx={{fontSize: '12px'}}>
+                <Typography sx={{fontSize: '12px', '@media only screen and (max-width: 575px)': {
+                    position: isTradeNoti && 'absolute', right: isTradeNoti && '5px', top: isTradeNoti && '15px', fontSize: isTradeNoti ? '10px' : '12px'
+                }}}>
                     {isTradeNoti ?
                         notiType.includes('new') ? `${genDisplay} Trade` : 
                         notiType.includes('counter') ? `Ongoing ${genDisplay} Trade` :
                         notiType.includes('accept') ? `Ongoing ${genDisplay} Trade` :
                         notiType.includes('reject') ? `${genDisplay} Trade` : 
                         notiType.includes('cancel') && `Cancelled ${genDisplay} Trade` : 
-                        `${notiMessage.slice(0, 80)}...`
+                        !spSw && `${extractContent(notiMessage).slice(0, 80)}...`
                     }
                 </Typography>
             </Box>

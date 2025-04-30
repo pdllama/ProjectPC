@@ -6,21 +6,24 @@ import ErrorPage from "../../../error-page";
 
 //private routes are routes that only one user can access, such as an edit route to their own collection.
 
-export default function PrivateRoute({Component, PlaceholderComponent, routeType, loaderData, loaderDataProp={}}) {
+export default function PrivateRoute({Component, PlaceholderComponent, routeType, routeSubType, loaderData, loaderDataProp={}, passUserDataAsProp=false, customRouteLoaderDataProp}) {
     const userData = useRouteLoaderData("root")
     // const privateTradePage = routeType === 'userTrades' ? loaderData.settings.account.privatizeTrades
     const pathname = useLocation().pathname
     const editCollectionLoaderD = routeType === 'editCollection' && useLoaderData()
+    const customRLDVal = customRouteLoaderDataProp ? useRouteLoaderData(customRouteLoaderDataProp.id) : undefined
+    const customRLDProp = customRouteLoaderDataProp ? {[customRouteLoaderDataProp.name]: customRLDVal} : {}
 
     //the loader for edit collection doesnt allow for its own built in error page redirect, since it uses redux's fetch. this is a workaround
     const errorRedirect = routeType === 'editCollection' && editCollectionLoaderD.status === 500 
 
     const Placeholder = PlaceholderComponent === undefined ? BodyWrapper : PlaceholderComponent
-    const unauthorizedRedirect = routeType === 'editCollection' ? useLocation().pathname.slice(0, -5) : 
-        routeType === 'tradeCounteroffer' ? useLocation().pathname.slice(0, -14) : 
-        routeType === 'userSettings' ? useLocation().pathname.slice(0, -9) :
-        routeType === 'userNotifications' ? useLocation().pathname.slice(0, -14) :
-        routeType === 'userTrades' && useLocation().pathname.slice(0, -7)
+    const unauthorizedRedirect = routeType === 'editCollection' ? pathname.slice(0, -5) : 
+        routeType === 'tradeCounteroffer' ? pathname.slice(0, -14) : 
+        routeType === 'userSettings' ? pathname.slice(0, -9) :
+        routeType === 'userNotifications' ? 
+            routeSubType === 'singleNotification' ? pathname.slice(pathname.indexOf('/users'), pathname.indexOf('/notifications')) : pathname.slice(0, -14) :
+        routeType === 'userTrades' && pathname.slice(0, -7)
     const comparisonRef = (routeType === 'editCollection' && !errorRedirect)? editCollectionLoaderD.owner._id : 
         routeType === 'tradeCounteroffer' ? loaderData.tradeData.users.filter(userData => userData.username === loaderData.latestOfferData.recipient)[0]._id :
         (routeType === 'userSettings' || routeType === 'userNotifications' || routeType === 'userTrades') && useParams().username
@@ -63,6 +66,6 @@ export default function PrivateRoute({Component, PlaceholderComponent, routeType
         };
     }, [])
     return (
-        errorRedirect ? <ErrorPage errorData={editCollectionLoaderD}/> : !isAuthorized ? <Placeholder /> : <Component {...loaderDataProp} {...otherProps}/>
+        errorRedirect ? <ErrorPage errorData={editCollectionLoaderD}/> : !isAuthorized ? <Placeholder /> : <Component {...loaderDataProp} {...otherProps} {...(passUserDataAsProp ? userData : {})} {...customRLDProp}/>
     )
 }

@@ -108,13 +108,13 @@ export default function ShowTrade({tradeAndLOfferData}) {
                         >
                             
                             
-                            <Box sx={{width: '100%', ...theme.components.box.fullCenterCol}}>
+                            <Box sx={{width: '100%', ...theme.components.box.fullCenterCol, display: 'inline-block'}}>
                                 {deletedCollection0 ? 
                                 <Typography sx={{fontSize: '16px', textAlign: 'center'}}>
                                     {`<Deleted ${isNaN(parseInt(deletedCollection0Gen)) ? deletedCollection0Gen.toUpperCase() : `Gen ${deletedCollection0Gen}`} Aprimon Collection>`}
                                 </Typography> :
                                 <>
-                                <Typography sx={{fontSize: '16px', textAlign: 'center'}}>
+                                <Typography sx={{fontSize: '16px', textAlign: 'center'}} noWrap>
                                     {tradeData.users[0].tradeCollection.name}
                                 </Typography>
                                 <Typography sx={{fontSize: '12px', textAlign: 'center'}}>
@@ -174,13 +174,13 @@ export default function ShowTrade({tradeAndLOfferData}) {
                             onClick={deletedCollection1 ? null : () => navigate(`/collections/${tradeData.users[1].tradeCollection._id}`)}
                             disabled={deletedCollection1}
                         >
-                            <Box sx={{width: '100%', ...theme.components.box.fullCenterCol}}>
+                            <Box sx={{width: '100%', ...theme.components.box.fullCenterCol, display: 'inline-block'}}>
                                 {deletedCollection1 ? 
                                 <Typography sx={{fontSize: '16px', textAlign: 'center'}}>
                                     {`<Deleted ${isNaN(parseInt(deletedCollection1Gen)) ? deletedCollection1Gen.toUpperCase() : `Gen ${deletedCollection1Gen}`} Aprimon Collection>`}
                                 </Typography> :
                                 <>
-                                <Typography sx={{fontSize: '16px', textAlign: 'center'}}>
+                                <Typography sx={{fontSize: '16px', textAlign: 'center'}} noWrap>
                                     {tradeData.users[1].tradeCollection.name}
                                 </Typography>
                                 <Typography sx={{fontSize: '12px', textAlign: 'center'}}>

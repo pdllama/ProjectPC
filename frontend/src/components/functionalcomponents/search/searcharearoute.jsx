@@ -83,7 +83,7 @@ export default function SearchAreaRoute({query, searchType, result, page, change
 
     return (
         <>
-        <Box sx={{width: '80%', minHeight: '600px', mt: 2}}>
+        <Box sx={{width: '80%', minHeight: '600px', mt: 2, maxWidth: '1000px', '@media only screen and (max-width: 768px)': {width: '100%'}, '@media only screen and (max-width: 500px)': {width: '95%'}}}>
             
             <Box sx={{maxWidth: '800px', display: 'flex', alignItems: 'center', mb: 3, position: 'relative'}}>
             {(!searchingAll && !noResults && !searching) && 
@@ -161,13 +161,34 @@ export default function SearchAreaRoute({query, searchType, result, page, change
                                 mx: 1, 
                                 px: 2, 
                                 my: 1, 
-                                py: 0.5
+                                py: 0.5,
+                                '@media only screen and (max-width: 500px)': {
+                                    mx: 0.5,
+                                    px: 1.5
+                                },
+                                '@media only screen and (max-width: 375px)': {
+                                    mx: 0.25,
+                                    px: 1.25
+                                }
                             }}
                         >
                             {pageNum}
                         </ToggleButton> :
                         isDots &&
-                        <Typography key={`${searchType}-search-${pagination}`} sx={{px: 2}}>...</Typography>
+                        <Typography 
+                            key={`${searchType}-search-${pagination}`} 
+                            sx={{
+                                px: 2,
+                                '@media only screen and (max-width: 500px)': {
+                                    px: 1.5,
+                                },
+                                '@media only screen and (max-width: 375px)': {
+                                    px: 1.25
+                                }
+                            }}
+                        >
+                            ...
+                        </Typography>
                     )
                 })}
             </Box>

@@ -31,11 +31,11 @@ export default function SearchUserItem({query, username, collectionsInfo, userId
 
     return (
         <SearchItemWrapper onClickFunc={sendToUser}>
-            <Box sx={{width: '80%', height: '100%', display: 'flex', alignItems: 'center', gap: 2}}>
+            <Box sx={{width: '100%', height: '100%', display: 'flex', alignItems: 'center', gap: 2}}>
                 <Box sx={{ml: 1.5, display: 'flex', justifyContent: 'center', alignItems: 'center'}}><ImgData type='icons' linkKey='user' size={'45px'}/></Box>
                 <Box sx={{width: '80%', minWidth: '100px', display: 'flex', flexDirection: 'column'}}>
                     <Box sx={{...theme.components.box.fullCenterRow, justifyContent: 'start'}}>
-                        <Typography sx={{fontWeight: 700, fontSize: '16px', textAlign: 'start', my: -0.25}}><Highlighter textToHighlight={username} searchWords={[query]}/></Typography>
+                        <Typography sx={{fontWeight: 700, fontSize: '16px', textAlign: 'start', my: -0.25, '@media only screen and (max-width: 350px)': {fontSize: '14px'}}}><Highlighter textToHighlight={username} searchWords={[query]}/></Typography>
                         {userAccountType !== 'regular' && <Typography sx={{paddingX: 1, fontWeight: 700, ml: 1, borderRadius: '20px', fontSize: '10px', color: 'white', backgroundColor: 'black'}}>{capitalizeFirstLetter(userAccountType)}</Typography>}
                     </Box>
                     <Box sx={{...theme.components.box.fullCenterRow, justifyContent: 'start'}}>

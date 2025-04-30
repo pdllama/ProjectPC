@@ -173,18 +173,21 @@ class Collection {
     constructor (collectionInfo, newCollectionInfo) {
         //collectionInfo is pretty much 1:1 obj of database info. this is if im retrieving an instance from the database and want to do class operations
         //on it (which requires re-initiating a new instance of the collection class)
-        const {ownedPokemonList, remakeList, gen, pokemonScope, ballScope, excludedCombos, options, customSort, collectionName, owner} = newCollectionInfo
+        const {ownedPokemonList, remakeList, gen, pokemonScope, ballScope, excludedCombos, options, customSort, collectionName, owner, seeding=false} = newCollectionInfo
         this.owner = owner
         this.type = 'aprimon'
         this.name = collectionName
         this.gen = gen
         this.options = options
         this.trades = []
-        this.ownedPokemon = ((ownedPokemonList !== undefined && remakeList) || (ownedPokemonList === undefined)) ? setOwnedPokemonList(gen, pokemonScope, ballScope, excludedCombos, false, ownedPokemonList !== undefined ? ownedPokemonList : false)
-                                .flat()
-                                .filter(e => e !== undefined)
-                                .sort((a, b) => customSortCollectionListLogic(a, b, customSort, true)) 
-                                : ownedPokemonList.map((mon) => {return {name: mon.name, natDexNum: mon.natDexNum, gen: mon.gen, balls: mon.balls}})
+        if (seeding) {
+            this.ownedPokemon = setOwnedPokemonList(gen, pokemonScope, ballScope, excludedCombos, true, ownedPokemonList !== undefined ? ownedPokemonList : false).flat().filter(e => e !== undefined)
+        } else {
+            this.ownedPokemon = ((ownedPokemonList !== undefined && remakeList) || (ownedPokemonList === undefined)) ? setOwnedPokemonList(gen, pokemonScope, ballScope, excludedCombos, false, ownedPokemonList !== undefined ? ownedPokemonList : false)
+                .flat().filter(e => e !== undefined).sort((a, b) => customSortCollectionListLogic(a, b, customSort, true)) 
+                : ownedPokemonList.map((mon) => {return {name: mon.name, natDexNum: mon.natDexNum, gen: mon.gen, balls: mon.balls}})
+        }
+      
                                 // .sort((a, b) => a.natDexNum > b.natDexNum ? 1 : -1)
                                 // .sort((a, b) => {
                                 //     const num1 = a.natDexNum

@@ -155,16 +155,30 @@ export default function RegisterPage({}) {
         '&.MuiInputBase-root': {width: '70%'}
     }
 
+    const questionGroupStyles = {
+        '@media only screen and (max-width: 564px)': {flexDirection: 'column'}
+    }
+    const labelMedia = {
+        '@media only screen and (max-width: 564px)': {width: '80%', textAlign: 'start', ml: 0}
+    }
+    const inputs = {'@media only screen and (max-width: 564px)': {'&.MuiInputBase-root': {width: '84%'}, '&.MuiTextField-root': {width: '80%'}}}
+    const answerInput = {
+        '@media only screen and (max-width: 564px)': {width: '70%'}
+    }
+    const answerTag = {
+        '@media only screen and (max-width: 564px)': {width: '20%'}
+    }
+
     const generateSecurityQuestions = (questionNum) => {
         const dataKey = questionNum === 1 ? 'questionOne' : questionNum === 2 ? 'questionTwo' : questionNum === 3 && 'questionThree'
         return (
-            <Select value={securityQuestion[dataKey]} sx={selectStyles} onChange={(e, newVal) => changeSecurityQuestion(newVal.props.value, dataKey)}>
+            <Select value={securityQuestion[dataKey]} sx={{...selectStyles, ...inputs}} onChange={(e, newVal) => changeSecurityQuestion(newVal.props.value, dataKey)}>
                 {securityQuestions.map((question, idx) => {
                     const optionNum = idx+1
                     const otherQuestionNums = questionNum === 1 ? ['questionTwo', 'questionThree'] : questionNum === 2 ? ['questionOne', 'questionThree'] : ['questionOne', 'questionTwo']
                     const disabledOption = otherQuestionNums.map((qNum) => securityQuestion[qNum] === optionNum).includes(true)
                     return (
-                        <MenuItem disabled={disabledOption} key={`security-question-${questionNum}-option-${optionNum}`} value={optionNum}>{question}</MenuItem>
+                        <MenuItem disabled={disabledOption} key={`security-question-${questionNum}-option-${optionNum}`} value={optionNum} sx={{textWrapMode: 'wrap'}}>{question}</MenuItem>
                     )
                 })}
             </Select>
@@ -214,8 +228,8 @@ export default function RegisterPage({}) {
     }
 
     return (
-        <BodyWrapper sx={{...theme.components.box.fullCenterCol, justifyContent: 'start'}}>
-            <Box sx={{...theme.components.box.fullCenterCol, maxWidth: '800px', minHeight: '700px', width: '80%'}}>
+        <BodyWrapper sx={{...theme.components.box.fullCenterCol, justifyContent: 'start', '@media only screen and (max-width: 619px)': {mx: 2, mt: 3}}}>
+            <Box sx={{...theme.components.box.fullCenterCol, maxWidth: '800px', minHeight: '700px', width: '80%', '@media only screen and (max-width: 767px)': {width: '90%'}, '@media only screen and (max-width: 669px)': {width: '100%'}}}>
                 <Typography sx={{fontWeight: 700, mb: error.error ? 0 : 3, fontSize: '36px'}}>Register</Typography>
                 {error.error && 
                 <Alert 
@@ -228,10 +242,10 @@ export default function RegisterPage({}) {
                 >
                     {error.errorMessage}
                 </Alert>}
-                <Box sx={{...theme.components.box.fullCenterRow, width: '100%'}}>
-                    <Typography sx={{width: '30%', textAlign: 'end'}}>Username:</Typography>
+                <Box sx={{...theme.components.box.fullCenterRow, width: '100%', ...questionGroupStyles}}>
+                    <Typography sx={{width: '30%', textAlign: 'end', ...labelMedia}}>Username:</Typography>
                     <ControlledTextInput 
-                        textFieldStyles={textFieldStyles} 
+                        textFieldStyles={{...textFieldStyles, ...inputs}} 
                         textFieldProps={{
                             inputRef: usernameFieldRef,
                             error: error.username,
@@ -242,29 +256,29 @@ export default function RegisterPage({}) {
                         customRegex={usernameRegex}
                     />
                 </Box>
-                <Box sx={{...theme.components.box.fullCenterRow, alignItems: 'start', justifyContent: 'end', mt: 0.5, width: '100%', height: '10%', position: 'relative'}}>
+                <Box sx={{...theme.components.box.fullCenterRow, alignItems: 'start', justifyContent: 'end', mt: 0.5, width: '100%', height: '10%', position: 'relative', '@media only screen and (max-width: 564px)': {justifyContent: 'start', width: '80%'}}}>
                     {(typeof error.usernameAvailable === 'boolean' || error.usernameAvailable === 'notLongEnough' || error.usernameAvailable === 'reserved' || error.usernameAvailable === 'trailingSpace' || error.usernameAvailable === 'doubleSpace' || error.usernameAvailable === 'unknown') && 
-                    <Box sx={{...theme.components.box.fullCenterCol, alignItems: 'start', width: '70%', height: '100%', position: 'absolute', top: '5px'}}>
+                    <Box sx={{...theme.components.box.fullCenterCol, alignItems: 'start', width: '70%', height: '100%', position: 'absolute', top: '5px', '@media only screen and (max-width: 564px)': {width: '100%'}}}>
                         {error.usernameAvailable === 'notLongEnough' ? 
-                            <Typography sx={{color: 'red', fontSize: '12px', ml: 2}}>Username must be at least 4 characters long!</Typography> : 
+                            <Typography sx={{color: 'red', fontSize: '12px', ml: 2, '@media only screen and (max-width: 564px)': {ml: 0}}}>Username must be at least 4 characters long!</Typography> : 
                         error.usernameAvailable === 'reserved' ? 
-                            <Typography sx={{color: 'red', fontSize: '12px', ml: 2}}>{usernameFieldRef.current.value} is a reserved word. Please try another username!</Typography> : 
+                            <Typography sx={{color: 'red', fontSize: '12px', ml: 2, '@media only screen and (max-width: 564px)': {ml: 0}}}>{usernameFieldRef.current.value} is a reserved word. Please try another username!</Typography> : 
                         error.usernameAvailable === 'trailingSpace' ? 
-                            <Typography sx={{color: 'red', fontSize: '12px', ml: 2}}>Username cannot have leading/trailing empty spaces.</Typography> : 
+                            <Typography sx={{color: 'red', fontSize: '12px', ml: 2, '@media only screen and (max-width: 564px)': {ml: 0}}}>Username cannot have leading/trailing empty spaces.</Typography> : 
                         error.usernameAvailable === 'doubleSpace' ? 
-                            <Typography sx={{color: 'red', fontSize: '12px', ml: 2}}>Username cannot have multiple adjacent spaces.</Typography> : 
+                            <Typography sx={{color: 'red', fontSize: '12px', ml: 2, '@media only screen and (max-width: 564px)': {ml: 0}}}>Username cannot have multiple adjacent spaces.</Typography> : 
                         error.usernameAvailable === 'unknown' ? 
-                            <Typography sx={{color: '#b59d0e', fontSize: '12px', ml: 2}}>Availability unknown!</Typography> : 
+                            <Typography sx={{color: '#b59d0e', fontSize: '12px', ml: 2, '@media only screen and (max-width: 564px)': {ml: 0}}}>Availability unknown!</Typography> : 
                         error.usernameAvailable === true ? 
-                            <Typography sx={{color: 'green', fontSize: '12px', ml: 2}}>{usernameFieldRef.current.value} is available!</Typography> : 
-                            <Typography sx={{color: 'red', fontSize: '12px', ml: 2}}>{usernameFieldRef.current.value} is taken. Try another username.</Typography> 
+                            <Typography sx={{color: 'green', fontSize: '12px', ml: 2, '@media only screen and (max-width: 564px)': {ml: 0}}}>{usernameFieldRef.current.value} is available!</Typography> : 
+                            <Typography sx={{color: 'red', fontSize: '12px', ml: 2, '@media only screen and (max-width: 564px)': {ml: 0}}}>{usernameFieldRef.current.value} is taken. Try another username.</Typography> 
                         }
                     </Box>}
                 </Box>
-                <Box sx={{...theme.components.box.fullCenterRow, mt: 3, width: '100%'}}>
-                    <Typography sx={{width: '30%', textAlign: 'end'}}>E-mail:</Typography>
+                <Box sx={{...theme.components.box.fullCenterRow, mt: 3, width: '100%', ...questionGroupStyles}}>
+                    <Typography sx={{width: '30%', textAlign: 'end', ...labelMedia}}>E-mail:</Typography>
                     <ControlledTextInput 
-                        textFieldStyles={textFieldStyles} 
+                        textFieldStyles={{...textFieldStyles, ...inputs}} 
                         textFieldProps={{
                             inputRef: emailFieldRef,
                             error: error.email,
@@ -274,19 +288,19 @@ export default function RegisterPage({}) {
                         useExpandedRegex={true}
                     />
                 </Box>
-                <Box sx={{...theme.components.box.fullCenterRow, alignItems: 'start', justifyContent: 'end', mt: 0.5, width: '100%', height: '10%', position: 'relative'}}>
+                <Box sx={{...theme.components.box.fullCenterRow, alignItems: 'start', justifyContent: 'end', mt: 0.5, width: '100%', height: '10%', position: 'relative', '@media only screen and (max-width: 564px)': {justifyContent: 'start', width: '80%'}}}>
                     {(typeof error.emailAvailable === 'boolean' || error.emailAvailable === 'Invalid' || error.emailAvailable === 'unknown') && 
-                        <Box sx={{...theme.components.box.fullCenterCol, alignItems: 'start', width: '70%', height: '100%', position: 'absolute', top: '5px'}}>
-                            {(error.emailAvailable === 'Invalid') && <Typography sx={{color: 'red', fontSize: '12px', ml: 2}}>Invalid e-mail address</Typography>}
-                            {(error.emailAvailable === 'unknown') && <Typography sx={{color: '#b59d0e', fontSize: '12px', ml: 2}}>Availability unknown!</Typography>}
-                            {(error.emailAvailable === false) && <Typography sx={{color: 'red', fontSize: '12px', ml: 2}}>That e-mail is already taken by another user!</Typography>}
+                        <Box sx={{...theme.components.box.fullCenterCol, alignItems: 'start', width: '70%', height: '100%', position: 'absolute', top: '5px', '@media only screen and (max-width: 564px)': {width: '100%'}}}>
+                            {(error.emailAvailable === 'Invalid') && <Typography sx={{color: 'red', fontSize: '12px', ml: 2, '@media only screen and (max-width: 564px)': {ml: 0}}}>Invalid e-mail address</Typography>}
+                            {(error.emailAvailable === 'unknown') && <Typography sx={{color: '#b59d0e', fontSize: '12px', ml: 2, '@media only screen and (max-width: 564px)': {ml: 0}}}>Availability unknown!</Typography>}
+                            {(error.emailAvailable === false) && <Typography sx={{color: 'red', fontSize: '12px', ml: 2, '@media only screen and (max-width: 564px)': {ml: 0, fontSize: '10.5px'}}}>That e-mail is already taken by another user!</Typography>}
                         </Box>
                     }
                 </Box>
-                <Box sx={{...theme.components.box.fullCenterRow, mt: 3, width: '100%'}}>
-                    <Typography sx={{width: '30%', textAlign: 'end'}}>Password:</Typography>
+                <Box sx={{...theme.components.box.fullCenterRow, mt: 3, width: '100%', ...questionGroupStyles}}>
+                    <Typography sx={{width: '30%', textAlign: 'end', ...labelMedia}}>Password:</Typography>
                     <ControlledTextInput 
-                        textFieldStyles={textFieldStyles}
+                        textFieldStyles={{...textFieldStyles, ...inputs}}
                         textFieldProps={{
                             inputRef: passwordRef,
                             InputProps: {type: 'password'},
@@ -300,19 +314,19 @@ export default function RegisterPage({}) {
                         defaultValue={password.value}
                     />
                 </Box>
-                <Box sx={{...theme.components.box.fullCenterRow, alignItems: 'start', justifyContent: 'end', mt: 0.5, width: '100%', height: '30%'}}>
-                    <Box sx={{...theme.components.box.fullCenterCol, alignItems: 'start', width: '70%', height: '100%', color: 'grey'}}>
-                        <Typography sx={{fontSize: '12px', ml: 2}}>Password must: </Typography>
-                        <Typography sx={{fontSize: '12px', ml: 2, ...passwordSpecificationsTextColor(password.eightChars)}}>-  Be minimum 8 characters long</Typography>
-                        <Typography sx={{fontSize: '12px', ml: 2, ...passwordSpecificationsTextColor(password.oneUpper)}}>-  Contain one upper-case letter</Typography>
-                        <Typography sx={{fontSize: '12px', ml: 2, ...passwordSpecificationsTextColor(password.oneLower)}}>-  Contain one lower-case letter</Typography>
-                        <Typography sx={{fontSize: '12px', ml: 2, ...passwordSpecificationsTextColor(password.oneNumber)}}>-  Contain one number</Typography>
+                <Box sx={{...theme.components.box.fullCenterRow, alignItems: 'start', justifyContent: 'end', mt: 0.5, width: '100%', height: '30%', '@media only screen and (max-width: 564px)': {justifyContent: 'center'}}}>
+                    <Box sx={{...theme.components.box.fullCenterCol, alignItems: 'start', width: '70%', height: '100%', color: 'grey', '@media only screen and (max-width: 564px)': {width: '80%'}}}>
+                        <Typography sx={{fontSize: '12px', ml: 2, '@media only screen and (max-width: 564px)': {ml: 0}}}>Password must: </Typography>
+                        <Typography sx={{fontSize: '12px', ml: 2, '@media only screen and (max-width: 564px)': {ml: 0}, ...passwordSpecificationsTextColor(password.eightChars)}}>-  Be minimum 8 characters long</Typography>
+                        <Typography sx={{fontSize: '12px', ml: 2, '@media only screen and (max-width: 564px)': {ml: 0}, ...passwordSpecificationsTextColor(password.oneUpper)}}>-  Contain one upper-case letter</Typography>
+                        <Typography sx={{fontSize: '12px', ml: 2, '@media only screen and (max-width: 564px)': {ml: 0}, ...passwordSpecificationsTextColor(password.oneLower)}}>-  Contain one lower-case letter</Typography>
+                        <Typography sx={{fontSize: '12px', ml: 2, '@media only screen and (max-width: 564px)': {ml: 0}, ...passwordSpecificationsTextColor(password.oneNumber)}}>-  Contain one number</Typography>
                     </Box>
                 </Box>
-                <Box sx={{...theme.components.box.fullCenterRow, mt: 3, width: '100%'}}>
-                    <Typography sx={{width: '30%', textAlign: 'end', fontSize: '0.95rem'}}>Confirm Password:</Typography>
+                <Box sx={{...theme.components.box.fullCenterRow, mt: 3, width: '100%', ...questionGroupStyles}}>
+                    <Typography sx={{width: '30%', textAlign: 'end', fontSize: '0.95rem', ...labelMedia}}>Confirm Password:</Typography>
                     <ControlledTextInput 
-                        textFieldStyles={textFieldStyles}
+                        textFieldStyles={{...textFieldStyles, ...inputs}}
                         textFieldProps={{
                             inputRef: confirmPasswordFieldRef,
                             InputProps: {type: 'password'},
@@ -324,24 +338,24 @@ export default function RegisterPage({}) {
                         useExpandedRegex={true}
                     />
                 </Box>
-                <Box sx={{...theme.components.box.fullCenterRow, alignItems: 'start', justifyContent: 'end', mt: 0.5, width: '100%', height: '10%', position: 'relative'}}>
+                <Box sx={{...theme.components.box.fullCenterRow, alignItems: 'start', justifyContent: 'end', mt: 0.5, width: '100%', height: '10%', position: 'relative', '@media only screen and (max-width: 564px)': {justifyContent: 'start', width: '80%'}}}>
                     {(error.passwordsMatch === false) && 
-                    <Box sx={{...theme.components.box.fullCenterCol, alignItems: 'start', width: '70%', height: '100%', position: 'absolute', top: '5px'}}>
-                        <Typography sx={{color: 'red', fontSize: '12px', ml: 2}}>Field does not match password!</Typography> 
+                    <Box sx={{...theme.components.box.fullCenterCol, alignItems: 'start', width: '70%', height: '100%', position: 'absolute', top: '5px', '@media only screen and (max-width: 564px)': {width: '100%'}}}>
+                        <Typography sx={{color: 'red', fontSize: '12px', ml: 2, '@media only screen and (max-width: 564px)': {ml: 0}}}>Field does not match password!</Typography> 
                     </Box>}
                 </Box>
                 <Box sx={{...theme.components.box.fullCenterCol, mt: 2, width: '100%', height: '100%'}}>
                     <Typography sx={{fontSize: '18px', fontWeight: 700}}>Security Questions</Typography>
                     <Typography sx={{fontSize: '11px'}}>At least one required</Typography>
                     <Box sx={{...theme.components.box.fullCenterCol, mt: 3, width: '100%'}}>
-                        <Box sx={{...theme.components.box.fullCenterRow, justifyContent: 'start', width: '100%'}}>
-                            <Typography sx={{fontSize: '14px', width: '30%', textAlign: 'end', mr: 2}}>Security Question 1:</Typography>
+                        <Box sx={{...theme.components.box.fullCenterRow, justifyContent: 'start', width: '100%', ...questionGroupStyles}}>
+                            <Typography sx={{fontSize: '14px', width: '30%', textAlign: 'end', mr: 2, ...labelMedia}}>Security Question 1:</Typography>
                             {generateSecurityQuestions(1)}
                         </Box>
                         <Box sx={{...theme.components.box.fullCenterRow, justifyContent: 'start', width: '100%', mt: 1}}>
-                            <Typography sx={{fontSize: '14px', width: '30%', textAlign: 'end', mr: 2}}>Answer:</Typography>
+                            <Typography sx={{fontSize: '14px', width: '30%', textAlign: 'end', mr: 2, ...answerTag}}>Answer:</Typography>
                             <ControlledTextInput 
-                                textFieldStyles={{'&.MuiTextField-root': {width: '70%'}, '& .MuiInputBase-input': {fontSize: '12px', padding: 0.5, width: '100%'}}}
+                                textFieldStyles={{'&.MuiTextField-root': {width: '70%', ...answerInput}, '& .MuiInputBase-input': {fontSize: '12px', padding: 0.5, width: '100%'}}}
                                 textFieldProps={{
                                     inputRef: questionOneAns,
                                 }}
@@ -350,14 +364,14 @@ export default function RegisterPage({}) {
                         </Box>
                     </Box>
                     <Box sx={{...theme.components.box.fullCenterCol, mt: 3, width: '100%'}}>
-                        <Box sx={{...theme.components.box.fullCenterRow, justifyContent: 'start', width: '100%'}}>
-                            <Typography sx={{fontSize: '14px', width: '30%', textAlign: 'end', mr: 2}}>Security Question 2:</Typography>
+                        <Box sx={{...theme.components.box.fullCenterRow, justifyContent: 'start', width: '100%', ...questionGroupStyles}}>
+                            <Typography sx={{fontSize: '14px', width: '30%', textAlign: 'end', mr: 2, ...labelMedia}}>Security Question 2:</Typography>
                             {generateSecurityQuestions(2)}
                         </Box>
                         <Box sx={{...theme.components.box.fullCenterRow, justifyContent: 'start', width: '100%', mt: 1}}>
-                            <Typography sx={{fontSize: '14px', width: '30%', textAlign: 'end', mr: 2}}>Answer:</Typography>
+                            <Typography sx={{fontSize: '14px', width: '30%', textAlign: 'end', mr: 2, ...answerTag}}>Answer:</Typography>
                             <ControlledTextInput 
-                                textFieldStyles={{'&.MuiTextField-root': {width: '70%'}, '& .MuiInputBase-input': {fontSize: '12px', padding: 0.5, width: '100%'}}}
+                                textFieldStyles={{'&.MuiTextField-root': {width: '70%', ...answerInput}, '& .MuiInputBase-input': {fontSize: '12px', padding: 0.5, width: '100%'}}}
                                 textFieldProps={{
                                     inputRef: questionTwoAns,
                                 }}
@@ -366,14 +380,14 @@ export default function RegisterPage({}) {
                         </Box>
                     </Box>
                     <Box sx={{...theme.components.box.fullCenterCol, mt: 3, width: '100%'}}>
-                        <Box sx={{...theme.components.box.fullCenterRow, justifyContent: 'start', width: '100%'}}>
-                            <Typography sx={{fontSize: '14px', width: '30%', textAlign: 'end', mr: 2}}>Security Question 3:</Typography>
+                        <Box sx={{...theme.components.box.fullCenterRow, justifyContent: 'start', width: '100%', ...questionGroupStyles}}>
+                            <Typography sx={{fontSize: '14px', width: '30%', textAlign: 'end', mr: 2, ...labelMedia}}>Security Question 3:</Typography>
                             {generateSecurityQuestions(3)}
                         </Box>
                         <Box sx={{...theme.components.box.fullCenterRow, justifyContent: 'start', width: '100%', mt: 1}}>
-                            <Typography sx={{fontSize: '14px', width: '30%', textAlign: 'end', mr: 2}}>Answer:</Typography>
+                            <Typography sx={{fontSize: '14px', width: '30%', textAlign: 'end', mr: 2, ...answerTag}}>Answer:</Typography>
                             <ControlledTextInput 
-                                textFieldStyles={{'&.MuiTextField-root': {width: '70%'}, '& .MuiInputBase-input': {fontSize: '12px', padding: 0.5, width: '100%'}}}
+                                textFieldStyles={{'&.MuiTextField-root': {width: '70%', ...answerInput}, '& .MuiInputBase-input': {fontSize: '12px', padding: 0.5, width: '100%'}}}
                                 textFieldProps={{
                                     inputRef: questionThreeAns,
                                 }}

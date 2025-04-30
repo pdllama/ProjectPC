@@ -217,11 +217,11 @@ export default function NavBar() {
                     </Typography>}
                     
                     {(!(!cannotCommunicateWithServer && userData.loggedIn) && loginArea.open) && 
-                    <Box sx={{position: 'absolute', width: '50%', minWidth: '360px', maxWidth: '500px', height: '175px', top: '100%', right: '0.01%', zIndex: 1, ...theme.components.box.fullCenterCol}}>
+                    <Box sx={{position: 'absolute', width: '50%', minWidth: '360px', maxWidth: '500px', height: '175px', top: '100%', right: '0.01%', zIndex: 1, ...theme.components.box.fullCenterCol, '@media only screen and (max-width: 379px)': {height: '275px'}, '@media only screen and (max-width: 374px)': {width: '100vw', minWidth: 0}}}>
                         <Box sx={{...theme.components.box.fullCenterCol, zIndex: 1, backgroundColor: theme.palette.color1.dark, width: '100%', height: '100%', borderBottom: '1px solid black', borderLeft: '1px solid black', borderBottomLeftRadius: '10px'}}>
                             <Typography sx={{fontWeight: 700, mb: 0.75}}>Login</Typography>
-                            <Box sx={{...theme.components.box.fullCenterRow, width: '100%'}}>
-                                <Typography sx={{width: '40%', textAlign: 'end'}}>Username/Email:</Typography>
+                            <Box sx={{...theme.components.box.fullCenterRow, width: '100%', '@media only screen and (max-width: 379px)': {flexDirection: 'column'}}}>
+                                <Typography sx={{width: '40%', textAlign: 'end', '@media only screen and (max-width: 379px)': {width: '60%', textAlign: 'start'}}}>Username/Email:</Typography>
                                 <ControlledTextInput 
                                     textFieldStyles={loginFieldStyles} 
                                     textFieldProps={{
@@ -230,8 +230,8 @@ export default function NavBar() {
                                     }}
                                 />
                             </Box>
-                            <Box sx={{...theme.components.box.fullCenterRow, mt: 1, width: '100%'}}>
-                                <Typography sx={{width: '40%', textAlign: 'end'}}>Password:</Typography>
+                            <Box sx={{...theme.components.box.fullCenterRow, mt: 1, width: '100%', '@media only screen and (max-width: 379px)': {flexDirection: 'column'}}}>
+                                <Typography sx={{width: '40%', textAlign: 'end', '@media only screen and (max-width: 379px)': {width: '60%', textAlign: 'start'}}}>Password:</Typography>
                                 <ControlledTextInput 
                                     textFieldStyles={loginFieldStyles}
                                     textFieldProps={{
@@ -242,9 +242,9 @@ export default function NavBar() {
                                 />
                             </Box>
                             <Button variant='contained' size='small' sx={{mt: 1.5, py: 0.5, '&.Mui-disabled': {color: 'white'}}} onClick={finalizeLogin} disabled={loggingInOrOut}>{loggingInOrOut ? <>Logging in<DotWaitingText/></> : 'Login'}</Button>
-                            <Box sx={{...theme.components.box.fullCenterCol, width: '100%'}}>
-                                <Button sx={{fontSize: '8px', padding: 0.25}} onClick={forgotPassword}>I forgot my password</Button>
-                                <Button sx={{fontSize: '8px', padding: 0.25}} onClick={dontHaveAccount}>I don't have an account</Button>
+                            <Box sx={{...theme.components.box.fullCenterCol, width: '100%', '@media only screen and (max-width: 379px)': {mt: 2}}}>
+                                <Button sx={{fontSize: '8px', padding: 0.25, '@media only screen and (max-width: 379px)': {fontSize: '12px', padding: 0.5}}} onClick={forgotPassword}>I forgot my password</Button>
+                                <Button sx={{fontSize: '8px', padding: 0.25, '@media only screen and (max-width: 379px)': {fontSize: '12px', padding: 0.5}}} onClick={dontHaveAccount}>I don't have an account</Button>
                             </Box>
                         </Box>
                     </Box>}
