@@ -426,6 +426,10 @@ function Router() {
           loader: userLoader,
           id: 'userNotifications', 
           shouldRevalidate: ({ currentUrl, nextUrl }) => {
+            const shorterPath = currentUrl.pathname.length > nextUrl.pathname.length ? nextUrl.pathname : currentUrl.pathname
+            const longerPath = shorterPath === currentUrl.pathname ? nextUrl.pathname : currentUrl.pathname
+            const shouldntRevalidate = longerPath.includes(shorterPath)
+            return !shouldntRevalidate
           },
           children: [
             {

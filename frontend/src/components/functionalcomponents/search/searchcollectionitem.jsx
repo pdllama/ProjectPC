@@ -12,6 +12,7 @@ function CustomHighlighter({textToHighlight, searchWords}) {
 
 export default function SearchCollectionItem({query, name, type, subType, owner, progress, percentProgress, collectionId, showOwner=true}) {
     const typeDisplay = type === 'aprimon' && isNaN(parseInt(subType)) ? `${subType.toUpperCase()} Aprimon Collection` : `Gen ${subType} Aprimon Collection`
+    const theme = useTheme()
     const navigate = useNavigate()
     const sendToCollection = () => {
         navigate(`/collections/${collectionId}`)
@@ -37,7 +38,7 @@ export default function SearchCollectionItem({query, name, type, subType, owner,
                     sx={{
                         textAlign: 'center', fontWeight: 700, fontSize: '14px', width: '100%', textAlign: 'end', position: 'absolute', right: '60px',
                         '@media only screen and (max-width: 450px)': {fontSize: '12px'},
-                        '@media only screen and (max-width: 400px)': {position: 'absolute', right: '7.25px', top: '30px', fontSize: '10px', textAlign: 'center', width: '50px', fontWeight: 400}
+                        '@media only screen and (max-width: 400px)': {position: 'absolute', right: '7.25px', top: '30px', fontSize: '10px', textAlign: 'center', width: '50px', fontWeight: 700, zIndex: 5, color: theme.palette.color2.light}
                     }}
                 >
                     {progress}
@@ -46,8 +47,8 @@ export default function SearchCollectionItem({query, name, type, subType, owner,
                     
                 </Box>
                  <Box sx={{position: 'absolute', width: '45px', height: '45px', right: '10px'}}>
-                    <CircularProgress sx={{position: 'absolute', opacity: 0.2, top: 0, right: 0}} variant='determinate' value={100} size={45}/>
-                    <CircularProgress sx={{position: 'absolute', top: 0, right: 0}} variant='determinate' value={percentProgress} size={45}/>
+                    <CircularProgress sx={{position: 'absolute', opacity: 0.2, top: 0, right: 0, '@media only screen and (max-width: 400px)': {color: theme.palette.color3.main}}} variant='determinate' value={100} size={45}/>
+                    <CircularProgress sx={{position: 'absolute', top: 0, right: 0, '@media only screen and (max-width: 400px)': {color: theme.palette.color3.main}}} variant='determinate' value={percentProgress} size={45}/>
                     <Typography sx={{
                         fontSize: '12px', width: '32px', fontWeight: 700, position: 'absolute', top: '14.25px', right: '6.25px', 
                         '@media only screen and (max-width: 400px)': {top: '8px'}}}>
