@@ -540,7 +540,7 @@ export function Router() {
   )
 }
 
-const isInMaintenanceMode = false
+const isInMaintenanceMode = true
 
 function App() {
   
