@@ -11,21 +11,25 @@ import { setCirclePositionStyles, setRowXScaling } from '../../../utils/function
 import { getBallProgress } from '../../../utils/functions/ballprogresscircle/ballprogressstate'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { selectNestedKeyInLcArray } from '../../app/selectors/linkedcolsselectors'
 
-export default function CollectionProgress({ballScopeInit, isEditMode, collectionList, isOwner, userData, demo, sw}) {
+//really weird thing that goes on with this component.
+//selectors select an uninitiated version of the state before it can initialize, causing a lot of issues which require workarounds especially with collectingBalls.
+//if you can find something to make this better so it only has to work with the state, please do.
+
+export default function CollectionProgress({ballScopeInit, ballScope, isMainList, isEditMode, collectionList, isOwner, userData, demo, sw}) {
     const [selectedBall, setSelectedBall] = useState('')
     const theme = useTheme()
     const link = useLocation().pathname
     const breakpoint = useSelector((state) => selectScreenBreakpoint(state, 'ballprogress'))
-    const collectionListState = useSelector((state) => state.collectionState.collection)
-    const listToCompareFrom = (isEditMode || demo) ? collectionListState.filter((mon) => mon.disabled === undefined) : collectionList.filter((mon) => mon.disabled === undefined)
+    const listToCompareFrom = (isMainList) ? collectionList.filter(p => p.disabled === undefined) : collectionList
     const totalProgress = getBallProgress(listToCompareFrom, 'total')
 
-    const totalBallsState = useSelector((state) => state.collectionState.options.collectingBalls)
+    // const totalBallsState = useSelector((state) => state.collectionState.options.collectingBalls)
     const setBallOrder = (totalBalls) => userData ? userData.settings.display.ballOrder.filter(b => totalBalls.includes(b)) : totalBalls
     //refer to showcollectionlist for why we do below
-    // const totalBalls = (totalBallsState === undefined || !isEditMode) ? JSON.parse(JSON.stringify(ballScopeInit)) : JSON.parse(JSON.stringify(totalBallsState)) //need new reference as we mutate this variable
-    const totalBalls = JSON.parse(JSON.stringify(setBallOrder((totalBallsState === undefined || (!isEditMode && !demo)) ? ballScopeInit : totalBallsState)))
+    // const totalBalls = (totalBallsState === undefined || !isEditMode) ? JSON.parse(JSON.stringify(ballScope)) : JSON.parse(JSON.stringify(totalBallsState)) //need new reference as we mutate this variable
+    const totalBalls = JSON.parse(JSON.stringify(setBallOrder((ballScope === undefined || ballScope.length === 0) ? ballScopeInit : ballScope)))
     // const apriballs = balls.slice(0, 11)
     const setCircleLayout = totalBalls.length > 6 && breakpoint !== 'lg'
     const setRowLayout = (totalBalls.length <= 6 && breakpoint === 'md') || breakpoint === 'lg'

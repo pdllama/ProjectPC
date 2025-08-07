@@ -2,13 +2,36 @@ import {Box} from '@mui/material'
 import BodyWithBanner from '../routepartials/bodywithbanner'
 import BodyWrapper from '../routepartials/bodywrapper'
 import theme from '../../../../utils/styles/globalstyles/theme'
+import { useSelector } from 'react-redux'
+import { selectScreenBreakpoint } from '../../../app/selectors/windowsizeselectors'
 
 const skeletonBg = {backgroundColor: 'rgb(200, 200, 200)', borderRadius: '10px'}
 
-export function ShowCollectionSkeleton ({}) {
-
+export function ShowCollectionSkeleton ({loadingText}) {
+    const screenBreakpoint = useSelector((state) => selectScreenBreakpoint(state, 'default'))
+    const sw = screenBreakpoint === 'sm'
     return (
-        <BodyWithBanner text='' bannerSx={{backgroundColor: '#26BCC9', height: '28px'}}>
+        <BodyWithBanner text='' bannerSx={{backgroundColor: '#26BCC9', height: '28px'}} bodySx={{margin: sw ? 0 : 5}}>
+            {sw ? 
+            <>
+            <Box sx={{display: 'flex', height: '212px', width: '100%'}}>
+                <Box sx={{display: 'flex', flexDirection: 'column', width: '100%'}}>
+                    <Box sx={{...skeletonBg, width: '100%', height: '30px', marginBottom: '2px'}}></Box>
+                    <Box sx={{...skeletonBg, width: '100%', height: '30px', marginBottom: '2px'}}></Box>
+                    <Box sx={{...skeletonBg, width: '100%', height: '30px', marginBottom: '2px'}}></Box>
+                    <Box sx={{...skeletonBg, width: '100%', height: '30px', marginBottom: '2px'}}></Box>
+                    <Box sx={{...skeletonBg, width: '100%', height: '42px'}}></Box>
+                </Box>
+            </Box>
+            <Box sx={{height: '48px', width: '100%', display: 'flex', position: 'relative'}}>
+                <Box sx={{width: '100%', display: 'flex'}}>
+                    <Box sx={{width: '120px', height: '46px', ...skeletonBg, borderRadius: '4px', ml: '5px'}}></Box>
+                </Box>
+                <Box sx={{width: '122px', height: '54px', ...skeletonBg, borderRadius: '0px', borderTopLeftRadius: '10px', borderBottomLeftRadius: '10px', position: 'absolute', right: '0px'}}></Box>
+            </Box>
+            <Box sx={{...skeletonBg, height: '680px', width: '100%', mt: 5}}></Box>
+            </> : 
+            <>
             <Box sx={{display: 'flex', height: '200px', width: '100%'}}>
                 <Box sx={{display: 'flex', flexDirection: 'column', width: '45%'}}>
                     <Box sx={{...skeletonBg, width: '100%', height: '30px', marginBottom: '2px'}}></Box>
@@ -19,6 +42,8 @@ export function ShowCollectionSkeleton ({}) {
             </Box>
             <Box sx={{height: '48px', width: '100%'}}></Box>
             <Box sx={{...skeletonBg, height: '800px', width: '100%'}}></Box>
+            </>
+            }
         </BodyWithBanner>
     )
 }

@@ -57,6 +57,21 @@ const isCollectionOwner = async(req, res, next) => {
     next()
 }
 
+const isNotSameGenCollection = async(req, res, next) => {
+    const {newCollectionInfo} = req.body
+    const gen = newCollectionInfo.gen
+    const usersCollections = await Collection.find({owner: req.user._id}).select('gen')
+    const colGens = usersCollections.map(col => col.gen)
+    if (colGens.includes(gen)) {
+        const exception = new Error()
+        exception.name = 'Forbidden'
+        exception.message = "You cannot make multiple collections with the same gen!"
+        exception.status = 403
+        return res.status(403).send(exception)
+    }
+    next()
+}
+
 const isTheUser = (req, res, next) => {
     const { username } = req.params
     const isTheUser = username === req.user.username
@@ -264,6 +279,7 @@ export {initializePassportStrategy,
     isLoggedIn, 
     isSiteOwner,
     isCollectionOwner, 
+    isNotSameGenCollection,
     isTheUser, 
     canOfferTrade, 
     canRespondToTrade, 

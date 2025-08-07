@@ -158,6 +158,12 @@ const valueDefaults = {
     'Max Mushroom': 2, 'Exp. Candy L': 1, 'Exp. Candy XL': 2
 }
 
+const homeGenNumConversion = {
+    'swsh': 'swsh',
+    'bdsp': 'bdsp',
+    'sv': '9'
+}
+
 export {
     generations, genRomans, genGames, findGenByDexNum, findRegionByDexNum,
     apriballs, apriballLiterals, specialBalls, ballIntros,
@@ -167,5 +173,5 @@ export {
     regionIdentifiers,
     tradePreferenceDisplay,
     gamesOrder, homeCompatibleGames, noRegionalFormGens, homeDisplayGames, getGameColor,
-    valueDefaults
+    valueDefaults, homeGenNumConversion
 }

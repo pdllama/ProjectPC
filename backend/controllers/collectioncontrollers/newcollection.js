@@ -26,7 +26,7 @@ export async function createNewCollection(req, res) {
     const collection = new Collection(collectionData)
     await collection.save()
 
-    const user = await User.findById(owner).populate({path: 'collections', select: 'ownedPokemon'})
+    const user = await User.findById(owner).populate({path: 'collections', select: 'ownedPokemon linkedTo gen'})
 
     const colProg = getCollectionProgressPercent(collection)
     const badgeChange = checkBadgeMilestone(colProg, user.settings.profile.badges, user.collections.map(col => {return {_id: col._id, progress: getCollectionProgressPercent(col)}}).filter(col => col._id.toString() !== collection._id.toString()).map(col => col.progress))

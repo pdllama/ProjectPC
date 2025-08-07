@@ -1,16 +1,17 @@
-import {Box, Typography, useTheme, CircularProgress} from '@mui/material'
+import {Box, Typography, useTheme, CircularProgress, Tooltip} from '@mui/material'
 import ImgData from '../../collectiontable/tabledata/imgdata'
 import SearchItemWrapper from './searchitemwrapper'
 import Highlighter from 'react-highlight-words'
 import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { selectScreenBreakpoint } from '../../../app/selectors/windowsizeselectors'
+import LinkIcon from '@mui/icons-material/Link';
 
 function CustomHighlighter({textToHighlight, searchWords}) {
 
 }
 
-export default function SearchCollectionItem({query, name, type, subType, owner, progress, percentProgress, collectionId, showOwner=true}) {
+export default function SearchCollectionItem({query, name, type, subType, owner, progress, percentProgress, collectionId, linkedCount, isLinked, showOwner=true, showProgress=true, wrapperStyles={}, onClickOverride, customEndText='', customEndTextStyles={}}) {
     const typeDisplay = type === 'aprimon' && isNaN(parseInt(subType)) ? `${subType.toUpperCase()} Aprimon Collection` : `Gen ${subType} Aprimon Collection`
     const theme = useTheme()
     const navigate = useNavigate()
@@ -18,8 +19,9 @@ export default function SearchCollectionItem({query, name, type, subType, owner,
         navigate(`/collections/${collectionId}`)
     }
     const smScreen = useSelector((state) => selectScreenBreakpoint(state, 'dashboard')) === 'sm' //same brkpt (500px)
+ 
     return (
-        <SearchItemWrapper onClickFunc={sendToCollection}>
+        <SearchItemWrapper onClickFunc={onClickOverride ? onClickOverride : sendToCollection} customStyles={wrapperStyles}>
             <style>
                 {`.temper-width {
                     white-space: nowrap;
@@ -29,14 +31,30 @@ export default function SearchCollectionItem({query, name, type, subType, owner,
                 <Box sx={{ml: smScreen ? 0.5 : 1.5, display: 'flex', justifyContent: 'center', alignItems: 'center'}}><ImgData type='icons' linkKey={type} size={smScreen ? '40px' : '50px'}/></Box>
                 <Box sx={{width: '80%', minWidth: '100px', display: 'flex', flexDirection: 'column'}}>
                     <Typography sx={{fontWeight: 700, fontSize: smScreen ? '14px' : '16px', textAlign: 'start', my: -0.25, '@media only screen and (max-width: 650px)': {width: '90%'}}} noWrap><Highlighter className={'temper-width'} textToHighlight={name} searchWords={[query]}/></Typography>
-                    <Typography sx={{fontSize: smScreen ? '10px' : '11px', textAlign: 'start', my: 0, opacity: 0.8}}><Highlighter textToHighlight={typeDisplay} searchWords={[query]}/></Typography>
+                    <Box sx={{display: 'flex'}}>
+                        <Typography sx={{fontSize: smScreen ? '10px' : '11px', textAlign: 'start', my: 0, opacity: 0.8, width: 'auto'}}>
+                            <Highlighter textToHighlight={typeDisplay} searchWords={[query]}/>
+                        </Typography>
+                        {(linkedCount || isLinked) && 
+                            (!linkedCount ? 
+                            <Box sx={{position: 'relative', height: '16.5px', display: 'flex'}}>
+                                <LinkIcon sx={{fontSize: '16.5px', ml: 1, opacity: 1, color: theme.palette.color1.light}}/>
+                            </Box> : 
+                            <Tooltip title={`Linked to ${linkedCount} other collections`}>
+                                <Box sx={{position: 'relative', height: '16.5px', display: 'flex'}}>
+                                    <LinkIcon sx={{fontSize: '16.5px', ml: 1, opacity: 1, color: theme.palette.color1.light}}/>
+                                </Box>
+                            </Tooltip>)
+                        }
+                    </Box>
                     {showOwner && <Typography sx={{fontSize: smScreen ? '10px' : '11px', textAlign: 'start', my: -0.25, opacity: 0.8}}>Owned by <Highlighter textToHighlight={owner} searchWords={[query]}/></Typography>}
                 </Box>
             </Box>
+            {showProgress && 
             <Box sx={{width: '20%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'end', position: 'relative', gap: 0.5, '@media only screen and (max-width: 400px)': {width: '17%'}}}>
                 <Typography 
                     sx={{
-                        textAlign: 'center', fontWeight: 700, fontSize: '14px', width: '100%', textAlign: 'end', position: 'absolute', right: '60px',
+                        fontWeight: 700, fontSize: '14px', width: '100%', textAlign: 'end', position: 'absolute', right: '60px',
                         '@media only screen and (max-width: 450px)': {fontSize: '12px'},
                         '@media only screen and (max-width: 400px)': {position: 'absolute', right: '7.25px', top: '30px', fontSize: '10px', textAlign: 'center', width: '50px', fontWeight: 700, zIndex: 5, color: theme.palette.color2.light}
                     }}
@@ -55,8 +73,19 @@ export default function SearchCollectionItem({query, name, type, subType, owner,
                             {Math.round(percentProgress)}%
                     </Typography>
                 </Box>
-            </Box>
-           
+            </Box>}
+           {customEndText && 
+           <Box sx={{width: '30%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'end', gap: 0.5}}>
+                <Typography 
+                    sx={{
+                        fontWeight: 700, fontSize: '14px', width: '100%', textAlign: 'end', position: 'absolute', right: '20px', ...customEndTextStyles,
+                        '@media only screen and (max-width: 450px)': {fontSize: '12px'},
+                    }}
+                >
+                    {customEndText}
+                </Typography>
+           </Box>
+           }
         </SearchItemWrapper>
     )
 }

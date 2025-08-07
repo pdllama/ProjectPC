@@ -1,8 +1,8 @@
 import {Box, Button, Typography, useTheme} from '@mui/material'
 import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { setUnsavedChanges } from '../../../../../app/slices/editmode'
-import { setBall, setGender, setIsHA, setEmCount, deleteEms, setEms, setQty} from '../../../../../app/slices/collectionstate'
+import { setOnhandChange } from '../../../../../app/slices/editmode'
+import { setBall, setGender, setIsHA, setEmCount, deleteEms, setEms, setQty, setEmGen} from '../../../../../app/slices/collectionstate'
 import { selectNextEmCount, setMaxEmArr } from '../../../../../../utils/functions/misc'
 import QtySelectionForm from '../../../editsectioncomponents/onhandeditonly/qtyselectionform'
 import HASelectionForm from '../../../editsectioncomponents/shared/haselectionform'
@@ -12,15 +12,15 @@ import SWEditEggMovesForm from './swediteggmovesform'
 import SmallWidthModalWrapper from '../../../../partials/wrappers/smallwidthmodalwrapper'
 import SWOnHandPokemonSelectionForm from './swonhandpokemonselectionform'
 import SWDeleteSingleOnHand from './swdeletesingleonhand'
+import { selectPokeIdMatches } from '../../../../../app/selectors/selectpokeidmatches'
 
-export default function SWOnhandEditor({collectionID, demo, pokemonId, allowedBalls, isHomeCollection, idxOfPokemon, possibleGender, noHA, noEMs, customPeripheralStates=undefined, customHandlerFuncs=undefined, noSpeciesEdit=false, noDelete=false, disabledSelections=false, modal=false, removeDeleteButton=false, colorOverride, customBoxSx={}, emProps={}, additionalDeleteDispatchProps={}, additionalDeleteSuccessFunction=null, otherCustomButton=null}) {
+export default function SWOnhandEditor({collectionID, demo, pokemonId, allowedBalls, isHomeCollection, idxOfPokemon, possibleGender, noHA, noEMs, allowedHomeEmGens, customPeripheralStates=undefined, customHandlerFuncs=undefined, noSpeciesEdit=false, noDelete=false, disabledSelections=false, modal=false, removeDeleteButton=false, colorOverride, customBoxSx={}, emProps={}, additionalDeleteDispatchProps={}, additionalDeleteSuccessFunction=null, otherCustomButton=null, emSelectionHeight='40%'}) {
     const theme = useTheme()
     const dispatch = useDispatch()
     const listType = 'onhand'
     const pokemon = customPeripheralStates ? customPeripheralStates : useSelector((state) => state.collectionState.onhand.filter(p => p._id === pokemonId)[0])
-    const possibleEggMoves = useSelector((state) => state.collectionState.eggMoveInfo[pokemon.name])
+    const possibleEggMoves = useSelector((state) => isHomeCollection ? state.collectionState.collection.filter(p => selectPokeIdMatches(p.imgLink, pokemon.imgLink, false))[0].possibleEggMoves : state.collectionState.eggMoveInfo[pokemon.name])
     const colorProp = colorOverride ? {color: colorOverride} : {} 
-
     const [popOutScreens, setPopOutScreens] = useState({emScreen: {selectedEm: '', open: 'firstRenderFalse'}, speciesSelectOpen: false, deleteModal: false})
     const toggleSpeciesSelect = () => setPopOutScreens({...popOutScreens, speciesSelectOpen: !popOutScreens.speciesSelectOpen})
     const toggleDeleteModal = () => setPopOutScreens({...popOutScreens, deleteModal: !popOutScreens.deleteModal})
@@ -32,27 +32,30 @@ export default function SWOnhandEditor({collectionID, demo, pokemonId, allowedBa
         }
     }
     const handleGenderChange = () => {
-        dispatch(setGender({idx: idxOfPokemon, gender: pokemon.gender === 'male' ? 'female' : pokemon.gender === 'female' ? 'unknown' : 'male'}))
-        dispatch(setUnsavedChanges('onhand'))
+        const newGender = pokemon.gender === 'male' ? 'female' : pokemon.gender === 'female' ? 'unknown' : 'male'
+        dispatch(setGender({idx: idxOfPokemon, gender: newGender}))
+        dispatch(setOnhandChange({colId: collectionID, id: pokemon._id, field: 'gender', prevValue: pokemon.gender, currValue: newGender}))
     }
     const handleIsHAChange = (event) => {
         dispatch(setIsHA({idx: idxOfPokemon, listType}))
-        dispatch(setUnsavedChanges('onhand'))
+        dispatch(setOnhandChange({colId: collectionID, id: pokemon._id, field: 'isHA', currValue: !pokemon.isHA}))
     }
     const handleEmCountChange = (event) => {
         const newValue = selectNextEmCount(emCountSelectionList, parseInt(event.target.value))
         const hasAllPossibleEggMoves = (possibleEggMoves.length === maxEMs) && (newValue === maxEMs)
         setPopOutScreens({...popOutScreens, emScreen: {...popOutScreens.emScreen, selectedEm: ''}})
         dispatch(setEmCount({idx: idxOfPokemon, listType, numEMs: newValue}))
+        dispatch(setOnhandChange({colId: collectionID, id: pokemon._id, field: 'emCount', prevValue: pokemon.emCount, currValue: newValue}))
         if (newValue < pokemon.EMs.length) {
             dispatch(deleteEms({idx: idxOfPokemon, listType}))
+            dispatch(setOnhandChange({colId: collectionID, id: pokemon._id, field: 'EMs', prevValue: pokemon.EMs, currValue: []}))
         }
         if (hasAllPossibleEggMoves) {
             for (let eggmove of possibleEggMoves) {
                 dispatch(setEms({idx: idxOfPokemon, listType, emName: eggmove}))
             }
+            dispatch(setOnhandChange({colId: collectionID, id: pokemon._id, field: 'EMs', prevValue: pokemon.EMs, currValue: possibleEggMoves}))
         }
-        dispatch(setUnsavedChanges('onhand')) 
     }
     const handleEMChange = (event) => {
         const selectedEM = event.target.innerText
@@ -64,6 +67,7 @@ export default function SWOnhandEditor({collectionID, demo, pokemonId, allowedBa
         // if the max possible ems is 4 or less AND we are taking out an egg move, decrease the em count
         const changeEMCount = increaseEMCount || decreaseEMCount
         dispatch(setEms({idx: idxOfPokemon, listType, emName: selectedEM}))
+        dispatch(setOnhandChange({colId: collectionID, id: pokemon._id, field: 'EMs', prevValue: pokemon.EMs, currValue: newEMArr}))
         // next two if statements determine how the selected EM (selection box) moves depending on whether an egg move is being added (1st) or removed (2nd)
         if (!(pokemon.EMs.includes(selectedEM))) {
             const newSelectedEMIdx = (popOutScreens.emScreen.selectedEm === 3 && newEMArr === 4) ? '' : popOutScreens.emScreen.selectedEm+1 // if all egg moves slots are selected, remove selection borders. if not, select next empty slot
@@ -73,25 +77,39 @@ export default function SWOnhandEditor({collectionID, demo, pokemonId, allowedBa
         }
         if (changeEMCount) {
             dispatch(setEmCount({idx: idxOfPokemon, listType, numEMs: newEMArr.length}))
+            dispatch(setOnhandChange({colId: collectionID, id: pokemon._id, field: 'emCount', prevValue: pokemon.emCount, currValue: newEMArr.length}))
         }
-        dispatch(setUnsavedChanges('onhand'))
     }
     const handleIncrementQty = () => {
         if (pokemon.qty < 99) {
             const newQty = pokemon.qty+1
             dispatch(setQty({idx: idxOfPokemon, qty: newQty}))
-            dispatch(setUnsavedChanges('onhand'))
+            dispatch(setOnhandChange({colId: collectionID, id: pokemon._id, field: 'qty', prevValue: pokemon.qty, currValue: newQty}))
         }
     }
     const handleDecrementQty = () => {
         if (pokemon.qty > 1) {
             const newQty = pokemon.qty-1
             dispatch(setQty({idx: idxOfPokemon, qty: newQty}))
-            dispatch(setUnsavedChanges('onhand'))
+            dispatch(setOnhandChange({colId: collectionID, id: pokemon._id, field: 'qty', prevValue: pokemon.qty, currValue: newQty}))
         }
     }
+    const handleEmGenChange = (newEmGen) => {
+        const newEMs = pokemon.EMs.filter(em => possibleEggMoves[newEmGen].includes(em))
+        const newEmCount = pokemon.emCount > possibleEggMoves[newEmGen].length ? possibleEggMoves[newEmGen].length : pokemon.emCount
+        const changedEMs = newEMs.length !== pokemon.EMs.length
+        const changedEmCount = newEmCount !== pokemon.emCount
+        dispatch(setEmGen({idx: idxOfPokemon, newEmGen, newEMs: changedEMs ? newEMs : undefined, newEmCount: changedEmCount ? newEmCount : undefined}))
+        dispatch(setOnhandChange({colId: collectionID, id: pokemon._id, field: 'emGen', prevValue: pokemon.emGen, currValue: newEmGen}))
+        if (changedEMs) {
+            dispatch(setOnhandChange({colId: collectionID, id: pokemon._id, field: 'EMs', prevValue: pokemon.EMs, currValue: newEMs}))
+        }
+        if (changedEmCount) {
+            dispatch(setOnhandChange({colId: collectionID, id: pokemon._id, field: 'emCount', prevValue: pokemon.emCount, currValue: newEmCount}))
+        }
 
-    const maxEMs = possibleEggMoves === undefined ? 0 : possibleEggMoves.length > 4 ? 4 : possibleEggMoves.length
+    }
+    const maxEMs = !noEMs && (possibleEggMoves === undefined ? 0 : isHomeCollection ? (possibleEggMoves[pokemon.emGen].length > 4 ? 4 : possibleEggMoves[pokemon.emGen].length) : possibleEggMoves.length > 4 ? 4 : possibleEggMoves.length)
     const emCountSelectionList = setMaxEmArr(maxEMs) 
 
     return (
@@ -123,7 +141,7 @@ export default function SWOnhandEditor({collectionID, demo, pokemonId, allowedBa
                         newOnHand={modal}
                     />
                 </Box>
-                <Box sx={{width: '100%', height: '40%', ...theme.components.box.fullCenterRow, gap: 0}}>
+                <Box sx={{width: '100%', height: emSelectionHeight, ...theme.components.box.fullCenterRow, gap: 0}}>
                     <EggMoveSelectionForm
                         noEMs={noEMs} 
                         emCount={pokemon.emCount}
@@ -139,6 +157,10 @@ export default function SWOnhandEditor({collectionID, demo, pokemonId, allowedBa
                         otherEmTextStyles={{fontSize: '14px'}}
                         {...colorProp}
                         {...emProps}
+                        homeEmGen={pokemon.emGen}
+                        changeHomeEmGen={customHandlerFuncs ? customHandlerFuncs.emGenChange :handleEmGenChange}
+                        emGameData={allowedHomeEmGens}
+                        list='onhand'
                     />
                 </Box>
                 {otherCustomButton &&
@@ -151,7 +173,7 @@ export default function SWOnhandEditor({collectionID, demo, pokemonId, allowedBa
                                 backgroundColor: 'rgb(220, 53, 69)', 
                                 color: 'white', 
                                 border: '1px solid black', 
-                                mt: 2, 
+                                mt: isHomeCollection ? 8 : 2, 
                                 ':hover': {
                                     cursor: 'pointer', 
                                     backgroundColor: 'rgb(250, 83, 99)'
@@ -172,7 +194,7 @@ export default function SWOnhandEditor({collectionID, demo, pokemonId, allowedBa
                         backgroundColor: 'rgb(220, 53, 69)', 
                         color: 'white', 
                         border: '1px solid black', 
-                        mt: 2, 
+                        mt: isHomeCollection ? 4 : 2, 
                         ':hover': {
                             cursor: 'pointer', 
                             backgroundColor: 'rgb(250, 83, 99)'
@@ -185,19 +207,18 @@ export default function SWOnhandEditor({collectionID, demo, pokemonId, allowedBa
             </Box>
             
         </Box>
-        {!isHomeCollection && 
+        {(!noEMs && pokemon.emCount !== undefined) && 
         <SWEditEggMovesForm 
             EMs={pokemon.EMs}
             maxEms={maxEMs}
             emCount={pokemon.emCount}
             idxOfSelectedEM={popOutScreens.emScreen.selectedEm}
-            possibleEggMoves={possibleEggMoves === undefined ? [] : possibleEggMoves}
+            possibleEggMoves={possibleEggMoves === undefined ? [] : isHomeCollection ? possibleEggMoves[pokemon.emGen] :  possibleEggMoves}
             toggleScreen={toggleEditEggMoveScreen}
             handleEMChange={customHandlerFuncs ? customHandlerFuncs.emChange : handleEMChange}
             toggleClass={popOutScreens.emScreen.open === 'firstRenderFalse' ? '' : popOutScreens.emScreen.open ? 'open-sw-em-selection' : 'close-sw-em-selection'}
-        />
-        }
-        {!noSpeciesEdit && <Button sx={{width: '100vw', height: '45.016px', top: '0%', position: 'absolute'}} onClick={toggleSpeciesSelect}></Button>}
+        />}
+        {!noSpeciesEdit && <Button sx={{width: '100vw', height: '45.016px', top: '0%', position: 'absolute', zIndex: 90}} onClick={toggleSpeciesSelect}></Button>}
         {!noSpeciesEdit && 
         <SmallWidthModalWrapper
             ariaLabel={'species select'}
@@ -231,9 +252,10 @@ export default function SWOnhandEditor({collectionID, demo, pokemonId, allowedBa
                 ball={pokemon.ball}
                 imgLink={pokemon.imgLink}
                 isHA={pokemon.isHA}
-                emCount={!isHomeCollection && pokemon.emCount}
+                emCount={pokemon.emCount}
+                emGen={pokemon.emGen}
                 gender={pokemon.gender}
-                isMaxEMs={isHomeCollection ? false : pokemon.EMs !== undefined && pokemon.EMs.length === maxEMs}
+                isMaxEMs={pokemon.EMs !== undefined && pokemon.EMs.length === maxEMs}
                 pokemonId={pokemon._id}
                 collectionID={collectionID}
                 demo={demo}

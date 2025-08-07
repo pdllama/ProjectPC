@@ -25,7 +25,7 @@ const listStyles = {
                 padding: 0,
                 margin: 0,
                 '@media only screen and (max-width: 1100px)': {
-                    paddingLeft: '5px'
+                    paddingLeft: '3px'
                 }
             }
         },

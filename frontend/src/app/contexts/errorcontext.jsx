@@ -18,13 +18,13 @@ const ErrorProvider = ({children}) => {
             if (errorRedirect) {
                 errorFunc(response.load)
             } else {
-                const alertData = checkingAvailability ? 
+                if (!nothingHappenIfError) {
+                    const alertData = checkingAvailability ? 
                     {severity: 'error', isErrorLiteral: true, timeout: 8, errName: response.load.name, errStatus: response.load.status, message: response.load.message, message2: 'We could not verify if the username/e-mail is available. Please try again later.'} : 
                     {severity: 'error', isErrorLiteral: true, timeout: 8, errName: response.load.name, errStatus: response.load.status, message: response.load.message}
-                if (!nothingHappenIfError) {
                     addAlert(alertData)
                 }   
-                errorFunc(response.load)
+                errorFunc(response)
             }
         }
     }

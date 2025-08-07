@@ -16,7 +16,7 @@ import { memo } from 'react';
 import { selectAllowedBallsList } from '../../../../app/selectors/selectors';
 import SWOnhandByPokemonEditor from './editors/swonhandbypokemoneditor';
 
-function SWEditSelection({collectionID, demo, selection, listType, showEditScreen, ohByPSWShowEditScreen, pokemon, gen, idxOfPokemon, allowedBalls, pokemonDeletedFromMemory, otherOnhandReqData, onhandView, ohByPSESData}) {
+function SWEditSelection({collectionID, demo, selection, listType, showEditScreen, ohByPSWShowEditScreen, pokemon, gen, idxOfPokemon, allowedBalls, pokemonDeletedFromMemory, otherOnhandReqData, onhandView, ohByPSESData, subListIdx, dummyMain}) {
     const theme = useTheme()
     const dispatch = useDispatch()
     const noSelection = selection === ''
@@ -126,7 +126,7 @@ function SWEditSelection({collectionID, demo, selection, listType, showEditScree
                         baseImgWidth={baseBallImgWidth}
                         baseGapWidth={baseBallGapWidth}
                         pokemonId={(listType === 'collection') ? pokemon.imgLink : pokemon._id}
-
+                        currColID={collectionID}
                     />
                     }
                     {listType === 'collection' && 
@@ -135,6 +135,9 @@ function SWEditSelection({collectionID, demo, selection, listType, showEditScree
                         pokemonId={pokemon.imgLink}
                         isHomeCollection={gen === 'home'}
                         idxOfPokemon={idxOfPokemon}
+                        subListIdx={subListIdx}
+                        currColGen={gen}
+                        dummyMain={dummyMain}
                     />
                     }
                     {(listType === 'onHand' && !(onhandView === 'byPokemon') && !pokemonDeletedFromMemory) && 
@@ -146,6 +149,7 @@ function SWEditSelection({collectionID, demo, selection, listType, showEditScree
                         possibleGender={otherOnhandReqData.possibleGender}
                         noHA={otherOnhandReqData.noHA}
                         noEMs={otherOnhandReqData.noEMs}
+                        allowedHomeEmGens={otherOnhandReqData.allowedHomeEmGens}
                         isHomeCollection={gen === 'home'}
                         idxOfPokemon={idxOfPokemon}
                     />
@@ -190,10 +194,10 @@ const mapStateToProps = function(state) {
         (listType === 'collection') ? selectCollectionPokemon(state, selection) :
         byPView ? state.collectionState.onhand.filter(p => p.imgLink === selection)[0] : //just need basic data
         listType === 'onHand' && selectOnHandPokemon(state, selection) : 'none'
-    const idxOfPokemon = selection !== '' && (listType === 'collection' ? state.collectionState.collection.indexOf(pokemon) :
+    const idxOfPokemon = selection !== '' && (listType === 'collection' ? state.collectionState.collection.findIndex(p => p.imgLink === pokemon.imgLink) :
         (listType === 'onHand') && 
             (byPView ? state.collectionState.onhand.findIndex(p => pokemon.imgLink === p.imgLink) : 
-            state.collectionState.onhand.indexOf(pokemon)))
+            state.collectionState.onhand.findIndex(p => pokemon._id === p.id)))
     
     const pokemonInCollectionList = (listType === 'onHand' && selection !== '') ? selectCollectionPokemon(state, pokemon.imgLink) : undefined
 
@@ -208,12 +212,16 @@ const mapStateToProps = function(state) {
     const ohByPSESData = (ohByPSWShowEditScreen) ? selectAllOnHandsOfPokemon(state, selection) : undefined 
     // const colBallInfoProp = (listType === 'onHand' && ohByPSWShowEditScreen) ? {colBallInfo: pokemonInCollectionList.balls} : {} 
 
+    const subListIdx = (selection !== '' && listType === 'collection' && state.collectionState.linkedCollections !== undefined && state.collectionState.linkedSelectedIdx !== 0) ? 
+        state.collectionState.subList.findIndex(p => p.imgLink === selection) : undefined
+    const dummyMain = state.collectionState.linkedCollections !== undefined && state.collectionState.linkedCollections[0].gen === 'dummy'
+
     return {
         selection, listType, showEditScreen, ohByPSWShowEditScreen,
         pokemon, idxOfPokemon, pokemonDeletedFromMemory, 
         allowedBalls: (listType === 'onHand' && selection !== '' && !byPView && !allowedBalls.includes(pokemon.ball)) ? [...allowedBalls, pokemon.ball] : allowedBalls, 
         otherOnhandReqData,
-        onhandView, ohByPSESData
+        onhandView, ohByPSESData, subListIdx, dummyMain
     }
 }
 

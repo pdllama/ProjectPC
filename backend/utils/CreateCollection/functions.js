@@ -1,6 +1,7 @@
 // import { apriballLiterals, specialBalls } from '../../../common/infoconstants/miscconstants.js'
-import { apriballLiterals, specialBalls, homeCompatibleGames, genGames } from '../../common/infoconstants/miscconstants.mjs'
+import { apriballLiterals, specialBalls, homeCompatibleGames, genGames, homeDisplayGames } from '../../common/infoconstants/miscconstants.mjs'
 import { uniqueAlternateFormPokemon, uniqueRegionalFormPokemon } from '../../common/infoconstants/pokemonconstants.mjs'
+import { getSingleMonAvailableHomeGames } from '../schemavirtuals/collectionvirtuals.js'
 
 //JSON.parse(JSON.stringify(ownedBallList)) ---- this makes a new ref for the owned ball list allowing changes in one alt form to not affect the other
 
@@ -95,6 +96,9 @@ function handleRegionalForms(pokemonInfo, ownedBallList, pokename, gen, multiple
             const balls = setType ? {} : {balls: JSON.parse(JSON.stringify(ownedBallList))}
             const isInGen = gen === 'home' ? homeCompatibleGames.filter(gameData => getBallPath(pokemonInfo, gen, '', '', false, true) === gameData.game && gameData.compatible).length !== 0 : gen >= regionF.gen
             const includePokemon = ((importing || setType) && isInGen) ? true : (isInGen && regionalFormScope.filter(mon => mon.name === formName).length !== 0)
+            if (!setType && gen === 'home') {
+                editEggMoveDataRegionalsAlternates(formName, pokemonInfo.info.natDexNum, balls.balls)
+            }
             if (includePokemon) {
                 copyOfArr.push(
                     {
@@ -114,21 +118,69 @@ function handleRegionalForms(pokemonInfo, ownedBallList, pokename, gen, multiple
     return copyOfArr
 }
 
+function editEggMoveDataRegionalsAlternates(name, natDexNum, ballData) {
+    //modifies existing ballData in home collections to have only gens that the mon is actually in and has egg moves in
+    if (Object.values(ballData)[0].eggMoveData !== undefined) {
+        homeDisplayGames.forEach((hDG) => {
+            const regFormHasEggMoves = Object.values(ballData)[0].eggMoveData[hDG] !== undefined
+            if (regFormHasEggMoves) {
+                const isInGen = getSingleMonAvailableHomeGames({name, natDexNum}).includes(hDG)
+                if (!isInGen) {
+                    Object.keys(ballData).forEach(b => {
+                        delete ballData[b].eggMoveData[hDG]
+                    })
+                } 
+            }
+        })
+        if (Object.keys(Object.values(ballData)[0].eggMoveData).length === 0) {
+            Object.keys(ballData).forEach(b => {
+                delete ballData[b].eggMoveData
+            }) 
+        }
+    }  
+}
+
+function homeEggMoveConstructor(genInfo) {
+    const emData = {}
+    Object.keys(genInfo).forEach(g => {
+        const skip = g === 'gen6' || g === 'gen7'
+        if (!skip) {
+            if (genInfo[g].eggmoves) {
+                const basicEm = {emCount: 0, EMs: []}
+                if (g === 'gen8') {
+                    if (genInfo[g].balls.swsh) {
+                        emData.swsh = basicEm
+                    }
+                    if (genInfo[g].balls.bdsp) {
+                        emData.bdsp = basicEm
+                    }
+                } else {
+                    emData['9'] = basicEm
+                }
+            }
+        }
+    })
+    return Object.keys(emData).length === 0 ? undefined : emData
+}
+
 function setBallInfo(pokemon, genKey, ballLegality, isHomeCollection=false) {
     const hasHAAndIsLegal = (pokemon.info.HA.hasHA && (ballLegality.haIsLegal === true)) || (ballLegality.haIsLegal === true && pokemon.name === 'ferroseed') 
     //ferroseed is the only one who escapes this since his evo has an HA but he doesn't, but people tend to collect him as having HA anyway. I do not believe
     //there will be another exception like this, so I'm singling him out here. 
 
     // const hasEMs = isHomeCollection ? (getBallPath(pokemon, 'home', '', '', true).eggmoves ? true : false) : (pokemon.specificGenInfo[genKey].eggmoves ? true : false)
-    const hasEMs = isHomeCollection ? false : (pokemon.specificGenInfo[genKey].eggmoves ? true : false) //ems are disabled for home collections
+    // const hasEMs = isHomeCollection ? false : (pokemon.specificGenInfo[genKey].eggmoves ? true : false) //ems are disabled for home collections
+    const hasEMs = isHomeCollection ? true : (pokemon.specificGenInfo[genKey].eggmoves ? true : false) //ems are disabled for home collections
     if (hasHAAndIsLegal === false && hasEMs === false) {
         return {isOwned: false}
     } else if (hasHAAndIsLegal === true && hasEMs === false) {
         return {isOwned: false, isHA: false}
     } else if (hasHAAndIsLegal === false && hasEMs === true) {
-        return {isOwned: false, emCount: 0, EMs: []}
+        const emData = isHomeCollection ? {eggMoveData: homeEggMoveConstructor(pokemon.specificGenInfo)} : {emCount: 0, EMs: []}
+        return {isOwned: false, ...emData}
     } else {
-        return {isOwned: false, isHA: false, emCount: 0, EMs: []}
+        const emData = isHomeCollection ? {eggMoveData: homeEggMoveConstructor(pokemon.specificGenInfo)} : {emCount: 0, EMs: []}
+        return {isOwned: false, isHA: false, ...emData}
     }
 }
 
@@ -190,10 +242,12 @@ function setOwnedBallList(genKey, ballLegality, fullPokemonInfo, onlyGettingLega
     const ownedBallList = {}
     const legalBalls = []
     if (ballLegality.apriball.isLegal === true) {
-        apriballLiterals.forEach((b) => {
-            
-            ownedBallList[b] = setBallInfo(fullPokemonInfo, genKey, ballLegality.apriball, isHomeCollection)
-        })
+        if (!onlyGettingLegalBalls) {
+            apriballLiterals.forEach((b) => {
+                ownedBallList[b] = setBallInfo(fullPokemonInfo, genKey, ballLegality.apriball, isHomeCollection)
+            })
+        }
+        
         legalBalls.push('apriball')
     } 
     specialBalls.forEach((b) => {
@@ -201,7 +255,9 @@ function setOwnedBallList(genKey, ballLegality, fullPokemonInfo, onlyGettingLega
             null
         } else if (ballLegality[b].isLegal === true) {
             legalBalls.push(b)
-            ownedBallList[b] = setBallInfo(fullPokemonInfo, genKey, ballLegality[b], isHomeCollection)
+            if (!onlyGettingLegalBalls) {
+                ownedBallList[b] = setBallInfo(fullPokemonInfo, genKey, ballLegality[b], isHomeCollection)
+            }
         }
     })
     return onlyGettingLegalBalls ? legalBalls : ownedBallList
@@ -257,6 +313,17 @@ function handleBasculin(altForms, name, pokemonInfo, ownedBallList, gen, importi
         const includeWhiteStriped = (whiteStriped && (gen >= 9 || gen === 'home'))
         const includeMon = (importing || setType) ? true : breedableAltFormScope.filter(mon => mon.name === formName).length !== 0
         if (((whiteStriped && includeWhiteStriped) || (!whiteStriped)) && includeMon) {
+            if (gen === 'home' && whiteStriped && !setType) {
+                const whiteStripedAvailableGames = getSingleMonAvailableHomeGames({name: formName, natDexNum: pokemonInfo.info.natDexNum}, pokemonInfo)
+                Object.keys(balls.balls).forEach(b => {
+                    homeDisplayGames.forEach(hDG => {
+                        if (!(whiteStripedAvailableGames.includes(hDG))){
+                            delete balls.balls[b].eggMoveData[hDG]
+                        }
+                    })
+                    
+                })
+            }
             multiplePokemon.push(
                 {
                     name: formName,

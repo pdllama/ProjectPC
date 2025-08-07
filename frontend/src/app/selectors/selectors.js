@@ -3,13 +3,23 @@ import { getBallProgress } from '../../../utils/functions/ballprogresscircle/bal
 import { apriballs } from '../../../common/infoconstants/miscconstants.mjs'
 import { selectPokeIdMatches } from './selectpokeidmatches'
 import { matchOnHandInList } from '../../components/collectiontable/onhandlist/onhandbypokemonupdates/ohbypokemonstateupdate'
+import { selectCorrectOpList, selectLinkedColIdx } from './linkedcolsselectors'
+
+//used for selectScopeFormData
+const formDataMonFormat = (monInfo) => {return {name: monInfo.name, natDexNum: monInfo.natDexNum, id: monInfo.imgLink}}
 
 const selectCollectionList = (state) => {
-    return state.collectionState.collection
+    const activateSubList = state.collectionState.linkedCollections !== undefined && state.collectionState.linkedSelectedIdx !== 0
+    return activateSubList ? state.collectionState.subList : state.collectionState.collection
 }
 
 const selectEnabledPokemonInCollectionList = (state) => {
     return state.collectionState.collection[0] === undefined ? state.collectionState.collection : state.collectionState.collection.filter(mon => mon.disabled === undefined) 
+}
+
+export const selectActivePokemon = (state) => {
+    const isMainList = state.collectionState.linkedSelectedIdx === 0
+    return isMainList ? selectEnabledPokemonInCollectionList(state) : state.collectionState.collection.filter(p => p.isActive)
 }
 
 const selectOnHandList = (state) => {
@@ -19,7 +29,9 @@ const selectOnHandList = (state) => {
 const selectPokemonIdentifier = (state, id) => id
 
 const selectCollectionIdx = (state, id) => {
-    const idx = state.collectionState.collection.map((p, idx) => selectPokeIdMatches(p.imgLink, id, p.disabled) ? idx : undefined).filter(p => p !== undefined)[0]
+    const subListActive = state.collectionState.linkedCollections !== undefined && state.collectionState.linkedSelectedIdx !== 0
+    const idx = subListActive ? state.collectionState.subList.findIndex((p) => selectPokeIdMatches(p.imgLink, id, false)) : 
+    state.collectionState.collection.map((p, idx) => selectPokeIdMatches(p.imgLink, id, p.disabled) ? idx : undefined).filter(p => p !== undefined)[0]
     return idx
 }
 
@@ -95,10 +107,10 @@ const selectBallProgress = createSelector([selectEnabledPokemonInCollectionList,
     return getBallProgress(list, ball)
 })
 
-const selectScopeFormData = createSelector([selectEnabledPokemonInCollectionList, selectScopeTotal], (list, scopeTotal) => {
+const selectScopeFormData = createSelector([selectCorrectOpList, selectScopeTotal], (list, scopeTotal) => {
     const listOfIds = list.filter(mon => mon.disabled === undefined).map(mon => mon.imgLink)
     const formData = {}
-    const formDataMonFormat = (monInfo) => {return {name: monInfo.name, natDexNum: monInfo.natDexNum, id: monInfo.imgLink}}
+    
     Object.keys(scopeTotal).forEach(group => {
         const hasSubGroups = !Array.isArray(scopeTotal[group])
         const uninitializedGroup = formData[group] === undefined
@@ -118,24 +130,31 @@ const selectScopeFormData = createSelector([selectEnabledPokemonInCollectionList
     return formData
 })
 
-const selectExcludedBallCombos = createSelector([selectEnabledPokemonInCollectionList], (filteredList) => {
+const selectExcludedBallCombos = createSelector([selectCorrectOpList], (list) => {
     const excludedBallCombos = {}
-    filteredList.forEach(mon => {
-        Object.keys(mon.balls).forEach(ball => {
-            if (mon.balls[ball].disabled === true) {
-                if (excludedBallCombos[mon.name] === undefined) {
-                    excludedBallCombos[mon.name] = {natDexNum: mon.natDexNum, imgLink: mon.imgLink, excludedBalls: [ball]}
-                } else {
-                    excludedBallCombos[mon.name].excludedBalls = [...excludedBallCombos[mon.name].excludedBalls, ball]
+    list.forEach(mon => {
+        if (!mon.disabled) {
+           Object.keys(mon.balls).forEach(ball => {
+                if (mon.balls[ball].disabled === true) {
+                    if (excludedBallCombos[mon.name] === undefined) {
+                        excludedBallCombos[mon.name] = {natDexNum: mon.natDexNum, imgLink: mon.imgLink, excludedBalls: [ball]}
+                    } else {
+                        excludedBallCombos[mon.name].excludedBalls = [...excludedBallCombos[mon.name].excludedBalls, ball]
+                    }
                 }
-            }
-        })
+            }) 
+        }
+        
     })
     return excludedBallCombos
 })
 
-const selectCustomSortData = createSelector([selectEnabledPokemonInCollectionList], (filteredList) => {
-    return filteredList.map(mon => {return {name: mon.name, natDexNum: mon.natDexNum, id: mon.imgLink}})
+const selectCustomSortData = createSelector([selectCorrectOpList, selectLinkedColIdx], (list, idx) => {
+    if (idx === 0) {
+        return list.filter(p => p.disabled === undefined).map(mon => {return {name: mon.name, natDexNum: mon.natDexNum, id: mon.imgLink}})
+    } else {
+        return list.map(mon => {return {name: mon.name, natDexNum: mon.natDexNum, id: mon.imgLink}})
+    }
 })
 
 const selectAllowedBallsList = createSelector([selectCollectionList, selectCollectionIdx], (collectionList, idx) => {
@@ -200,9 +219,14 @@ const selectOtherOnhandReqData = createSelector([selectCollectionList, selectPok
     return {
         possibleGender: pData.possibleGender,
         noHA: Object.values(pData.balls)[0].isHA === undefined,
-        noEMs: Object.values(pData.balls)[0].EMs === undefined
+        noEMs: (Object.values(pData.balls)[0].EMs === undefined && Object.values(pData.balls)[0].eggMoveData === undefined),
+        allowedHomeEmGens: Object.values(pData.balls)[0].eggMoveData !== undefined && Object.keys(Object.values(pData.balls)[0].eggMoveData)
     }
 })
+
+const selectUnsavedChanges = (state) => Object.keys(state.editmode.changes.unsavedChanges).length !== 0
+const selectAnyUnsavedOnhandChanges = (state) => Object.keys(state.editmode.changes.unsavedOnhandChanges).length !== 0
+const selectSpecificUnsavedOnhandChanges = (state, colId) => state.editmode.changes.unsavedOnhandChanges[colId] === undefined ? false : Object.keys(state.editmode.changes.unsavedOnhandChanges[colId]).length !== 0
 
 export {seeIfPokemonIsSelected, 
     selectCollectionPokemon, 
@@ -219,5 +243,8 @@ export {seeIfPokemonIsSelected,
     selectOwnedBallsList,
     selectOwnedBallsAndHangingOnHandBallsList,
     selectByPokemonOHData,
-    selectOtherOnhandReqData
+    selectOtherOnhandReqData,
+    selectUnsavedChanges,
+    selectAnyUnsavedOnhandChanges,
+    selectSpecificUnsavedOnhandChanges
 }

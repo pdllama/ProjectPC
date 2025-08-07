@@ -1,14 +1,14 @@
 import handleApiResponse from "../handleapiresponse"
 const backendurl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000'
 
-export const acceptTradeOffer = async(tradeId, otherUserId, offerColId, receivingColId, username) => {
+export const acceptTradeOffer = async(tradeId, otherUserId, offerColId, receivingColId, username, offerSuperColId, receivingSuperColId) => {
     return await fetch(`${backendurl}/trades/${tradeId}`, {
         method: 'PUT',
         credentials: 'include',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({response: 'accept', otherUserId, offerColId, receivingColId, username})
+        body: JSON.stringify({response: 'accept', otherUserId, offerColId, receivingColId, username, offerSuperColId, receivingSuperColId})
     }).then(async(data) => await handleApiResponse(data))
 }
 
@@ -34,24 +34,24 @@ export const counterTradeOffer = async(tradeId, otherUserId, offerColId, receivi
     }).then(async(data) => await handleApiResponse(data))
 }
 
-export const cancelTrade = async(tradeId, otherUserId, offerColId, receivingColId, username) => {
+export const cancelTrade = async(tradeId, otherUserId, offerColId, receivingColId, username, offerSuperColId, receivingSuperColId) => {
     return await fetch(`${backendurl}/trades/${tradeId}`, {
         method: 'PUT',
         credentials: 'include',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({response: 'cancel', otherUserId, offerColId, receivingColId, username})
+        body: JSON.stringify({response: 'cancel', otherUserId, offerColId, receivingColId, username, offerSuperColId, receivingSuperColId})
     }).then(async(data) => await handleApiResponse(data))
 }
 
-export const toggleMarkedAsComplete = async(tradeId, otherUserId, offerColId, receivingColId, username) => {
+export const toggleMarkedAsComplete = async(tradeId, otherUserId, offerColId, receivingColId, username, offerSuperColId, receivingSuperColId) => {
     return await fetch(`${backendurl}/trades/${tradeId}`, {
         method: 'PUT',
         credentials: 'include',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({response: 'markAsComplete', otherUserId, offerColId, receivingColId, username})
+        body: JSON.stringify({response: 'markAsComplete', otherUserId, offerColId, receivingColId, username, offerSuperColId, receivingSuperColId})
     }).then(async(data) => await handleApiResponse(data))
 }

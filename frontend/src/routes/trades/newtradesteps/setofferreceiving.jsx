@@ -133,6 +133,9 @@ function SetOfferReceivingFunc({comparisonData, selectedColData, ownerColData, o
                     wantedPokemonData={offerData.display === 'offer' ? getWantedData(ownerColData.ownedPokemon) : []}
                     onhandView={offerData.onhandView}
                     changeOnhandView={() => setOfferData({...offerData, onhandView: offerData.onhandView === 'byIndividual' ? 'byPokemon' : 'byIndividual'})}
+                    homeHomeTrade={selectedColData.gen === 'home' && ownerColData.gen === 'home'}
+                    isHomeCollection={offerData.display === 'offer' ? selectedColData.gen === 'home' : ownerColData.gen === 'home'}
+                    otherListGen={offerData.display === 'offer' ? ownerColData.gen : selectedColData.gen}
                 />
             }
             {(offerData.display === 'items') &&
@@ -152,15 +155,27 @@ function SetOfferReceivingFunc({comparisonData, selectedColData, ownerColData, o
     )
 }
 
+const getOfferTotal = (offerArr) => {
+    if (offerArr === undefined) {return 0}
+    const ballNums = offerArr.map(p => p.balls.length)
+    return ballNums.reduce((accum, currValue) => accum+currValue, 0)
+}
+
 //oP === oldProps, nP === newProps
 const SetOfferReceiving = memo(SetOfferReceivingFunc, (oP, nP) => {
     // const activatedPokemonChanges = (oP.activated.offering.map((p) => p.balls.length).reduce((accumulator, currentValue) => accumulator+currentValue, 0) !== nP.activated.offering.map((p) => p.balls.length).reduce((accumulator, currentValue) => accumulator+currentValue, 0)) ||
     // (oP.activated.receiving.map((p) => p.balls.length).reduce((accumulator, currentValue) => accumulator+currentValue, 0) !== nP.activated.receiving.map((p) => p.balls.length).reduce((accumulator, currentValue) => accumulator+currentValue, 0))
+
+    // console.log(getOfferTotal(oP.comparisonData.canOffer))
+    // console.log(getOfferTotal(nP.comparisonData.canOffer))
+
     return (
-        Object.keys(oP.comparisonData).length === Object.keys(nP.comparisonData).length &&
+        // Object.keys(oP.comparisonData).length === Object.keys(nP.comparisonData).length &&
         oP.comparisonData.comparedWith === nP.comparisonData.comparedWith &&
         oP.selectedColData._id === nP.selectedColData._id &&
-        oP.receivedValueFrom === nP.receivedValueFrom
+        oP.receivedValueFrom === nP.receivedValueFrom && 
+        getOfferTotal(oP.comparisonData.canOffer) === getOfferTotal(nP.comparisonData.canOffer) &&
+        getOfferTotal(oP.comparisonData.canReceive) === getOfferTotal(nP.comparisonData.canReceive) 
         // !activatedPokemonChanges
     )
 })

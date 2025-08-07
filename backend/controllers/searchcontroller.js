@@ -1,41 +1,7 @@
 import Collection from '../models/collections.js'
 import User from '../models/users.js'
-
-export const collectionProgressAggField = {
-    $addFields: {
-        progress: {
-            $concat: [
-                {$toString: {$sum: {$map: {
-                    input: {$filter: {
-                        input: "$ownedPokemon",
-                        as: 'pokemon',
-                        cond: {$not: '$$pokemon.disabled'}
-                    }},
-                    as: 'enabledPokemon',
-                    in: {$sum: {$map: {
-                        input: {$filter: {input: {$objectToArray: '$$enabledPokemon.balls'}, as: 'ballValues', cond: {$not: '$$ballValues.v.disabled'}}},
-                        as: 'ballObj',
-                        in: {$cond: {if: '$$ballObj.v.isOwned', then: 1, else: 0}}
-                    }}}
-                }}}},
-                '/',
-                {$toString: {$sum: {$map: {
-                    input: {$filter: {
-                        input: "$ownedPokemon",
-                        as: 'pokemon',
-                        cond: {$not: '$$pokemon.disabled'}
-                    }},
-                    as: 'enabledPokemon',
-                    in: {$sum: {$map: {
-                        input: {$filter: {input: {$objectToArray: '$$enabledPokemon.balls'}, as: 'ballValues', cond: {$not: '$$ballValues.v.disabled'}}},
-                        as: 'ballObj',
-                        in: {$cond: {if: '$$ballObj.v', then: 1, else: 0}}
-                    }}}
-                }}}}
-            ]
-        }
-    }
-}
+import { linkedAsSingleSearchAggregate } from './aggregations/linkedcollectionsaggs.js'
+import collectionProgressAggField from './aggregations/collectionprogressagg.js'
 
 export default async function searchDatabases(req, res) {
     const {searchType} = req.params
@@ -46,7 +12,7 @@ export default async function searchDatabases(req, res) {
     const searchUsers = searchType === 'all' || searchType === 'users'
     const regex = new RegExp(query, 'i')
     const searchQueries = {
-        collections: emptyQuery ? {} : {$or: [{name: regex}, {'owner.username': regex}, {type: regex}, {gen: regex}]},
+        collections: emptyQuery ? {} : {$or: [{name: regex}, {'owner.username': regex}, {type: regex}, {gen: regex}], gen: {$not: {$eq: 'dummy'}}},
         users: emptyQuery ? {} : {username: regex}
     }
 
@@ -71,8 +37,9 @@ export default async function searchDatabases(req, res) {
         ...queryCollectionAggregate,
         {$skip: skip === undefined ? 0 : parseInt(skip)},
         {$limit: maxDocs},
+        ...linkedAsSingleSearchAggregate(),
         collectionProgressAggField,
-        {$project: {_id: true, name: true, 'owner.username': true, type: true, gen: true, progress: true}}
+        {$project: {_id: true, name: true, 'owner.username': true, type: true, gen: true, progress: true, linkedTo: true, isLinked: true}}
     ]
     // const searchOperations = {
     //     collections: searchCollections ? Collection.aggregate(collectionAggregate).exec : [],
@@ -80,13 +47,18 @@ export default async function searchDatabases(req, res) {
     // }
 
     const collectionCountStep1 = searchCollections ? await Collection.aggregate(collectionCountAggregate, {maxTimeMS: 750}) : 0
+    try {
+        const searchResult = {
+            collections: searchCollections ? await Collection.aggregate(collectionAggregate).exec() : [],
+            users: searchUsers ? await User.find(searchQueries.users, '_id username settings.profile.badges accountType').skip(skip === undefined ? 0 : skip).limit(maxDocs).lean().populate({path: 'collections', select: 'type -_id -owner'}).exec() : [],
+            collectionCount: (collectionCountStep1[0] === undefined || collectionCountStep1 === 0) ? 0 : collectionCountStep1[0].totalCollections,
+            userCount: searchUsers ? await User.countDocuments(searchQueries.users, {maxTimeMS: 750}) : 0,
+        }
 
-    const searchResult = {
-        collections: searchCollections ? await Collection.aggregate(collectionAggregate).exec() : [],
-        users: searchUsers ? await User.find(searchQueries.users, '_id username settings.profile.badges accountType').skip(skip === undefined ? 0 : skip).limit(maxDocs).lean().populate({path: 'collections', select: 'type -_id -owner'}).exec() : [],
-        collectionCount: (collectionCountStep1[0] === undefined || collectionCountStep1 === 0) ? 0 : collectionCountStep1[0].totalCollections,
-        userCount: searchUsers ? await User.countDocuments(searchQueries.users, {maxTimeMS: 750}) : 0,
+        res.json(searchResult) 
+    } catch (err) {
+        console.log(err)
+        return res.status(500).send(err)
     }
-
-    res.json(searchResult)
+    
 }

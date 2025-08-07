@@ -10,8 +10,10 @@ import { saveExcludedCombos } from "../../../../../utils/functions/scope/savesco
 import { AlertsContext } from "../../../../alerts/alerts-context";
 import { ErrorContext } from "../../../../app/contexts/errorcontext";
 import { ownedPokemonEdit } from "../../../../../utils/functions/backendrequests/ownedpokemonedit";
+import { setExcludedCombos as setStateExcludedCombos } from "../../../../app/slices/collectionstate";
 import PokemonBallCombosModalContents from "../../../collectioncreation/stepcomponents/scopeselection/aprimon/pokemonballcombosmodalcontents";
 import SaveChangesConfirmModal from "../savechangesconfirmmodal";
+import excludedCombosBackendChange from "../../../../../utils/functions/backendrequests/collections/scoperequests/excludedcombosbackendrequests";
 
 export default function BallCombosScope({elementBg, collectionGen, collectionId, demo, sw}) {
     const dispatch = useDispatch()
@@ -73,44 +75,42 @@ export default function BallCombosScope({elementBg, collectionGen, collectionId,
 
     const finalizeChanges = async(saveChanges, nextScreen) => {
         if (saveChanges) {
-            const newCollectionListState = saveExcludedCombos(excludedCombos.pokemonChange.addedPokemon, excludedCombos.pokemonChange.removedPokemon, excludedCombos.ballChange, collectionState)
+            // const newCollectionListState = saveExcludedCombos(excludedCombos.pokemonChange.addedPokemon, excludedCombos.pokemonChange.removedPokemon, excludedCombos.ballChange, collectionState)
             setExcludedCombos({...excludedCombos, saving: true})
-            if (demo) {
+            // if (demo) {
+            //     setTimeout(() => {
+            //         dispatch(setListState({collection: newCollectionListState, onlyUpdateCollection: true, resetCollectionFilters: true}))
+    
+            //         //spawning alert
+            //         const alertMessage = `Updated Excluded Pokemon/Ball Combos!`
+            //         const alertInfo = {severity: 'success', message: alertMessage, timeout: 3}
+            //         addAlert(alertInfo)
+    
+            //         dispatch(changeModalState({open: false}))
+            //     }, 1000)
+            // } else {
+            
+            const backendFunc = async() => await excludedCombosBackendChange(collectionId, excludedCombos.pokemonChange.addedPokemon, excludedCombos.pokemonChange.removedPokemon, excludedCombos.ballChange)
+            
+            const successFunc = () => {
                 setTimeout(() => {
-                    dispatch(setListState({collection: newCollectionListState, onlyUpdateCollection: true, resetCollectionFilters: true}))
+                    // dispatch(setListState({collection: newCollectionListState, onlyUpdateCollection: true, resetCollectionFilters: true}))
+                    dispatch(setStateExcludedCombos({addedPokemon: excludedCombos.pokemonChange.addedPokemon, removedPokemon: excludedCombos.pokemonChange.removedPokemon, ballChangedPokemon: excludedCombos.ballChange}))
     
                     //spawning alert
                     const alertMessage = `Updated Excluded Pokemon/Ball Combos!`
                     const alertInfo = {severity: 'success', message: alertMessage, timeout: 3}
-                    const id = addAlert(alertInfo);
-                    setAlertIds((prev) => [...prev, id]);
+                    addAlert(alertInfo);
     
                     dispatch(changeModalState({open: false}))
                 }, 1000)
+            }
+            const errorFunc = () => {
+                setTimeout(() => {dispatch(changeModalState({open: false}))}, 1000)
+            }
+            if (demo) {
+                successFunc()
             } else {
-                const newListBackendFormat = JSON.parse(JSON.stringify(newCollectionListState)).map(mon => {
-                    delete mon.imgLink
-                    delete mon.possibleGender
-                    return mon
-                })
-                const backendFunc = async() => await ownedPokemonEdit(collectionGen, newListBackendFormat, collectionId)
-                
-                const successFunc = () => {
-                    setTimeout(() => {
-                        dispatch(setListState({collection: newCollectionListState, onlyUpdateCollection: true, resetCollectionFilters: true}))
-        
-                        //spawning alert
-                        const alertMessage = `Updated Excluded Pokemon/Ball Combos!`
-                        const alertInfo = {severity: 'success', message: alertMessage, timeout: 3}
-                        const id = addAlert(alertInfo);
-                        setAlertIds((prev) => [...prev, id]);
-        
-                        dispatch(changeModalState({open: false}))
-                    }, 1000)
-                }
-                const errorFunc = () => {
-                    setTimeout(() => {dispatch(changeModalState({open: false}))}, 1000)
-                }
                 handleError(backendFunc, false, successFunc, errorFunc)
             }
         } else if (nextScreen === 'goBack') {

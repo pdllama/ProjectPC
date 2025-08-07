@@ -10,11 +10,10 @@ import { backendChangeOptions } from '../../../../../utils/functions/backendrequ
 import { sortList } from '../../../../../common/sortingfunctions/customsorting.mjs'
 import SaveChangesConfirmModal from '../savechangesconfirmmodal'
 
-export default function CollectionSortingOptions({elementBg, collectionGen, collectionId, demo, sw}) {
+export default function CollectionSortingOptions({elementBg, collectionGen, collectionId, demo, sw, isSubList}) {
     const dispatch = useDispatch()
     const {handleError} = useContext(ErrorContext)
     const currentOptions = useSelector((state) => state.collectionState.options.sorting.collection)
-    const collectionListState = useSelector((state) => state.collectionState.collection)
     const theme = useTheme()
 
     const buttonStyles = {
@@ -76,7 +75,6 @@ export default function CollectionSortingOptions({elementBg, collectionGen, coll
         if (saveChanges) {
             setSortingOptions({...sortingOptions, saving: true})
             setTimeout(() => {
-                const sortedCollectionList = sortingOptions.reSortWillHappen ? sortList(sortingOptions.options.default, collectionListState) : undefined
                 if (demo) {
                     dispatch(setSortingOptionsState({listType: 'collection', data: sortingOptions.options}))
                     
@@ -87,12 +85,7 @@ export default function CollectionSortingOptions({elementBg, collectionGen, coll
                     setAlertIds((prev) => [...prev, id]);
                     dispatch(changeModalState({open: false}))
                 } else {
-                const backendSortedList = sortingOptions.reSortWillHappen && JSON.parse(JSON.stringify(sortedCollectionList)).map(mon => {
-                    delete mon.imgLink
-                    delete mon.possibleGender
-                    return mon
-                })
-                const backendReqData = sortingOptions.reSortWillHappen ? {listType: 'collection', data: sortingOptions.options, sortedList: backendSortedList} : {listType: 'collection', data: sortingOptions.options}
+                const backendReqData = {listType: 'collection', data: sortingOptions.options}
                 const backendReq = async() => await backendChangeOptions('sort', backendReqData, collectionId) 
                 const successFunc = () => {
                     dispatch(setSortingOptionsState({listType: 'collection', data: sortingOptions.options}))

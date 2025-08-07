@@ -209,7 +209,7 @@ export default function ShowUser({userData}) {
                         colorStyles={sw ? {...textColor1, bgColor: theme.palette.color1.main, isGradient: false} : textColor1}
                         otherStyles={{borderBottom: '1px solid white', marginBottom: 0}} 
                         largeTextArea={true}
-                        largeTextAreaStyles={{minHeight: '80px', display: 'flex', alignItems: 'center', position: 'relative', borderTopRightRadius: '10px', borderBottomRightRadius: '10px', borderBottom: '1px solid white', marginBottom: 0, wordWrap: 'break-word', display: bio === '' ? 'flex' : 'inline-block'}}
+                        largeTextAreaStyles={{minHeight: '80px', alignItems: 'center', position: 'relative', borderTopRightRadius: '10px', borderBottomRightRadius: '10px', borderBottom: '1px solid white', marginBottom: 0, wordWrap: 'break-word', display: bio === '' ? 'flex' : 'inline-block'}}
                         largeTextStyles={{textAlign: 'start', color: textColor1.textColor, py: 0.5, px: bio === '' ? 0 : 2, pr: (sw && bio === '') ? 0 : sw ? 2 : '10%', fontSize: '12px', ...noBioStyles}}
                         text={bio === '' ? 'No Bio' : bio}
                         width='100%'
@@ -284,6 +284,7 @@ export default function ShowUser({userData}) {
                         itemContent={index => {
                             const collection = userData.collections[index]
                             const progress = getBallProgress(collection.ownedPokemon, 'total')
+                            const isLinked = collection.linkedTo !== undefined || userData.collections.filter(c => c.linkedTo !== undefined && c.linkedTo.super === collection._id).length !== 0
                             return (
                                 <SearchCollectionItem 
                                     query=''
@@ -293,7 +294,8 @@ export default function ShowUser({userData}) {
                                     owner={userData.username}
                                     progress={progress.display}
                                     percentProgress={progress.percent}
-                                    collectionId={collection._id}
+                                    isLinked={isLinked}
+                                    collectionId={collection.linkedTo ? `${collection.linkedTo.super}?col=${collection._id}` : collection._id}
                                     showOwner={false}
                                 />
                             )

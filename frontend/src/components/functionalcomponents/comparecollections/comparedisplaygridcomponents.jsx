@@ -10,15 +10,73 @@ import { capitalizeFirstLetter } from '../../../../utils/functions/misc'
 import getNameDisplay from '../../../../utils/functions/display/getnamedisplay';
 import EmTooltipWrapper from '../../collectiontable/tabledata/emtooltipwrapper';
 import ScrollBar from '../scrollbar';
+import { getHighestEmGen } from '../../collectiontable/tabledata/emindicator';
+import GameIndicatorBox from '../../collectiontable/tabledata/gameindicatorbox';
 
-function ListEmAndEmcount({emCount, EMs, isMaxEMs, fontSize, hoverTooltip, otherStyles, popperWidth='300px'}) {
+const gameIndMediaQ = {'@media only screen and (min-width: 1201px)': {px: 0, width: '100%'}}
+
+function ListEmAndEmcount({emCount, EMs, eggMoveData, isMaxEMs, fontSize, hoverTooltip, otherStyles, popperWidth='300px', smallWidth, homeHomeComparison, customSpacing='20%'}) {
     const [open, setOpen] = useState(false)
     const hoverAdjust = hoverTooltip ? {zIndex: 5} : {}
+    const homeEMView = homeHomeComparison ? useSelector(state => state.collectionState.listDisplay.homeEMView) : undefined
+    const trueEmGen = eggMoveData !== undefined ? homeEMView === 'highest' ? getHighestEmGen(eggMoveData) : homeEMView : undefined
+
+    const trueEmCount = eggMoveData !== undefined ? (eggMoveData[trueEmGen] === undefined ? undefined : eggMoveData[trueEmGen].emCount) : emCount
+    const trueEMs = eggMoveData !== undefined ? (eggMoveData[trueEmGen] === undefined ? undefined : eggMoveData[trueEmGen].EMs) : EMs
+    const trueIsMaxEMs = eggMoveData !== undefined ? (eggMoveData[trueEmGen] === undefined ? undefined : eggMoveData[trueEmGen].isMaxEMs) : isMaxEMs
+
+    // console.log(eggMoveData)
+    // console.log(trueEmGen)
+    // console.log(homeEMView)
 
     return (
+        homeHomeComparison && eggMoveData !== undefined && trueEmGen === 'hidden' ? <></> : 
+        homeHomeComparison && eggMoveData !== undefined ? 
+        // <Typography 
+        //         sx={{
+        //             fontSize, 
+        //             opacity: 0.5, 
+        //             fontWeight: 400, 
+        //             mx: 0.5,
+        //             ':hover': {cursor: 'pointer'},
+        //             ...hoverAdjust,
+        //             ...otherStyles
+        //         }}
+        //     >
+        //         N/A
+        // </Typography> : 
         <EmTooltipWrapper
-            EMs={EMs}
-            emCount={emCount}
+            EMs={trueEMs === undefined ? [] : trueEMs}
+            emCount={trueEmCount}
+            open={open}
+            closeTooltip={() => setOpen(false)}
+            hoverTooltipInstead={hoverTooltip}
+            popperWidth={popperWidth}
+        >
+            <Box onClick={() => setOpen(true)} sx={{ml: customSpacing}}>
+                <GameIndicatorBox 
+                    game={trueEmGen}
+                    textSx={{
+                        fontSize: '14px', 
+                        opacity: (trueEmCount === undefined || trueEmCount === 0) ? 0.5 : 0.9, 
+                        fontWeight: 700, 
+                        mx: smallWidth ? 0.25 : 0.5,
+                        ':hover': {cursor: 'pointer'},
+                        '@media only screen and (max-width: 900px)': {mx: 0},
+                        ...hoverAdjust,
+                        ...otherStyles
+                    }}
+                    customText={trueEmCount === undefined ? 'N/A' : `${trueEmCount}EM`}
+                    // textSx={{opacity: 1, color: 'white', fontSize: smallWidth ? '16px' : '14px'}}
+                    sx={{px: 0, py: smallWidth ? 0.15 : 0, mx: 0, mb: 0, height: '16px', ...gameIndMediaQ}}
+                    backgroundOpacity={(trueEmCount === undefined || trueEmCount === 0) ? 0.15 : 0.75}
+                    
+                />
+            </Box>
+        </EmTooltipWrapper> : 
+        <EmTooltipWrapper
+            EMs={trueEMs}
+            emCount={trueEmCount}
             open={open}
             closeTooltip={() => setOpen(false)}
             hoverTooltipInstead={hoverTooltip}
@@ -27,8 +85,8 @@ function ListEmAndEmcount({emCount, EMs, isMaxEMs, fontSize, hoverTooltip, other
             <Typography 
                 sx={{
                     fontSize, 
-                    opacity: emCount !== 0? 1 : 0.5, 
-                    fontWeight: isMaxEMs ? 700 : 400, 
+                    opacity: trueEmCount !== 0? 1 : 0.5, 
+                    fontWeight: trueIsMaxEMs ? 700 : 400, 
                     mx: 0.5,
                     ':hover': {cursor: 'pointer'},
                     ...hoverAdjust,
@@ -103,7 +161,7 @@ export const getCompareDisplayGridComponents = (customXs=2, customScroller=false
 
 
 
-const listCompareDisplayPokemonBallComp = (p, theme, oneHomeCollection, ballData, showHAEMArea, displayHA, displayEM, showIsOnhandArea, hoverEMTooltip=false, sw=false, specificScreenBp='lg') => {
+const listCompareDisplayPokemonBallComp = (p, theme, oneHomeCollection, ballData, showHAEMArea, displayHA, displayEM, showIsOnhandArea, hoverEMTooltip=false, sw=false, specificScreenBp='lg', homeHomeComparison) => {
     return (
         <>
         <Typography sx={{fontSize: '12px'}}>{capitalizeFirstLetter(ballData.ball)}</Typography>
@@ -111,10 +169,11 @@ const listCompareDisplayPokemonBallComp = (p, theme, oneHomeCollection, ballData
         {showHAEMArea && 
         <Box sx={{...theme.components.box.fullCenterRow, borderTop: '1px solid rgba(255,255,255, 0.3)', width: '95%'}}>
             {ballData.isHA !== undefined && <Typography sx={{fontSize: sw ? specificScreenBp !== 'lg' ? specificScreenBp === 'sm' ? '10px' :  '12px' : '14px' : '10px', opacity: ballData.isHA ? 1 : 0.5, fontWeight: ballData.isHA ? 700 : 400}}>HA</Typography>}
-            {(displayHA && displayEM) &&
+            {(displayHA && (displayEM && ballData.eggMoveData === undefined)) &&
                 <Box sx={{width: '10%'}}></Box>
             }
-            {(!oneHomeCollection && ballData.emCount !== undefined) && <ListEmAndEmcount emCount={ballData.emCount} EMs={ballData.EMs} isMaxEMs={ballData.isMaxEMs} fontSize={ sw ? specificScreenBp !== 'lg' ? specificScreenBp === 'sm' ? '10px' : '12px' : '14px' : '10px'} hoverTooltip={hoverEMTooltip} popperWidth={specificScreenBp === 'sm' ? '280px' : '300px'}/>}
+            {(ballData.emCount !== undefined || ((homeHomeComparison) && ballData.eggMoveData !== undefined)) && 
+            <ListEmAndEmcount emCount={ballData.emCount} EMs={ballData.EMs} eggMoveData={ballData.eggMoveData} isMaxEMs={ballData.isMaxEMs} fontSize={ sw ? specificScreenBp !== 'lg' ? specificScreenBp === 'sm' ? '10px' : '12px' : '14px' : '10px'} hoverTooltip={hoverEMTooltip} popperWidth={specificScreenBp === 'sm' ? '280px' : '300px'} smallWidth={sw} homeHomeComparison={homeHomeComparison} otherStyles={{}} customSpacing={'5%'}/>}
         </Box>}
         {showIsOnhandArea && 
             <Box sx={{...theme.components.box.fullCenterRow, borderTop: '1px solid rgba(255,255,255, 0.3)'}}>
@@ -125,7 +184,8 @@ const listCompareDisplayPokemonBallComp = (p, theme, oneHomeCollection, ballData
     )
 }
 
-const listCompareDisplayIndividualComp = (p, theme, oneHomeCollection, showHAEMArea, displayHA, displayEM, displayName, nameSize, imgAreaMargin, selected=false, list, hoverEMTooltip=false, specificScreenBp='lg') => {
+const listCompareDisplayIndividualComp = (p, theme, oneHomeCollection, showHAEMArea, displayHA, displayEM, displayName, nameSize, imgAreaMargin, selected=false, list, hoverEMTooltip=false, specificScreenBp='lg', homeHomeComparison) => {
+
     return (
         <>
             <Box sx={{...theme.components.box.fullCenterCol, height: '70%', width: '100%', justifyContent: 'start'}}>
@@ -142,10 +202,11 @@ const listCompareDisplayIndividualComp = (p, theme, oneHomeCollection, showHAEMA
                 {showHAEMArea && 
                 <Box sx={{...theme.components.box.fullCenterRow, width: '100%', borderTop: '1px solid rgba(255,255,255, 0.3)'}}>
                     {p.isHA !== undefined && <Typography sx={{fontSize: '12px', opacity: p.isHA ? 1 : 0.5, fontWeight: p.isHA ? 700 : 400}}>HA</Typography>}
-                    {(displayHA && displayEM) &&
+                    {(displayHA && (displayEM && p.eggMoveData === undefined)) &&
                         <Box sx={{width: '20%'}}></Box>
                     }
-                    {(!oneHomeCollection && p.emCount !== undefined) && <ListEmAndEmcount emCount={p.emCount} EMs={p.EMs} isMaxEMs={p.isMaxEMs} fontSize='12px' hoverTooltip={hoverEMTooltip} popperWidth={specificScreenBp === 'sm' ? '280px' : '300px'}/>}
+                    {(p.emCount !== undefined || ((homeHomeComparison) && p.eggMoveData !== undefined)) && 
+                    <ListEmAndEmcount emCount={p.emCount} EMs={p.EMs} eggMoveData={p.eggMoveData} isMaxEMs={p.isMaxEMs} fontSize='12px' hoverTooltip={hoverEMTooltip} popperWidth={specificScreenBp === 'sm' ? '280px' : '300px'} homeHomeComparison={homeHomeComparison}/>}
                 </Box>}
             </Box>}
             {p.onhandId && 
@@ -175,7 +236,7 @@ const listCompareDisplayIndividualComp = (p, theme, oneHomeCollection, showHAEMA
 }
 
 
-export function listCompareDisplayPokemon(p, oneHomeCollection, theme, list, toggle=false, randPar1, randPar2, userNameDisplaySettings, sw, specificScreenBp) {
+export function listCompareDisplayPokemon(p, oneHomeCollection, theme, list, toggle=false, randPar1, randPar2, userNameDisplaySettings, sw, specificScreenBp, homeHomeComparison) {
     //please dont delete list, randPar1, and randPar2. matches listcomparedisplayindividual params. see comaprisondisplay for details
     //toggle is an old parameter that isnt used now that i have PokemonCompareDisplayComponent
     const amountOfBalls = p.balls.length
@@ -225,7 +286,7 @@ export function listCompareDisplayPokemon(p, oneHomeCollection, theme, list, tog
                             key={`pokemon-${p.id}-${ballData.ball}${ballData.onhandId === undefined ? '' : `-onhand-${ballData.onhandId}`}`} 
                             sx={{height: biggerAreaReq ? '50%' : '100%', width: `${100/(sw ? specificScreenBp !== 'lg' ? 7 : 8 : amountOfBalls)}%`, maxWidth: sw ? 'auto' : '8%', position: 'relative', ...theme.components.box.fullCenterCol, justifyContent: 'start'}}
                         >
-                            {listCompareDisplayPokemonBallComp(p, theme, oneHomeCollection, ballData, showHAEMArea, displayHA, displayEM, showIsOnhandArea, false, sw, specificScreenBp)}
+                            {listCompareDisplayPokemonBallComp(p, theme, oneHomeCollection, ballData, showHAEMArea, displayHA, displayEM, showIsOnhandArea, false, sw, specificScreenBp, homeHomeComparison)}
                         </Grid> 
                     )
                 })}
@@ -237,10 +298,10 @@ export function listCompareDisplayPokemon(p, oneHomeCollection, theme, list, tog
 
 //this component uses a virtuoso grid. virtuoso grids bug out if every item is not the same height, which is why the height is defined.
 //do not add a variable height to this component.
-export function listCompareDisplayIndividual(p, oneHomeCollection, theme, list, toggle=false, isSelected, toggleFunc, userNameDisplaySettings, sw, specificScreenBp) {
+export function listCompareDisplayIndividual(p, oneHomeCollection, theme, list, toggle=false, isSelected, toggleFunc, userNameDisplaySettings, sw, specificScreenBp, homeHomeComparison) {
     const showHAEMArea = (oneHomeCollection && p.isHA !== undefined) || (!oneHomeCollection && (p.isHA !== undefined || p.emCount !== undefined))
     const displayHA = p.isHA !== undefined
-    const displayEM = (!oneHomeCollection && p.emCount !== undefined)
+    const displayEM = (p.emCount !== undefined || p.eggMoveData !== undefined)
     const displayName = `${capitalizeFirstLetter(p.ball)} ${userNameDisplaySettings === undefined ? p.name : getNameDisplay(userNameDisplaySettings, p.name, p.natDexNum)}`
     const sizeScaling = displayName.length >= 18 && displayName.length < 35 ? 'small' : displayName.length >= 35 ? 'smaller' : 'regular'
     const nameSizeAdjust = sizeScaling === 'small' ? {fontSize: '10px'} : sizeScaling === 'smaller' ? {fontSize: '8.5px'} : {fontSize: '12px'}
@@ -256,21 +317,21 @@ export function listCompareDisplayIndividual(p, oneHomeCollection, theme, list, 
                 value={p.onhandId !== undefined ? p.onhandId : `${p.id} ${p.ball}`}
                 onChange={toggleFunc}
             >
-                {listCompareDisplayIndividualComp(p, theme, oneHomeCollection, showHAEMArea, displayHA, displayEM, displayName, nameSizeAdjust, nameBallAreaMarge, isSelected, list, true, specificScreenBp)}
+                {listCompareDisplayIndividualComp(p, theme, oneHomeCollection, showHAEMArea, displayHA, displayEM, displayName, nameSizeAdjust, nameBallAreaMarge, isSelected, list, true, specificScreenBp, homeHomeComparison)}
                 {isSelected && 
                     <Box sx={{position: 'absolute', top: '3px', right: '3px'}}>
                         <ImgData type='icons' linkKey='greencheckmark' size='16px'/>
                     </Box>
                 }
             </ToggleButton> : 
-            listCompareDisplayIndividualComp(p, theme, oneHomeCollection, showHAEMArea, displayHA, displayEM, displayName, nameSizeAdjust, nameBallAreaMarge, false, list, false, specificScreenBp)
+            listCompareDisplayIndividualComp(p, theme, oneHomeCollection, showHAEMArea, displayHA, displayEM, displayName, nameSizeAdjust, nameBallAreaMarge, false, list, false, specificScreenBp, homeHomeComparison)
             }
             
         </Item>
     )
 }
 
-export function IndividualCompareDisplayComponent({p, oneHomeCollection, list, userNameDisplaySettings}) {
+export function IndividualCompareDisplayComponent({p, oneHomeCollection, list, userNameDisplaySettings, isHomeCollection, homeHomeTrade, sw, specificScreenBp, otherListGen}) {
     const theme = useTheme()
     const dispatch = useDispatch()
     const formatList = list === 'offer' ? 'offering' : 'receiving'
@@ -280,13 +341,13 @@ export function IndividualCompareDisplayComponent({p, oneHomeCollection, list, u
     delete ballDataForToggle.name
     delete ballDataForToggle.id
     delete ballDataForToggle.natDexNum
-    const onClickFunc = () => dispatch(setPokemon({pData: pDataForToggle, ballData: ballDataForToggle, tradeSide: formatList}))
+    const onClickFunc = () => dispatch(setPokemon({pData: pDataForToggle, ballData: isHomeCollection ? convertBallDataIfNeeded(ballDataForToggle, otherListGen) : ballDataForToggle, tradeSide: formatList}))
     return (
-        listCompareDisplayIndividual(p, oneHomeCollection, theme, list, true, pokemonIsSelected, onClickFunc, userNameDisplaySettings)
+        listCompareDisplayIndividual(p, oneHomeCollection, theme, list, true, pokemonIsSelected, onClickFunc, userNameDisplaySettings, sw, specificScreenBp, homeHomeTrade)
     )
 }
 
-export function PokemonCompareDisplayComponent({p, oneHomeCollection, list, userNameDisplaySettings}) {
+export function PokemonCompareDisplayComponent({p, oneHomeCollection, list, userNameDisplaySettings, isHomeCollection, homeHomeTrade, sw, specificScreenBp, otherListGen}) {
     const theme = useTheme()
     const amountOfBalls = p.balls.length
     const dispatch = useDispatch()
@@ -297,7 +358,8 @@ export function PokemonCompareDisplayComponent({p, oneHomeCollection, list, user
     const onClickFunc = (ballData) => {
         const ballDataForToggle = {...ballData}
         if (ballDataForToggle.isMaxEMs !== undefined) {delete ballDataForToggle.isMaxEMs}
-        dispatch(setPokemon({pData: pDataForToggle, ballData: ballDataForToggle, tradeSide: formatList}))
+        //note: we aren't getting rid of isMaxEMs for eggMoveData objects, but it should get filtered out through the Schema when its saved in the db.
+        dispatch(setPokemon({pData: pDataForToggle, ballData: isHomeCollection ? convertBallDataIfNeeded(ballDataForToggle, otherListGen) : ballDataForToggle, tradeSide: formatList}))
     }
     return (
         // listCompareDisplayPokemon(p, oneHomeCollection, theme, list, true, pokemonSelectedData, onClickFunc)
@@ -343,7 +405,7 @@ export function PokemonCompareDisplayComponent({p, oneHomeCollection, list, user
                                 value={ballData.onhandId !== undefined ? ballData.onhandId : `${p.id} ${ballData.ball}`}
                                 onChange={() => onClickFunc(ballData)}
                             >
-                                {listCompareDisplayPokemonBallComp(p, theme, oneHomeCollection, ballData, showHAEMArea, displayHA, displayEM, showIsOnhandArea, true)}
+                                {listCompareDisplayPokemonBallComp(p, theme, oneHomeCollection, ballData, showHAEMArea, displayHA, displayEM, showIsOnhandArea, true, sw, specificScreenBp, homeHomeTrade)}
                                 {pokemonBallIsSelected && 
                                     <Box sx={{position: 'absolute', top: '-5px', right: '1px'}}>
                                         <ImgData type='icons' linkKey='greencheckmark' size='10px'/>
@@ -357,4 +419,32 @@ export function PokemonCompareDisplayComponent({p, oneHomeCollection, list, user
         </Box>
         </>
     )
+}
+
+//this function extracts the specific generation egg moves from an eggMoveData object for HOME-game trades. we extract just the eggmoves from that game.
+//while we could just send the entire eggmovedata object if the game collection is linked to a HOME one, i decided to opt against doing that and just extracting it.
+//this was done not only for simplicity, but also to honor what players would likely want from a trade like that.
+//if they wanted the full egg move data, they'd do a HOME-HOME trade.
+export const convertBallDataIfNeeded = (ballData, otherListGen, isOnhand=false) => {
+    if (otherListGen !== 'home' && (((!isOnhand && ballData.eggMoveData !== undefined)) || (isOnhand && ballData.emGen !== undefined))) {
+        //if we are here, then we are selecting an onhand/collection pokemon of a HOME collection pokemon which 100% has egg moves, and it is trading with a non-HOME collection.
+        if (isOnhand) {
+            //regardless of whether the emGen and list gen match, we need to remove emGen since it is useless to us at this point.
+            //emGen is only useful for HOME-HOME trades since it will let us change the specific eggMoveData path it belongs to.
+            const newBData = {...ballData}
+            if (ballData.emGen.toString() !== otherListGen.toString()) {
+                delete newBData.EMs
+                delete newBData.emCount
+            }
+            delete newBData.emGen
+            return newBData
+        } else {
+            const emData = ballData.eggMoveData[otherListGen] !== undefined ? {emCount: ballData.eggMoveData[otherListGen].emCount, EMs: [...ballData.eggMoveData[otherListGen].EMs]} : {}
+            const newBData = {...ballData, ...emData}
+            delete newBData.eggMoveData
+            return newBData
+        }
+    } else {
+        return ballData
+    }
 }

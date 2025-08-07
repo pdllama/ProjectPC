@@ -26,7 +26,7 @@ const getBallProgress = (list, ball) => {
         const ballProgress = {display: `${totalCollected}/${totalToCollect}`, percent: (totalCollected/totalToCollect)*100}
         return ballProgress
     }
-    const filteredList = list.filter(p => p.balls[ball] !== undefined)
+    const filteredList = list.filter(p => p.disabled !== true && p.balls[ball] !== undefined && p.balls[ball].disabled !== true)
     const totalToCollect = filteredList.length
     const totalCollected = filteredList.filter(p => p.balls[ball].isOwned === true).length
     const ballProgress = {display: `${totalCollected}/${totalToCollect}`, percent: (totalCollected/totalToCollect)*100}

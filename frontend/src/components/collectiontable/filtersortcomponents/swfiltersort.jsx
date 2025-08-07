@@ -15,15 +15,16 @@ import { useRouteLoaderData } from 'react-router'
 import ListSearch from '../../functionalcomponents/listsearch'
 import ChangeAbilitiesView from '../changeabilitiesview'
 import ChangeOnHandView from '../changeonhandviewbutton'
+import ChangeHomeEMView from '../changehomeemview'
 
-export default function SWFilterSort({collection, isOwner, isEditMode, demo}) {
+export default function SWFilterSort({collectionGen, loggedInUserSettings}) {
     const theme = useTheme()
     const dispatch = useDispatch()
     const user = useRouteLoaderData('root')
     const nameDisplaySettings = !user.loggedIn ? undefined : user.user.settings.display.pokemonNames
-    const [openStates, setOpenStates] = useState({modal: false, cat: '', subCat: '', query: ''})
+    const [openStates, setOpenStates] = useState({modal: false, cat: '', subCat: ''})
     const toggleModal = () => setOpenStates({...openStates, modal: !openStates.modal})
-    const gen = collection.gen
+    const gen = collectionGen
     
     const toggleSubCat = (subCat) => setOpenStates({...openStates, subCat: subCat === openStates.subCat ? '' : subCat})
     
@@ -31,10 +32,9 @@ export default function SWFilterSort({collection, isOwner, isEditMode, demo}) {
     const onhandViewType = useSelector(state => state.collectionState.listDisplay.onhandView)
     const showFullSets = useSelector((state) => state.collectionState.listDisplay.showFullSets)
     const showEmptySets = useSelector((state) => state.collectionState.listDisplay.showEmptySets)
-    const ballScope = (isEditMode || demo) ? useSelector((state) => state.collectionState.options.collectingBalls) : collection.options.collectingBalls
+    const ballScope = useSelector((state) => state.collectionState.options.collectingBalls)
 
     const catRef = useRef(openStates.cat)
-    const queryRef = useRef(openStates.query)
     const sortCats = [{display: 'National Dex Number', value: 'natDexNum'}, {display: 'Name', value: 'name'}]
     const tagFilter = list === 'collection' ? [{display: 'Tag', value: 'tag'}, {display: 'Sets', value: 'sets'}] : []
     const gameFilter = gen === 'home' ? [{display: 'Game', value: 'game'}] : []
@@ -45,7 +45,7 @@ export default function SWFilterSort({collection, isOwner, isEditMode, demo}) {
     
     const genFilters = generations.map((g, i) => {return {display: genRomans[i], value: g}}).filter(g => {
         if (gen === 'home') {return true}
-        const genNum = isNaN(parseInt(gen)) ? ((gen === 'swsh' || gen === 'bdsp') && 8) : parseInt(gen)
+        const genNum = isNaN(parseInt(gen)) ? ((gen === 'swsh') ? 8 : gen === 'bdsp' && 4) : parseInt(gen)
         return g.value <= genNum
     })
     const ballFilters = apriballs.filter(b => ballScope.includes(b)).map(b => {return {display: capitalizeFirstLetter(b), value: b}})
@@ -53,22 +53,15 @@ export default function SWFilterSort({collection, isOwner, isEditMode, demo}) {
     const gameFilters = gen === 'home' && homeDisplayGames.map(game => {return {display: game === 9 ? 'S/V' : game === 'swsh' ? 'SW/SH' : game === 'bdsp' && 'BD/SP', value: game}})
 
     // this below section is copied bar for bar from filter.jsx
-
-    const collectionLiteral = useSelector((state) => state.collectionState.collection)
-    const onhandLiteral = useSelector((state) => state.collectionState.onhand)
-    const listLiteralStateStep1 = list === 'collection' ? collectionLiteral : onhandLiteral
-    const listLiteralState = list !== 'collection' && onhandViewType === 'byPokemon' ? displayOnHandByPokemon(listLiteralStateStep1, (isEditMode || demo) ? collectionLiteral : collection.ownedPokemon) : listLiteralStateStep1
-
     const currentFilters = list === 'collection' ? useSelector((state) => state.collectionState.listDisplay.collectionFilters) : useSelector((state) => state.collectionState.listDisplay.onhandFilters)
-    const listState = list === 'collection' ? useSelector((state) => state.collectionState.listDisplay.collection) : useSelector((state) => state.collectionState.listDisplay.onhand)
-    const totalList = (isEditMode || demo) ? list === 'collection' ? listLiteralState.filter((mon) => mon.disabled === undefined) : listLiteralState : list === 'collection' ? collection.ownedPokemon.filter(p => p.disabled === undefined) : onhandViewType === 'byPokemon' ? displayOnHandByPokemon(collection.onHand, collection.ownedPokemon) : collection.onHand
-    const availableGamesInfo = useSelector((state) => state.collectionState.availableGamesInfo)
     const ballFiltersState = currentFilters.filters.ballFilters
     const genFiltersState = currentFilters.filters.genFilters
+    const gameFiltersState = currentFilters.filters.gameFilters
     const miscFiltersState = currentFilters.filters.otherFilters
-    const currentGameFilters = miscFiltersState.filter(f => homeDisplayGames.includes(f) || f === 'no-game')
+
     const activeFilters = ballFiltersState.concat(genFiltersState, miscFiltersState)
     const currentSortKey = currentFilters.sort
+    const filterSearchTerm = useSelector((state) => state.collectionState.listDisplay.filterSearchTerm)
 
     // ------
 
@@ -95,46 +88,13 @@ export default function SWFilterSort({collection, isOwner, isEditMode, demo}) {
         setOpenStates({...openStates, cat: cat === openStates.cat ? '' : cat, subCat: ''})
     }
 
-    const handleFilterChange = (filterKey, specificCategoryFilters, isGameFilter) => {
-        // console.log(e.target.value)
-
-        // const filterKey = e.target.value !== undefined ? 
-        // !isNaN(parseInt(e.target.value)) ? parseInt(e.target.value) : e.target.value : 
-        // e.target.src.slice(56, e.target.src.length -4)
-
+    const handleFilterChange = (filterKey, filterCategory) => {
         dispatch(deselect())
-
-        const isTag = filterKey === 'highlyWanted' || filterKey === 'pending'
-        const otherTag = isTag && (filterKey === 'highlyWanted') ? 'pending' : 'highlyWanted'
-        //gen filters = incremental (adding more increases scope of list, removing decreases scope of list)
-        //ball filters = decremental (adding more decreases scope of list - have to fit more criteria, removing increases scope of list) (onhand is reverse since it filters for any pokemon who has any filtered ball, not every ball)
-        //can make list filtering a bit more efficient by settubg uo refiltering cases for onhand list (specifically ball ones)
-
-        const removingBallFilter = activeFilters.length > 1 && activeFilters.includes(filterKey) && checkForTypeOfFilter(activeFilters, 'ball') && apriballs.includes(filterKey)
-        const addingGenFilter = activeFilters.length !== 0 && !activeFilters.includes(filterKey) && checkForTypeOfFilter(activeFilters, 'gen') && generations.includes(filterKey)
-        const noGenFilterButOtherFilters = (ballFiltersState.length !== 0 || miscFiltersState.length !== 0) && genFiltersState.length === 1 && filterKey === genFiltersState[0]
-        const addingBallFiltersOnHand = list === 'onhand' && checkForTypeOfFilter(activeFilters, 'ball') && !activeFilters.includes(filterKey)
-        const changingBetweenTagAndBallFilters = (isTag && checkForTypeOfFilter(activeFilters, 'ball')) || (apriballs.includes(filterKey) && checkForTypeOfFilter(activeFilters, 'misc'))
-        const switchingTags = (isTag && activeFilters.includes(otherTag))
-        const removingTags = (isTag && activeFilters.includes(filterKey) && !switchingTags)
-        const switchingBetweenNoGameAndGame = (isGameFilter) && ((filterKey === 'no-game' && currentGameFilters.length !== 0) || (filterKey !== 'no-game' && currentGameFilters.length !== 0))
-        const numberButIsGameFilter = isGameFilter && typeof filterKey === 'number'
-        const removingGameFilter = homeDisplayGames.includes(filterKey) && miscFiltersState.includes(filterKey)
-        const reFilterList = removingBallFilter || //cases in which we need to refilter the list from the total list
-                                addingGenFilter || 
-                                noGenFilterButOtherFilters || 
-                                addingBallFiltersOnHand || 
-                                changingBetweenTagAndBallFilters || 
-                                switchingTags || removingTags || removingGameFilter || switchingBetweenNoGameAndGame ||
-                                list === 'onhand' && apriballs.includes(filterKey) //always need to do refilter when its onhand
-        
-        const noFilters = (activeFilters.length === 1 && activeFilters.includes(filterKey) && (numberButIsGameFilter ? currentGameFilters.includes(filterKey) : true))
-
-        dispatch(setFilters({filterKey, listType: list, listState, totalList, reFilterList, noFilters, prevActiveFilters: activeFilters, specificCategoryFilters, currentSortKey, changingTagBallFilters: changingBetweenTagAndBallFilters, switchingTags, numberButIsGameFilter, switchingBetweenNoGameAndGame, availableGamesInfo}))
+        dispatch(setFilters({filterKey, filterCategory, listType: list, userNameDisplaySettings: nameDisplaySettings}))
     }
 
     const handleSortChange = (val) => {
-        dispatch(setSortKey({sortKey: val, listType: list, listState: listState}))
+        dispatch(setSortKey({sortKey: val, listType: list}))
     }
 
     const generateStyles = () => {
@@ -199,7 +159,7 @@ export default function SWFilterSort({collection, isOwner, isEditMode, demo}) {
     }   
 
     const debounceFunction = (query, reFilterList) => {
-        dispatch(filterSearch({searchQuery: query, listState, listType: list, reFilterList, totalList, currentSortKey, nameDisplaySettings}))
+        dispatch(filterSearch({searchQuery: query, listType: list, reFilterList, nameDisplaySettings}))
     }
 
     const debouncedSearch = useDebouncedCallback(
@@ -211,25 +171,14 @@ export default function SWFilterSort({collection, isOwner, isEditMode, demo}) {
         catRef.current = openStates.cat
     }, [openStates.cat])
 
-    useEffect(() => {
-        handleSearchChange(openStates.query, true)
-    }, [openStates.query])
-
-    // useEffect(() => {
-    //     if (!openStates.modal) {
-    //         setTimeout(() => {
-    //             setOpenStates({...openStates, cat: '', subCat: ''})
-    //         }, 500)
-    //     }
-    // }, [openStates.modal])
-
     return (
         <>
         <style>{generateStyles()}</style>
         <Box sx={{width: '100%', height: '50px', ...theme.components.box.fullCenterRow, justifyContent: 'end', mb: 0.25}}>
             <Box sx={{width: '100%', height: '100%', display: 'flex'}}>
-            {collection.gen === 'home' && <ChangeAbilitiesView listType={list} sw={true}/>}
-            {list === 'onhand' && <ChangeOnHandView isEditMode={isEditMode} demo={demo} collectionLoaderData={collection} sw={true} listType={list}/>}
+            {gen === 'home' && <ChangeAbilitiesView listType={list} sw={true}/>}
+            {list === 'onhand' && <ChangeOnHandView sw={true} listType={list} nameDisplaySettings={nameDisplaySettings}/>}
+            {(list === 'collection' && gen === 'home') && <ChangeHomeEMView sw={true}/>}
             </Box>
             <Box sx={{width: '150px', height: '100%', borderTopLeftRadius: '10px', borderBottomLeftRadius: '10px', backgroundColor: theme.palette.color2.main}}>
                 <Button onClick={toggleModal} sx={{width: '100%', height: '100%', borderTopLeftRadius: '10px', borderBottomLeftRadius: '10px', color: theme.palette.color2.contrastText, fontSize: '16px'}}>Filter/Sort</Button>
@@ -288,7 +237,7 @@ export default function SWFilterSort({collection, isOwner, isEditMode, demo}) {
                                             <ToggleButton 
                                                 value={s.value}
                                                 selected={currentSortKey === s.value} 
-                                                onClick={() => handleSortChange(s.value, list, listState)}
+                                                onClick={() => handleSortChange(s.value, list)}
                                                 sx={{width: '100%', height: '100%', fontWeight: 700, fontSize: '14px', border: 'none', borderRadius: '0px', ...eOStyle2}}
                                             >
                                                 {s.display}
@@ -325,11 +274,11 @@ export default function SWFilterSort({collection, isOwner, isEditMode, demo}) {
                         fC.value === 'gen' ? genFilters : 
                         fC.value === 'ball' ? ballFilters : 
                         fC.value === 'tag' ? tagFilters : gameFilters
-                    const catFiltersArr = fC.value === 'gen' ? genFiltersState : fC.value === 'ball' ? ballFiltersState : miscFiltersState
+                    const catFiltersArr = fC.value === 'gen' ? genFiltersState : fC.value === 'ball' ? ballFiltersState : fC.value === 'game' ? gameFiltersState : miscFiltersState
                     const filterCountArr = fC.value === 'game' ? catFiltersArr.filter(c => gameFilters.filter(gF => gF.value === c)[0] !== undefined || c === 'no-game') : 
-                        fC.value === 'tag' ? catFiltersArr.filter(c => gameFilters.filter(gF => gF.value === c)[0] === undefined && c !== 'no-game') : catFiltersArr
+                        fC.value === 'tag' ? (currentFilters.filters.tagFilter !== '' ? 1 : 0)  : catFiltersArr
                     const isGameFilt = fC.value === 'game'
-
+                    const filterCategoryKey = `${fC.value}Filter${fC.value === 'tag' ? '' : 's'}`
                     return (
                         <Box key={`${fC.value}-filtering-category`} sx={{width: '100%', height: `${100/filterCats.length}%`, ...theme.components.box.fullCenterCol, ...borderTop, position: 'relative'}}>
                             <ToggleButton 
@@ -339,9 +288,9 @@ export default function SWFilterSort({collection, isOwner, isEditMode, demo}) {
                                 sx={{width: '100%', height: '100%', fontWeight: 700, fontSize: '14px', border: 'none', borderRadius: '0px', ...eOStyle}}
                             >
                                 {fC.display}
-                                {filterCountArr.length !== 0 && 
+                                {((fC.value === 'tag' && currentFilters.filters.tagFilter !== '') || (fC.value !== 'tag' && filterCountArr.length !== 0)) && 
                                 <Typography sx={{position: 'absolute', fontSize: '9px', bottom: '5%'}}>
-                                    {filterCountArr.length} filter{filterCountArr.length >= 2 ? 's' : ''} applied
+                                    {!Array.isArray(filterCountArr) ? filterCountArr : filterCountArr.length} filter{!Array.isArray(filterCountArr) ? '' : filterCountArr.length >= 2 ? 's' : ''} applied
                                 </Typography>
                                 }
                                 {((fC.value === 'sets') && (!showEmptySets || !showFullSets)) && 
@@ -362,15 +311,18 @@ export default function SWFilterSort({collection, isOwner, isEditMode, demo}) {
                                     const firstGameColor = isGameFilt && getGameColor(firstGame)
                                     const secondGameColor = isGameFilt && getGameColor(secondGame)
                                     const setsSelected = isSetFilter && (f.value === 'sFS' ? !showFullSets : f.value === 'sES' && !showEmptySets)
+                                    
                                     return (
                                         <Box key={`${f.value}-filtering-option`} sx={{height: '60px', ...theme.components.box.fullCenterCol, backgroundColor: theme.palette.color2.dark}}>
                                             <ToggleButton 
                                                 value={isSetFilter ? (f.value === 'sFS' ? showFullSets : f.value === 'sES' && showEmptySets) : f.value}
-                                                selected={isSetFilter ? setsSelected : catFiltersArr.includes(f.value)} 
+                                                selected={isSetFilter ? setsSelected : 
+                                                    fC.value === 'tag' ? currentFilters.filters.tagFilter === f.value : 
+                                                    catFiltersArr.includes(f.value)} 
                                                 onClick={isSetFilter ? 
-                                                    f.value === 'sFS' ? () => dispatch(toggleFullSetView({useState: (isEditMode || demo), collection: collection.ownedPokemon.filter(p => p.disabled === undefined)})) : 
-                                                    () => dispatch(toggleEmptySetView({useState: (isEditMode || demo), collection: collection.ownedPokemon.filter(p => p.disabled === undefined)})) : 
-                                                    () => handleFilterChange(f.value, catFiltersArr, isGameFilt)}
+                                                    f.value === 'sFS' ? () => dispatch(toggleFullSetView({nameDisplaySettings: loggedInUserSettings ? loggedInUserSettings.settings.display.pokemonNames : {}})) : 
+                                                    () => dispatch(toggleEmptySetView({nameDisplaySettings: loggedInUserSettings ? loggedInUserSettings.settings.display.pokemonNames : {}})) : 
+                                                    () => handleFilterChange(f.value, filterCategoryKey)}
                                                 sx={{width: '100%', height: '100%', fontWeight: 700, fontSize: '14px', border: 'none', borderRadius: '0px', ...theme.components.box.fullCenterRow, flexDirection: fC.value === 'ball' ? 'column' : 'row', ...eOStyle2}}
                                             >
                                                 {isGameFilt ? 
@@ -391,7 +343,7 @@ export default function SWFilterSort({collection, isOwner, isEditMode, demo}) {
                                         <ToggleButton 
                                             value={'no-game'}
                                             selected={catFiltersArr.includes('no-game')} 
-                                            onClick={() => handleFilterChange('no-game', catFiltersArr, true)}
+                                            onClick={() => handleFilterChange('no-game', 'gameFilters')}
                                             sx={{width: '100%', height: '100%', fontWeight: 700, fontSize: '14px', border: 'none', borderRadius: '0px', ...theme.components.box.fullCenterCol, ...generateButtonStyles(gameFilters.length % 2 === 0 ? 'even' : 'odd')}}
                                         >
                                             None
@@ -430,7 +382,7 @@ export default function SWFilterSort({collection, isOwner, isEditMode, demo}) {
                 </Box>
                 } */}
                 <ListSearch 
-                    queryFunc={(q) => setOpenStates({...openStates, query: q})} 
+                    queryFunc={handleSearchChange} 
                     textFieldProps={{
                         label: 'Search Pokemon',
                         variant: 'outlined',
@@ -441,13 +393,13 @@ export default function SWFilterSort({collection, isOwner, isEditMode, demo}) {
                         InputLabelProps: {sx: {color: 'white', fontSize: '16px'}},
                         InputProps: {sx: {color: 'white',  '& .MuiInputBase-input': {paddingY: 1}, mx: 0.5}}
                     }}
-                    customValue={openStates.query}
+                    customValue={filterSearchTerm}
                 />
                 <Button 
                     sx={{width: '100%', height: '60px', backgroundColor: hexToRgba(theme.palette.color2.darker, 0.8) }}
                     onClick={() => {
                         dispatch(deselect())
-                        dispatch(resetFilters({useState: (isEditMode || demo), collection: collection.ownedPokemon.filter(p => p.disabled === undefined), onhand: collection.onHand, listType: list}))
+                        dispatch(resetFilters({listType: list}))
                     }}
                 >
                     Reset All Filters

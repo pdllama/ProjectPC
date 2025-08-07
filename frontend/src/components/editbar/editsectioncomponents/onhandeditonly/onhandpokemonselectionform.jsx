@@ -28,6 +28,7 @@ import Header from './modalcomponents/header'
 import SpeciesSelect from './modalcomponents/speciesselect'
 import { sortOnHandList } from '../../../../../common/sortingfunctions/onhandsorting.mjs'
 import DotWaitingText from '../../../functionalcomponents/dotwaitingtext'
+import { getHighestEmGen } from '../../../collectiontable/tabledata/emindicator'
 
 const scrollerStyles = {
     '&::-webkit-scrollbar': {
@@ -52,12 +53,12 @@ export default function OnHandPokemonSelectionForm({collectionID, speciesEditOnl
 
     const allEggMoveInfo = useSelector((state) => state.collectionState.eggMoveInfo)
     const sortingOptions = useSelector((state) => state.collectionState.options.sorting.onhand)
-    const onhandState = useSelector((state) => state.collectionState.onhand)
     const initialSelection = initialPokemonData.imgLink === undefined ? {} : selectCollectionPokemon(store.getState(), initialPokemonData.imgLink)
     const [pokemonData, setPokemonData] = useState({selection: {...initialSelection}, searchData: '', ball: initialPokemonData.ball, newOnHandData: {}, otherNewOnHands: [], selectedNewOnHand: 0, saving: false})
     const [confirmDecisionModal, setConfirmDecisionModal] = useState(false)
-    const [selectedEMIdx, setSelectedEMIdx] = useState('')
-    const [editEggMoveScreen, setEditEggMoveScreen] = useState(false)
+
+
+    const [emStates, setEmStates] = useState({selectedEMIdx: '', editEggMoveScreen: false})
 
     const savePending = pokemonData.saving
     const addingMultipleOnhands = pokemonData.otherNewOnHands.length !== 0
@@ -65,13 +66,18 @@ export default function OnHandPokemonSelectionForm({collectionID, speciesEditOnl
     // console.log(pokemonData)
 
     const collectionData = useSelector(state => state.collectionState.collection)
-
     const eggMoveData = {
         noEMs: specificPokemonDataPath.newOnHandData.gender !== undefined ? specificPokemonDataPath.newOnHandData.EMs === undefined : false,
         EMs: specificPokemonDataPath.newOnHandData.gender !== undefined ? specificPokemonDataPath.newOnHandData.EMs : [],
         emCount: specificPokemonDataPath.newOnHandData.gender !== undefined ? specificPokemonDataPath.newOnHandData.emCount : 0,
-        maxEMs: specificPokemonDataPath.newOnHandData.gender !== undefined ? (allEggMoveInfo[specificPokemonDataPath.selection.name] === undefined ? 0 : allEggMoveInfo[specificPokemonDataPath.selection.name].length > 4 ? 4 : allEggMoveInfo[specificPokemonDataPath.selection.name].length) : 4,
-        possibleEggMoves: specificPokemonDataPath.newOnHandData.gender !== undefined ? allEggMoveInfo[specificPokemonDataPath.selection.name] : []
+        maxEMs: specificPokemonDataPath.newOnHandData.gender !== undefined ? 
+            isHomeCollection ? (pokemonData.selection.possibleEggMoves[specificPokemonDataPath.newOnHandData.emGen] === undefined ? 0 : pokemonData.selection.possibleEggMoves[specificPokemonDataPath.newOnHandData.emGen].length > 4 ? 4 : pokemonData.selection.possibleEggMoves[specificPokemonDataPath.newOnHandData.emGen].length) : 
+            (allEggMoveInfo[specificPokemonDataPath.selection.name] === undefined ? 0 : allEggMoveInfo[specificPokemonDataPath.selection.name].length > 4 ? 4 : allEggMoveInfo[specificPokemonDataPath.selection.name].length) : 4,
+        possibleEggMoves: specificPokemonDataPath.newOnHandData.gender !== undefined ? 
+            (isHomeCollection ? pokemonData.selection.possibleEggMoves[specificPokemonDataPath.newOnHandData.emGen] : 
+            allEggMoveInfo[specificPokemonDataPath.selection.name]) : [],
+        homeEmGen: isHomeCollection && specificPokemonDataPath.newOnHandData.gender !== undefined ? specificPokemonDataPath.newOnHandData.emGen : '',
+        homeAllowedEmGens: isHomeCollection && specificPokemonDataPath.newOnHandData.gender !== undefined ? pokemonData.selection.balls[Object.keys(pokemonData.selection.balls)[0]].eggMoveData !== undefined ? Object.keys(pokemonData.selection.balls[Object.keys(pokemonData.selection.balls)[0]].eggMoveData) : [] : []
     }
 
     const emCountSelectionList = setMaxEmArr(eggMoveData.maxEMs) 
@@ -133,7 +139,14 @@ export default function OnHandPokemonSelectionForm({collectionID, speciesEditOnl
         const collectionDataOfNewPokemon = collectionData.filter(p => p.name === pokemonData.selection.name)[0]
         const gender = collectionDataOfNewPokemon.possibleGender === 'both' ? randomGender() : collectionDataOfNewPokemon.possibleGender
         const isHA = collectionDataOfNewPokemon.balls[pokemonData.ball].isHA === undefined ? {} : {isHA: collectionDataOfNewPokemon.balls[pokemonData.ball].isHA}
-        const emData = collectionDataOfNewPokemon.balls[pokemonData.ball].emCount === undefined ? {} : {emCount: collectionDataOfNewPokemon.balls[pokemonData.ball].emCount, EMs: collectionDataOfNewPokemon.balls[pokemonData.ball].EMs}
+        const emData = collectionDataOfNewPokemon.balls[pokemonData.ball].emCount === undefined ? {} : 
+            {emCount: collectionDataOfNewPokemon.balls[pokemonData.ball].emCount, EMs: collectionDataOfNewPokemon.balls[pokemonData.ball].EMs}
+        if (isHomeCollection && collectionDataOfNewPokemon.balls[pokemonData.ball].eggMoveData !== undefined) {
+            const highestEmGen = getHighestEmGen(collectionDataOfNewPokemon.balls[pokemonData.ball].eggMoveData)
+            emData.emCount = collectionDataOfNewPokemon.balls[pokemonData.ball].eggMoveData[highestEmGen].emCount
+            emData.EMs = collectionDataOfNewPokemon.balls[pokemonData.ball].eggMoveData[highestEmGen].EMs
+            emData.emGen = highestEmGen
+        }
         const sharedData = {
             name: pokemonData.selection.name, 
             natDexNum: pokemonData.selection.natDexNum,
@@ -301,10 +314,10 @@ export default function OnHandPokemonSelectionForm({collectionID, speciesEditOnl
 
         // next two if statements determine how the selected EM (selection box) moves depending on whether an egg move is being added (1st) or removed (2nd)
         if (!(specificPokemonDataPath.newOnHandData.EMs.includes(selectedEM))) {
-            const newSelectedEMIdx = (selectedEMIdx === 3 && newEMArr === 4) ? '' : selectedEMIdx+1 // if all egg moves slots are selected, remove selection borders. if not, select next empty slot
-            setSelectedEMIdx(newSelectedEMIdx)  
+            const newSelectedEMIdx = (emStates.selectedEMIdx === 3 && newEMArr === 4) ? '' : emStates.selectedEMIdx+1 // if all egg moves slots are selected, remove selection borders. if not, select next empty slot
+            setEmStates({...emStates, selectedEMIdx: newSelectedEMIdx})  
         } else if (specificPokemonDataPath.newOnHandData.EMs.includes(selectedEM)) {
-            setSelectedEMIdx('')
+            setEmStates({...emStates, selectedEMIdx: ''})
         }
         // if (changeEMCount) {
         //     setPokemonData((currentState) => ({...currentState, newOnHandData: {...currentState.newOnHandData, emCount: newEMArr.length}}))
@@ -320,12 +333,10 @@ export default function OnHandPokemonSelectionForm({collectionID, speciesEditOnl
     // }
 
     const handleOpenEggMoveSelection = () => {
-        setSelectedEMIdx(eggMoveData.EMs.length)
-        setEditEggMoveScreen(true)
+        setEmStates({...emStates, selectedEMIdx: eggMoveData.EMs.length, editEggMoveScreen: true})
     }
     const handleCloseEggMoveSelection = () => {
-        setSelectedEMIdx('')
-        setEditEggMoveScreen(false)
+        setEmStates({...emStates, selectedEMIdx: '', editEggMoveScreen: false})
     }
 
     const searchOnChange = (e) => {
@@ -418,6 +429,12 @@ export default function OnHandPokemonSelectionForm({collectionID, speciesEditOnl
         }
     }
 
+    const changeHomeEmGen = (newEmGen) => {
+        const newEMs = specificPokemonDataPath.newOnHandData.EMs === undefined ? {} : {EMs: specificPokemonDataPath.newOnHandData.EMs.filter(em => pokemonData.selection.possibleEggMoves[newEmGen].includes(em)), emCount: specificPokemonDataPath.newOnHandData.emCount > pokemonData.selection.possibleEggMoves[newEmGen].length ? pokemonData.selection.possibleEggMoves[newEmGen].length : specificPokemonDataPath.newOnHandData.emCount}
+        const newOnhandDataState = {...specificPokemonDataPath.newOnHandData, ...newEMs, emGen: newEmGen}
+        setPokemonData(updateSelectionState(newOnhandDataState))
+    }
+
     return (
         <Modal
             aria-labelledby={speciesEditOnly ? 'change-onhand-pokemon-species' : 'add-new-onhand-pokemon'}
@@ -465,7 +482,7 @@ export default function OnHandPokemonSelectionForm({collectionID, speciesEditOnl
                         </Box>
                         }
                         <SpeciesSelect searchOnChange={searchOnChange} searchData={pokemonData.searchData} selection={specificPokemonDataPath.selection} listItemContent={listItemContent} totalCount={selectionList.length} height={pokemonData.otherNewOnHands.length === 0 ? '60%' : '50%'} nameDisplaySettings={userNameDisplaySettings} customScroller={false}/>
-                        <Box sx={{height: '25%', display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: '3px', ...modalStyles.onhand.modalElementBg}}>
+                        <Box sx={{height: isHomeCollection ? '35%' : '25%', display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: '3px', ...modalStyles.onhand.modalElementBg}}>
                             <Box sx={{height: '96%', width: '50%', display: 'flex', flexDirection: 'column'}}>
                                 <Box sx={{height: '60%', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
                                     <BallSelectionForm allowedBalls={allowedBalls} handleChange={handleBallChange} value={specificPokemonDataPath.ball} onhandBallSelect={true} height='90%' width='60%'/>
@@ -503,8 +520,8 @@ export default function OnHandPokemonSelectionForm({collectionID, speciesEditOnl
                                         EMs={eggMoveData.EMs}
                                         emCount={eggMoveData.emCount}
                                         maxEms={eggMoveData.maxEMs}
-                                        width={isHomeCollection ? '40%' : '100%'}
-                                        height='80%'
+                                        width={'100%'}
+                                        height={isHomeCollection ? '60%' : '80%'}
                                         newOnHandSelection={true}
                                         color='white'
                                         disabled={specificPokemonDataPath.newOnHandData.qty === undefined}
@@ -512,18 +529,24 @@ export default function OnHandPokemonSelectionForm({collectionID, speciesEditOnl
                                         handleEmCountChange={handleEmCountChange}
                                         handleEMChange={handleEMChange}
                                         toggleScreen={handleOpenEggMoveSelection}
-                                        idxOfSelectedEM={selectedEMIdx}
+                                        idxOfSelectedEM={emStates.selectedEMIdx}
                                         noInfoBgColor='#283f57'
                                         isHomeCollection={isHomeCollection}
+                                        emsUnavailableInGameGen={false}
+                                        changeHomeEmGen={changeHomeEmGen}
+                                        emGameData={eggMoveData.homeAllowedEmGens}
+                                        homeEmGen={eggMoveData.homeEmGen}
+                                        list='onhand'
+                                        smallWidth={false}
                                     />
                                     <EditEggMovesModal 
-                                        open={editEggMoveScreen} 
+                                        open={emStates.editEggMoveScreen} 
                                         handleClose={handleCloseEggMoveSelection}
                                         eggMoveInfo={{
                                             emCount: eggMoveData.emCount,
                                             EMs: eggMoveData.EMs,
                                             maxEMs: eggMoveData.maxEMs,
-                                            idxOfSelectedEM: selectedEMIdx,
+                                            idxOfSelectedEM: emStates.selectedEMIdx,
                                             possibleEggMoves: eggMoveData.possibleEggMoves,
                                             handleEMChange
                                         }}

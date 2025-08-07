@@ -13,14 +13,6 @@ export default function SmallWidthModalWrapper({ariaLabel, ariaDescribe, handleC
             open={open}
             onClose={handleClose}
             closeAfterTransition
-            // slots={{
-            //     backdrop: Backdrop
-            // }}
-            // slotProps={{
-            //     backdrop: {
-            //         timeout: 500
-            //     }
-            // }}
             sx={{...theme.components.box.fullCenterCol, ...modalSx}}
             {...modalProps}
         >

@@ -1,4 +1,4 @@
-import {Box, Typography, useTheme, Button} from '@mui/material'
+import {Box, Typography, useTheme, Button, Tooltip} from '@mui/material'
 import { Virtuoso, VirtuosoGrid } from 'react-virtuoso'
 import { capitalizeFirstLetter } from '../../../../utils/functions/misc'
 import { useDispatch, useSelector } from 'react-redux'
@@ -14,8 +14,10 @@ import displayOnHandByPokemon from '../../../../utils/functions/display/displayo
 import listStyles from '../../../../utils/styles/componentstyles/liststyles'
 import ScrollBar from './../scrollbar'
 import hexToRgba from 'hex-to-rgba'
+import ChangeHomeEMView from '../../collectiontable/changehomeemview'
+import ChangeAbilitiesView from '../../collectiontable/changeabilitiesview'
 
-export default function SetPokemon({minHeight='650px', type, view, data, relValue, oneHomeCollection, fullCollectionData, wantedPokemonData, onhandView, changeOnhandView}) {
+export default function SetPokemon({minHeight='650px', type, view, data, relValue, oneHomeCollection, fullCollectionData, wantedPokemonData, onhandView, changeOnhandView, homeHomeTrade, isHomeCollection, otherListGen}) {
     const theme = useTheme()
     const userData = useRouteLoaderData('root')
     const viewSubTypes = view === 'comparison' ? ['individual', 'pokemon'] : ['collection', 'onhand']
@@ -53,10 +55,28 @@ export default function SetPokemon({minHeight='650px', type, view, data, relValu
         <>
         <Box sx={{position: 'relative', ...theme.components.box.fullCenterCol, width: '100%'}}>
         {view === 'comparison' ? 
-            <Button sx={{color: theme.palette.color1.light}} onClick={() => changeViewData(viewData.viewSub === 'individual' ? 'pokemon' : 'individual')}>Group {viewData.viewSub === 'individual' ? 'by Pokemon' : 'individually'}</Button> :
-            viewData.viewSub === 'onhand' ? 
             <Box sx={{...theme.components.box.fullCenterRow}}>
-                <Button sx={{color: theme.palette.color1.light}} onClick={() => changeViewData(viewData.viewSub === 'collection' ? 'onhand' : 'collection')}>View Collection List</Button>
+                <Button sx={{color: theme.palette.color1.light}} onClick={() => changeViewData(viewData.viewSub === 'individual' ? 'pokemon' : 'individual')}>Group {viewData.viewSub === 'individual' ? 'by Pokemon' : 'individually'}</Button> 
+                {homeHomeTrade && <ChangeHomeEMView sx={{my: 0.5}}/>}
+            </Box> : 
+            // viewData.viewSub === 'onhand' ? 
+            <Box sx={{...theme.components.box.fullCenterRow, width: '80%'}}>
+                <Button sx={{color: theme.palette.color1.light}} onClick={() => changeViewData(viewData.viewSub === 'collection' ? 'onhand' : 'collection')}>View {viewData.viewSub === 'collection' ? 'On-Hand List' : 'Collection List'}</Button>
+                {isHomeCollection && 
+                    <ChangeAbilitiesView/>
+                }
+                {(viewData.viewSub === 'collection' && isHomeCollection) && 
+                    (homeHomeTrade ? 
+                    <ChangeHomeEMView sx={{my: 0.5}}/> : 
+                    <Tooltip
+                        title='This cannot be changed since the other collection is not a HOME collection, so the egg moves in other games do not matter.'
+                    >
+                        <Box sx={{':hover': {cursor: 'pointer'}}}>
+                            <ChangeHomeEMView sx={{my: 0.5}} isDisabled={true}/>
+                        </Box>
+                    </Tooltip>)
+                }
+                {viewData.viewSub === 'onhand' && 
                 <Button 
                     sx={{
                         border: `1px solid ${theme.palette.color1.dark}`, 
@@ -70,9 +90,10 @@ export default function SetPokemon({minHeight='650px', type, view, data, relValu
                     onClick={changeOnhandView}
                 >
                     View by {onhandView === 'byIndividual' ? 'Pokemon' : 'Individual'}
-                </Button>
-            </Box> : 
-            <Button sx={{color: theme.palette.color1.light}} onClick={() => changeViewData(viewData.viewSub === 'collection' ? 'onhand' : 'collection')}>View {viewData.viewSub === 'collection' ? 'On-Hand List' : 'Collection List'}</Button>
+                </Button>}
+            </Box> 
+            // : 
+            // <Button sx={{color: theme.palette.color1.light}} onClick={() => changeViewData(viewData.viewSub === 'collection' ? 'onhand' : 'collection')}>View {viewData.viewSub === 'collection' ? 'On-Hand List' : 'Collection List'}</Button>
         }
         {(viewData.viewSub === 'onhand' && onhandView === 'byPokemon' ) &&
             <Typography sx={{fontSize: '12px', color: 'white'}}>This view mode is view-only. Change the on-hand view to select!</Typography>
@@ -98,21 +119,27 @@ export default function SetPokemon({minHeight='650px', type, view, data, relValu
                                 oneHomeCollection={oneHomeCollection}
                                 list={type}
                                 userNameDisplaySettings={!userData.loggedIn ? undefined : userData.user.settings.display.pokemonNames}
+                                homeHomeTrade={homeHomeTrade}
+                                otherListGen={otherListGen}
+                                isHomeCollection={isHomeCollection}
                             />
                         )
                     }}
                 /> : 
             (viewData.viewSub === 'collection') ? 
                 <ShowCollectionList 
-                    collection={fullCollectionData}
+                    collectionLoader={fullCollectionData}
                     styles={listStyles.collection}
                     isEditMode={false}
                     localDisplayState={viewData.listDisplay}
+                    ballScopeInit={fullCollectionData.options.collectingBalls}
                     height={minHeight}
                     isTradePage={true}
                     tradeSide={type === 'offer' ? 'offering' : 'receiving'}
                     wantedByOtherListData={wantedPokemonData}
                     userData={userData}
+                    currCollectionGen={fullCollectionData.gen}
+                    otherListGen={otherListGen}
                 /> : 
                 <ShowOnHandList 
                     collectionID={fullCollectionData._id}
@@ -128,6 +155,7 @@ export default function SetPokemon({minHeight='650px', type, view, data, relValu
                     tradeSide={type === 'offer' ? 'offering' : 'receiving'}
                     userData={userData}
                     localOnhandView={onhandView}
+                    otherListGen={otherListGen}
                 />
             }
         </Box>

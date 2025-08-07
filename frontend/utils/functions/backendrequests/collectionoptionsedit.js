@@ -8,6 +8,7 @@ const backendChangeOptions = async(optionType, accompanyingData, collectionId) =
     const changingItems = optionType === 'items'
     const changingCollectionName = optionType === 'name'
     const changingGlobalDefault = optionType === 'globalDefault'
+    const changingBallScope = optionType === 'collectingBalls'
     if (changingSortingOption) {
         const {listType, data, sortedList} = accompanyingData
         const res = await fetch(`${backendurl}/collections/${collectionId}`, {
@@ -77,6 +78,18 @@ const backendChangeOptions = async(optionType, accompanyingData, collectionId) =
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({editType: 'optionsEdit', optionType, globalDefault})
+        }).then(async(data) => {return await handleApiResponse(data)})
+
+        return res
+    } else if (changingBallScope) {
+        const {ballScope} = accompanyingData
+        const res = await fetch(`${backendurl}/collections/${collectionId}`, {
+            method: 'PUT',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({editType: 'optionsEdit', optionType, ballScope})
         }).then(async(data) => {return await handleApiResponse(data)})
 
         return res

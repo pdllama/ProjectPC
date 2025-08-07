@@ -1,12 +1,26 @@
 import { sortByDexNum } from "../../../common/sortingfunctions/sortbydexnum.mjs"
 import { legendaryPokemon, effectiveNonBreedable, evolvedRegionals, pokeAdults, pokeBabies, pokeIncenseAdults, pokeIncenseBabies, interchangeableAltFormMons } from "../../../common/infoconstants/pokemonconstants.mjs"
 
-const comparisonPokemonFormat = (ball, isOnhand, ballData, pokemon, eggMoveData, highlyWanted) => {
+const comparisonPokemonFormat = (ball, isOnhand, ballData, pokemon, eggMoveData, highlyWanted, homeCol, emGenOverride) => {
     const peripheryInfoLocation = isOnhand ? pokemon : ballData
     const isHAData = peripheryInfoLocation.isHA === undefined ? {} : {isHA: peripheryInfoLocation.isHA}
-    const emData = peripheryInfoLocation.emCount === undefined ? {} : {emCount: peripheryInfoLocation.emCount, EMs: peripheryInfoLocation.EMs, isMaxEMs: eggMoveData[pokemon.name].length === peripheryInfoLocation.emCount || peripheryInfoLocation.emCount === 4}
+    const emData = homeCol ? peripheryInfoLocation.eggMoveData === undefined ? {} : emGenOverride ? 
+        peripheryInfoLocation.eggMoveData[emGenOverride] === undefined ? {} : 
+        {emCount: peripheryInfoLocation.eggMoveData[emGenOverride].emCount, EMs: peripheryInfoLocation.eggMoveData[emGenOverride].EMs, isMaxEMs: (peripheryInfoLocation.eggMoveData[emGenOverride].emCount === 4 ? true : (eggMoveData[pokemon.name] === undefined) ? false : eggMoveData[pokemon.name].length === peripheryInfoLocation.eggMoveData[emGenOverride].emCount)} :  
+        {eggMoveData: peripheryInfoLocation.eggMoveData} : 
+        peripheryInfoLocation.emCount === undefined ? {} : {emCount: peripheryInfoLocation.emCount, EMs: peripheryInfoLocation.EMs, isMaxEMs: peripheryInfoLocation.emCount === 4 || (eggMoveData[pokemon.name] === undefined ? false : eggMoveData[pokemon.name].length === peripheryInfoLocation.emCount)}
     const wanted = highlyWanted ? {wanted: true} : {}
     const onhandId = isOnhand ? {onhandId: pokemon._id} : {}
+    if (homeCol && !emGenOverride && Object.keys(emData).length !== 0) {
+        Object.keys(emData.eggMoveData).forEach(emGen => {
+            const d = emData.eggMoveData[emGen]
+            
+            //since this actually mutates the eggMoveData object in the collection, there may already be a value there if the user does another comparison, which brings up an error.
+            if (emData.eggMoveData[emGen].isMaxEMs === undefined) {
+                emData.eggMoveData[emGen].isMaxEMs = d.emCount === 4 || (eggMoveData[pokemon.name] === undefined ? false : eggMoveData[pokemon.name].length === d.emCount)
+            }
+        })
+    }
     return {
         ball,
         ...isHAData,
@@ -22,6 +36,21 @@ const babyAdultEquivalency = (p) => {
     if (pokeIncenseAdults.includes(p.name)) {return pokeIncenseBabies[pokeIncenseAdults.indexOf(p.name)]}
     if (pokeIncenseBabies.includes(p.name)) {return pokeIncenseAdults[pokeIncenseBabies.indexOf(p.name)]}
     return undefined
+}
+
+//this function takes a HOME emData object and selects the emGen of the highest Gen (used for HOME-HOME comparisons)
+const selectHighestEmGen = (emData) => {
+    if (emData == undefined) {return undefined}
+    let highestEmCount = -1
+    let highestEmGen = ''
+    Object.keys(emData).forEach(emGen => {
+        const emD = emData[emGen]
+        if (emD.emCount > highestEmCount) {
+            highestEmCount = emD.emCount
+            highestEmGen = emGen
+        }
+    })
+    return highestEmGen
 }
 
 const iAltFormEquivalency = (p) => {
@@ -46,7 +75,7 @@ const pokemonFallsInOpts = (p, advOpts) => {
 
 //currently the function below doesnt differentiate between legendary/non-legendary pokemon, so it will say you can offer legendaries if both collections
 //have them. might be worth changing down the line.
-const compareLists = (refList, compareFromList, specificOpts, advOpts, eggMoveData, ignoreEMs, onHandPokemon) => { 
+const compareLists = (refList, compareFromList, specificOpts, advOpts, eggMoveData, ignoreEMs, onHandPokemon, refListGen, compareFromListGen) => { 
     const comparedList = onHandPokemon === undefined ? [] : onHandPokemon
     //this object is used as a reference for which specific form/ball combos were offered for 'Any' forms, so there's no duplicates. 
     const interchangeableToAnyRef = {}
@@ -77,13 +106,19 @@ const compareLists = (refList, compareFromList, specificOpts, advOpts, eggMoveDa
         const iAltFormDiffSpecies = (differentPokemonData && isInterchangeableAltFormPokemon) && interchangeableAltFormMons.filter((iAlt) => pokemon.name.includes(iAlt))[0]
         const babyAdultEquivalent = advOpts.equalizeBabyAdults && (otherListPokemonLiteral === undefined || otherListPokemonLiteral.disabled === true) && !isInterchangeableAltFormPokemon
         const otherListOwnedData = otherListPokemonData.balls
-        const maxEMs = !ignoreEMs && (eggMoveData[pokemon.name].length >= 4 ? 4 : eggMoveData[pokemon.name].length)
+
+        
         if (!isOnhandList) {
             if (includePokemon.notBreedable === true) {return} 
             Object.keys(pokemon.balls).forEach(ball => {
                 const ballData = pokemon.balls[ball]
                 const otherListBallData = otherListOwnedData[ball]
                 const noOtherBallData = otherListBallData === undefined || otherListBallData.disabled === true
+
+                const emGenToUse = isOnhandList ? pokemon.emGen : (refListGen === 'home' && compareFromListGen === 'home') ? selectHighestEmGen(ballData.eggMoveData) : refListGen === 'home' ? compareFromListGen : undefined
+                const possibleEggMovesPath = eggMoveData[pokemon.name] === undefined ? undefined : emGenToUse !== undefined ? eggMoveData[pokemon.name][emGenToUse] : eggMoveData[pokemon.name]
+                const maxEMs = !ignoreEMs && (possibleEggMovesPath === undefined ? 0 : possibleEggMovesPath.length >= 4 ? 4 : possibleEggMovesPath.length)
+
                 const noComparisonToBeMade = ballData.disabled === true || noOtherBallData
                 const theyHaveBallPending = (otherListBallData !== undefined) && otherListBallData.pending === true
                 if (noComparisonToBeMade) {return}
@@ -112,8 +147,11 @@ const compareLists = (refList, compareFromList, specificOpts, advOpts, eggMoveDa
                 }).includes(true)
                 if (providedByAdultBabyLiteral) {return}
                 if (specificOpts.ha === true && (ballData.isHA !== undefined && ballData.isHA === false)) {return}
-                if (!ignoreEMs && (specificOpts.em === true && (ballData.emCount !== undefined && ballData.emCount !== maxEMs))) {return}
+                const trueEmCount = refListGen === 'home' ? ballData.eggMoveData === undefined ? undefined : 
+                    ballData.eggMoveData[emGenToUse] === undefined ? undefined : ballData.eggMoveData[emGenToUse].emCount : ballData.emCount
+                if (!ignoreEMs && (specificOpts.em === true && (trueEmCount !== undefined && trueEmCount < maxEMs))) {return}
                 if (ballData.isOwned === true && otherListBallData.isOwned === false) {
+                    
                     if (iAltFormDiffSpecies) {
                         interchangeableToAnyRef[iAltFormDiffSpecies].push(ball)
                     }
@@ -122,17 +160,22 @@ const compareLists = (refList, compareFromList, specificOpts, advOpts, eggMoveDa
                     // }
                     const pokemonDataThere = comparedList.filter(p => p.name === pokemon.name).length !== 0
                     if (pokemonDataThere) {
-                        const idxOfPokemon = comparedList.map((p, idx) => {return {name: p.name, idx}}).filter(p => p.name === pokemon.name)[0].idx
-                        comparedList[idxOfPokemon].balls.push(comparisonPokemonFormat(ball, false, ballData, pokemon, eggMoveData, otherListBallData.highlyWanted !== undefined))
+                        // const idxOfPokemon = comparedList.map((p, idx) => {return {name: p.name, idx}}).filter(p => p.name === pokemon.name)[0].idx
+                        const idxOfPokemon = comparedList.findIndex(p => p.name === pokemon.name)
+                        comparedList[idxOfPokemon].balls.push(comparisonPokemonFormat(ball, false, ballData, pokemon, eggMoveData, otherListBallData.highlyWanted !== undefined, refListGen === 'home', compareFromListGen === 'home' ? undefined : compareFromListGen))
                     } else {
                         const forRef = differentPokemonData ? {for: otherListPokemonData.name} : {}
-                        comparedList.push({name: pokemon.name, natDexNum: pokemon.natDexNum, id: pokemon.imgLink, ...forRef, balls: [comparisonPokemonFormat(ball, false, ballData, pokemon, eggMoveData, otherListBallData.highlyWanted !== undefined)]})
+                        comparedList.push({name: pokemon.name, natDexNum: pokemon.natDexNum, id: pokemon.imgLink, ...forRef, balls: [comparisonPokemonFormat(ball, false, ballData, pokemon, eggMoveData, otherListBallData.highlyWanted !== undefined, refListGen === 'home', compareFromListGen === 'home' ? undefined : compareFromListGen)]})
                     }
                     
                 }
             })
         } else {
             const otherListBallData = otherListOwnedData[pokemon.ball]
+
+            const possibleEggMovesPath = eggMoveData[pokemon.name] === undefined ? undefined : refListGen === 'home' ? eggMoveData[pokemon.name][pokemon.emGen] : eggMoveData[pokemon.name]
+            const maxEMs = !ignoreEMs && (possibleEggMovesPath === undefined ? 0 : possibleEggMovesPath.length >= 4 ? 4 : possibleEggMovesPath.length)
+
             const noComparisonToBeMade = otherListBallData === undefined || otherListBallData.disabled === true
             if (noComparisonToBeMade) {return}
             const otherOnHandHasProvidedPokeBallCombo = onhandBallComboRef[pokemon.name] !== undefined && onhandBallComboRef[pokemon.name].includes(pokemon.ball)
@@ -147,7 +190,8 @@ const compareLists = (refList, compareFromList, specificOpts, advOpts, eggMoveDa
             }).includes(true)
             if (providedByAdultBabyLiteral) {return}
             if (specificOpts.ha === true && (pokemon.isHA === false)) {return}
-            if (!ignoreEMs && (specificOpts.em === true && (pokemon.emCount !== maxEMs))) {return}
+            const trueEmCount = compareFromListGen === 'home' ? pokemon.emCount : pokemon.emGen !== compareFromListGen ? 0 : pokemon.emCount
+            if (!ignoreEMs && (specificOpts.em === true && (trueEmCount !== undefined && trueEmCount < maxEMs))) {return}
             if (pokemon.reserved !== undefined && pokemon.reserved >= pokemon.qty) {return}
             if (otherListBallData.isOwned === false) {
                 const pokemonDataThere = comparedList.filter(p => p.name === pokemon.name).length !== 0
@@ -156,7 +200,8 @@ const compareLists = (refList, compareFromList, specificOpts, advOpts, eggMoveDa
                 }
                 onhandBallComboRef[pokemon.name] = onhandBallComboRef[pokemon.name] !== undefined ? [...onhandBallComboRef[pokemon.name], pokemon.ball] : [pokemon.ball]
                 if (pokemonDataThere) {
-                    const idxOfPokemon = comparedList.map((p, idx) => {return {name: p.name, idx}}).filter(p => p.name === pokemon.name)[0].idx
+                    // const idxOfPokemon = comparedList.map((p, idx) => {return {name: p.name, idx}}).filter(p => p.name === pokemon.name)[0].idx
+                    const idxOfPokemon = comparedList.findIndex(p => p.name === pokemon.name)
                     comparedList[idxOfPokemon].balls.push(comparisonPokemonFormat(pokemon.ball, true, {}, pokemon, eggMoveData, otherListBallData.highlyWanted !== undefined))
                 } else {
                     const forRef = differentPokemonData ? {for: otherListPokemonData.name} : {}
@@ -175,12 +220,12 @@ const compareCollections = (userCol, ownerCol, opts, advOpts, userEggMoveData, o
     // 2. userCol's onhand list with ownerCol's ownedPokemon list (checks what userCol can offer)
     // 3. ownerCol's ownedPokemon list with userCol's ownedPokemon list (checks what userCol can receive)
     // 4. ownerCol's onhand list with userCol's ownedPokemon list (checks what userCol can receive)
-    const offerableOnhandPokemon = compareLists(userCol.onHand, ownerCol.ownedPokemon, opts.userList, advOpts, userEggMoveData, ignoreEMs)
-    const offerableBreedablePokemon = opts.userList.onhand === true ? offerableOnhandPokemon : compareLists(userCol.ownedPokemon, ownerCol.ownedPokemon, opts.userList, advOpts, userEggMoveData, ignoreEMs, offerableOnhandPokemon)
+    const offerableOnhandPokemon = compareLists(userCol.onHand, ownerCol.ownedPokemon, opts.userList, advOpts, userEggMoveData, ignoreEMs, undefined, userCol.gen, ownerCol.gen)
+    const offerableBreedablePokemon = opts.userList.onhand === true ? offerableOnhandPokemon : compareLists(userCol.ownedPokemon, ownerCol.ownedPokemon, opts.userList, advOpts, userEggMoveData, ignoreEMs, offerableOnhandPokemon, userCol.gen, ownerCol.gen)
     const canOffer = sortByDexNum('NatDexNumL2H', [...offerableBreedablePokemon])
 
-    const receivableOnhandPokemon = compareLists(ownerCol.onHand, userCol.ownedPokemon, opts.ownerList, advOpts, ownerEggMoveData, ignoreEMs)
-    const receivableBreedablePokemon = opts.ownerList.onhand === true ? receivableOnhandPokemon : compareLists(ownerCol.ownedPokemon, userCol.ownedPokemon, opts.ownerList, advOpts, ownerEggMoveData, ignoreEMs, receivableOnhandPokemon)
+    const receivableOnhandPokemon = compareLists(ownerCol.onHand, userCol.ownedPokemon, opts.ownerList, advOpts, ownerEggMoveData, ignoreEMs, undefined, ownerCol.gen, userCol.gen)
+    const receivableBreedablePokemon = opts.ownerList.onhand === true ? receivableOnhandPokemon : compareLists(ownerCol.ownedPokemon, userCol.ownedPokemon, opts.ownerList, advOpts, ownerEggMoveData, ignoreEMs, receivableOnhandPokemon, ownerCol.gen, userCol.gen)
     const canReceive = sortByDexNum('NatDexNumL2H', [...receivableBreedablePokemon])
 
     return {canOffer, canReceive}

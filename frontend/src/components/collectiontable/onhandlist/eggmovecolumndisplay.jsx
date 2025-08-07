@@ -4,13 +4,14 @@ import { setPokemon } from '../../../app/slices/tradeoffer'
 import { selectIfPokemonIsSelected } from '../../../app/selectors/tradeselectors'
 import { deselect } from '../../../app/slices/editmode'
 import getMoveStyles from '../../../../utils/functions/eggmoves/getmovestyles'
+import { convertBallDataIfNeeded } from '../../functionalcomponents/comparecollections/comparedisplaygridcomponents'
 
 export default function EggMoveColumnDisplay({emKeyLiteral, 
     EMs, 
     emCount, 
     baseStyles={tableCell: {textAlign: 'center', height: '72px'}, bodyColor: {margin: 0, padding: '16px', borderRadius: '10px'}}, 
     isEditMode, onClickFunc, blackSquare, flaggedForDeletion, 
-    isTradePage, tradeSide, tradeDispData, 
+    isTradePage, tradeSide, tradeDispData, isHomeCollection,
     skeleton=false, boxWrapper=false, customSx={}, 
     centeredGridItems=false, 
     customPadding=4.5, 
@@ -19,7 +20,7 @@ export default function EggMoveColumnDisplay({emKeyLiteral,
     const blackSquareStyles = blackSquare ? {backgroundColor: 'black'} : {}
     const hoverSx = isEditMode ? {':hover': {cursor: 'pointer'}} : {}
     const isSelectedForTrade = isTradePage ? useSelector((state) => selectIfPokemonIsSelected(state, tradeSide, {name: tradeDispData.pData.name, ball: tradeDispData.ballData.ball, onhandId: tradeDispData.ballData.onhandId})) : false
-    const dispatchTradeChange = isTradePage ? () => dispatch(setPokemon({pData: tradeDispData.pData, ballData: tradeDispData.ballData, tradeSide})) : false
+    const dispatchTradeChange = isTradePage ? () => dispatch(setPokemon({pData: tradeDispData.pData, ballData: isHomeCollection ? convertBallDataIfNeeded(tradeDispData.ballData, tradeDispData.otherListGen, true) : tradeDispData.ballData, tradeSide})) : false
 
  
     const ChosenWrapper = boxWrapper ? Box : TableCell
@@ -62,6 +63,9 @@ export default function EggMoveColumnDisplay({emKeyLiteral,
         if (tradeDispData.fullData.emCount !== undefined) {
             tradeDispData.ballData.emCount = tradeDispData.fullData.emCount
             tradeDispData.ballData.EMs = tradeDispData.fullData.EMs
+        }
+        if (tradeDispData.fullData.emGen !== undefined) {
+            tradeDispData.ballData.emGen = tradeDispData.fullData.emGen
         }
     }
 

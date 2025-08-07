@@ -24,8 +24,8 @@ export default function WhatAreAprimon({}) {
     }
 
     return (
-        <InfoWrapper title='What are Aprimon?' wrapperSx={{...theme.components.box.fullCenterCol, marginX: 1}}>
-            <Box sx={{...theme.components.box.fullCenterCol, justifyContent: 'start', py: 2, px: 3, backgroundColor: hexToRgba(theme.palette.color1.main, 0.9), borderRadius: '10px', border: `2px solid ${theme.palette.color1.dark}`, color: theme.palette.color1.contrastText, maxWidth: '750px', width: '90%', '@media only screen and (max-width: 400px)': {width: '85%'}}}>
+        <InfoWrapper title='What are Aprimon?' wrapperSx={{...theme.components.box.fullCenterCol, marginX: 1}}><Box sx={{...theme.components.box.fullCenterCol, justifyContent: 'start', py: 2, px: 3, backgroundColor: hexToRgba(theme.palette.color1.main, 0.9), borderRadius: '10px', border: `2px solid ${theme.palette.color1.dark}`, color: theme.palette.color1.contrastText, maxWidth: '750px', width: '90%', '@media only screen and (max-width: 400px)': {width: '85%'}}}>
+            
                 <Typography sx={{fontSize: '16px', width: '100%', textAlign: 'start', textIndent: '30px'}}>
                     The classic pokemon catchphrase is "Gotta catch 'em all!". It's no surprise, then, that there are countless pokemon fans who
                     collect all 1000+ pokemon. However, this isn't the <Highlighted><b>only</b></Highlighted> way to collect pokemon. Some people like to collect pokemon in very rare types of 

@@ -9,6 +9,8 @@ const sortByDexNumLogic = (a, b, order) => {
             return -1
         }
         if (a.natDexNum === b.natDexNum) {//ensures regional and alternate form pokemon are listed after their regular forms
+            // console.log(a)
+            // console.log(b)
             if (a.name.includes(" ") && b.name.includes(" ")) {
                 return multipleDexNumAndSpaceHavingPokemon.includes(a.name) ? -1 : a.name.localeCompare(b.name)
             } else if (b.name.includes(" ")){

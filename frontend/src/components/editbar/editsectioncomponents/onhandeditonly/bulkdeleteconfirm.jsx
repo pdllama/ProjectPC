@@ -63,7 +63,6 @@ export default function BulkDeleteConfirm({open, toggleModal, collectionID, demo
     const setToBeDeletedOhData = onhandView === 'byPokemon' ? 
         totalOnhands.filter(p => formattedFlaggedOhs.filter(p2 => p2.id === p.imgLink && p2.ball === p.ball).length !== 0) : 
         totalOnhands.filter(p => flaggedOnhands.includes(p._id))
-
     const listDeletedItemContent = (idx) => {
         const pData = setToBeDeletedOhData[idx]
         const firstItem = idx === 0
@@ -76,7 +75,8 @@ export default function BulkDeleteConfirm({open, toggleModal, collectionID, demo
         setSavePending(true)
         const backendFunc = async() => await deleteOnHandPutRequest(onhandView === 'byPokemon' ? setToBeDeletedOhData.map(p => p._id) : flaggedOnhands, collectionID)
         const successFunc = () => {
-            dispatch(removeOnHandPokemonFromList({pokemonid: flaggedOnhands}))
+            const trueDeletedOnhandIds = onhandView === 'byPokemon' ? totalOnhands.filter(p => flaggedOnhands.includes(`${p.imgLink} ${p.ball}`)).map(p => p._id) : flaggedOnhands
+            dispatch(removeOnHandPokemonFromList({pokemonid: trueDeletedOnhandIds, currColId: collectionID}))
             
             setSavePending(false)
             const alertInfo = {severity: 'success', timeout: 5, message: 'Deleted multiple On-Hand pokemon!'}

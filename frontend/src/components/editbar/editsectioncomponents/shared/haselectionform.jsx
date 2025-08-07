@@ -19,7 +19,7 @@ export default function HASelectionForm({noHA=false, isHA, handleChange, disable
                 exclusive
                 value={disabled ? 'none' : isHA}
                 sx={{width: '100%', height: '100%', justifyContent: 'center'}}
-                onChange={disabled ? undefined : (e) => handleChange(e)}
+                onChange={disabled ? undefined : (e, newVal) => handleChange(e, newVal)}
             >
                 <ToggleButton value={true} sx={{fontSize: '10px', color, ...otherStyles}} size={buttonSizes}>HA</ToggleButton>
                 <ToggleButton value={false} sx={{fontSize: '10px', color, ...otherStyles}} size={buttonSizes}>Non-HA</ToggleButton>

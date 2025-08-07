@@ -2,12 +2,12 @@ import { useState } from "react";
 import FlexAppBarContainer from "./components/flexappbarcontainer";
 import { useDispatch } from "react-redux"
 import { setTags } from "../../../app/slices/collectionstate"
-import { setUnsavedChanges, toggleEditScreenState } from "../../../app/slices/editmode";
+import { setCollectionChange, toggleEditScreenState } from "../../../app/slices/editmode";
 import { useTagRequest } from "../../../../utils/functions/backendrequests/editcollection";
 import {Button, Modal, Box, ToggleButton} from '@mui/material'
 import DeleteOnHandConfirm from "../editsectioncomponents/onhandeditonly/deleteonhandconfirmmodal";
 
-export default function MiscButtonArea({currentView, collectionID, pokemonInfo={}, listType, demo, onhandView, showEditScreen, byPokemonNum}) {
+export default function MiscButtonArea({currentView, collectionID, pokemonInfo={}, listType, demo, onhandView, showEditScreen, byPokemonNum, subListIdx}) {
     const [onHandDeleteConfirm, setOnHandDeleteConfirm] = useState(false)
     const dispatch = useDispatch()
     const openOnHandDeleteConfirm = () => {
@@ -18,9 +18,9 @@ export default function MiscButtonArea({currentView, collectionID, pokemonInfo={
     }
 
     const handleEditTags = (tagType, idx, ball) => {
-        dispatch(setTags({tagType, idx, ball}))
+        dispatch(setTags({tagType, idx, ball, subListIdx}))
         // useTagRequest(tagType, pokemonInfo.activeTag, {pokename: pokemonInfo.name, ballname: ball}, collectionID)
-        dispatch(setUnsavedChanges())
+        dispatch(setCollectionChange({id: pokemonInfo.id, ball, field: 'tag', tag: pokemonInfo.activeTag, currValue: pokemonInfo.activeTag === tagType ? 'none' : tagType}))
     }
 
     const generateButtons = () => {

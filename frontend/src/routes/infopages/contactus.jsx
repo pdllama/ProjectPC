@@ -24,7 +24,7 @@ export default function ContactUs({}) {
                     <Typography sx={{fontWeight: 700, width: '33%', '@media only screen and (max-width: 550px)': {width: '100%'}}}>Report a User</Typography>
                 </Box>
                 <Typography>Alternatively, you can also contact our e-mail directly from here:</Typography>
-                <ContactUsDirectlyComponents containerSx={{my: 2, width: '80%'}}/>
+                <ContactUsDirectlyComponents containerSx={{my: 2, width: '80%', '@media only screen and (max-width: 500px)': {width: '100%'}}}/>
                 <Typography sx={{fontSize: '11px', mb: 5}}>The e-mail will be sent by the server to llama.pokellections@gmail.com on behalf of you. If you choose not to send anonymously, only your username will be sent.</Typography>
                 <Typography sx={{fontSize: '16px', width: '100%', textAlign: 'center'}}>
                     Please provide as much information as possible when contacting us! We're always happy to help.

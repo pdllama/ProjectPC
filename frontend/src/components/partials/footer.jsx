@@ -21,6 +21,7 @@ export default function Footer() {
                 <div className="footer">
                     <Box sx={{...theme.components.box.fullCenterRow, gap: 2, mt: 0.5, mb: -1.5}}>
                         <Button sx={{fontSize: '12px'}} onClick={() => navigate('/info/about-us')}>About Us</Button>
+                        <Button sx={{fontSize: '12px'}} onClick={() => navigate('/help')}>Help</Button>
                         <Button sx={{fontSize: '12px'}} onClick={() => navigate('/info/contact-us')}>Contact Us</Button>
                     </Box>
                     <Typography

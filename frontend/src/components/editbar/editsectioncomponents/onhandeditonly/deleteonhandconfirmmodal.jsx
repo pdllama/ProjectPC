@@ -31,7 +31,7 @@ export default function DeleteOnHandConfirm({open, handleClose, pokemonName, dex
         setIsDeleting(true)
         const backendFunc = async() => await deleteOnHandPutRequest(pokemonId, collectionID)
         const successFunc = () => {
-            dispatch(removeOnHandPokemonFromList({pokemonid: pokemonId, ...additionalDispatchProps})) //list display state - refer to slice
+            dispatch(removeOnHandPokemonFromList({pokemonid: pokemonId, currColId: collectionID, ...additionalDispatchProps})) //list display state - refer to slice
 
             setIsDeleting(false)
             handleClose()

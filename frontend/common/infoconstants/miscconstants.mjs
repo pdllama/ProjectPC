@@ -140,10 +140,14 @@ const homeCompatibleGames = [
 const noRegionalFormGens = [6, 'bdsp']
 const homeDisplayGames = ['swsh', 'bdsp', 9]
 
-const getGameColor = (gameLetter) => { //for home-compatible games only
-    const color = gameLetter === 'SW' ? '#009fe8' : gameLetter === 'SH' ? '#e5015a' : 
-        gameLetter === 'BD' ? '#9ad4f6' : gameLetter === 'SP' ? '#e3d0df' : 
-        gameLetter === 'S' ? '#c33124' : gameLetter === 'V' && '#95398a'
+const getGameColor = (gameLetter, mode='reg') => { //for home-compatible games only
+    const color = 
+        gameLetter === 'SW' ? '#009fe8' : 
+        gameLetter === 'SH' ? '#e5015a' : 
+        gameLetter === 'BD' ? '#9ad4f6' : 
+        gameLetter === 'SP' ? '#e3d0df' : 
+        gameLetter === 'S' ? '#c33124' : 
+        gameLetter === 'V' && '#95398a'
     return color
 }
 
@@ -158,6 +162,13 @@ const valueDefaults = {
     'Max Mushroom': 2, 'Exp. Candy L': 1, 'Exp. Candy XL': 2
 }
 
+const genGameAdjustments = {
+    'swsh': 'swsh',
+    'bdsp': 'bdsp',
+    '9': 'sv',
+    9: 'sv'
+}
+
 export {
     generations, genRomans, genGames, findGenByDexNum, findRegionByDexNum,
     apriballs, apriballLiterals, specialBalls, ballIntros,
@@ -167,5 +178,5 @@ export {
     regionIdentifiers,
     tradePreferenceDisplay,
     gamesOrder, homeCompatibleGames, noRegionalFormGens, homeDisplayGames, getGameColor,
-    valueDefaults
+    valueDefaults, genGameAdjustments
 }

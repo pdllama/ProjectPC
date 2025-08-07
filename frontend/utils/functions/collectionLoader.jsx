@@ -1,8 +1,9 @@
 const backendurl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000'
 import { defer } from "react-router"
 
-export default async function collectionLoader({params}, dispatch, editPage, initializeState, initList, initCol, initOnhand, initOptions) {
-    const collectionPromise = fetch(`${backendurl}/collections/${params.id}`).then(res => res.json()).catch(e => {return {status: 500, name: 'Internal Server Error', message: 'We cannot communicate with our servers at the moment. Please try again later.'}})
+export default async function collectionLoader({params}, sub, isTradePage) {
+    const collectionPromise = fetch(`${backendurl}/collections/${params.id}${sub ? `?col=${sub}` : ''}${isTradePage ? `?isTradePage=true` : ''}`)
+        .then(res => res.json()).catch(e => {return {status: 500, name: 'Internal Server Error', message: 'We cannot communicate with our servers at the moment. Please try again later.'}})
                             // .then(async(res) => {
                             //     const data = await res.json()
                             //     if (res.ok) {return data} 
@@ -22,13 +23,13 @@ export default async function collectionLoader({params}, dispatch, editPage, ini
 }
 
 export const initializeCollectionPageState = (collection, tools) => {
-    const {dispatch, initList, initCol, initOnhand, initOptions, editPage} = tools
+    const {dispatch, initList, subListInit, initCol, initOnhand, initOptions, editPage} = tools
     // if (editPage) {
     //     dispatch(initCol(collection.ownedPokemon))
     //     dispatch(initOnhand(collection.onHand))
     //     dispatch(initOptions({...collection.options, collectionName: collection.name}))
     // }
-    dispatch(initList(collection))
+    dispatch(initList(collection, subListInit))
 }
 
 export async function collectionLoaderEditPage(dispatch, initCol) {

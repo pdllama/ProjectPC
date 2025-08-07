@@ -7,6 +7,10 @@ import optionsEdit from './editcollectioncontrollers.js/optionsedit.js'
 
 import deleteOnHand from './editcollectioncontrollers.js/deleteonhand.js'
 import deleteCollectionController from './deletecollection.js'
+import pokemonScopeChange from './editcollectioncontrollers.js/scopecontrollers/pokemonscopechange.js'
+import ballScopeChanges from './editcollectioncontrollers.js/scopecontrollers/ballscopechanges.js'
+import excludedCombosChanges from './editcollectioncontrollers.js/scopecontrollers/excludedcomboschanges.js'
+import customSortHandler from './editcollectioncontrollers.js/customsorthandler.js'
 
 export const editCollectionFunc = async(req, res) => {
     const {editType} = req.body
@@ -17,6 +21,10 @@ export const editCollectionFunc = async(req, res) => {
         case 'addOnHand': return await addOnHand(req, res)
         case 'ownedPokemonEdit': return await ownedPokemonEdit(req, res)
         case 'optionsEdit': return await optionsEdit(req, res)
+        case 'pokemonScope': return await pokemonScopeChange(req, res)
+        case 'ballScope': return await ballScopeChanges(req, res)
+        case 'excludedCombos': return await excludedCombosChanges(req, res)
+        case 'customSort': return await customSortHandler(req, res)
         default: res.end()
     }
 }

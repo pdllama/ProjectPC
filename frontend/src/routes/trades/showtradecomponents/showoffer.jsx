@@ -15,8 +15,9 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { capitalizeFirstLetter } from '../../../../utils/functions/misc'
 import { items } from '../../../../common/infoconstants/miscconstants.mjs'
 import getNameDisplay from '../../../../utils/functions/display/getnamedisplay'
+import ChangeHomeEMView from '../../../components/collectiontable/changehomeemview'
 
-export default function ShowOffer({numOfOffers, tradeParticipants, offersBasicData, selectedOfferIdx, selectedOfferData, handleSelectedOfferChange, tradeId, tradeUsers, isPending, markedCompleteData, tradeStatus, errorSelection}) {
+export default function ShowOffer({numOfOffers, tradeParticipants, offersBasicData, selectedOfferIdx, selectedOfferData, handleSelectedOfferChange, tradeId, tradeUsers, isPending, markedCompleteData, tradeStatus, errorSelection, tradeGen}) {
     const theme = useTheme()
     const navigate = useNavigate()
     const {handleError} = useContext(ErrorContext)
@@ -133,29 +134,18 @@ export default function ShowOffer({numOfOffers, tradeParticipants, offersBasicDa
 
     const userNameDisplaySettings = !loggedInUserData.loggedIn ? undefined : loggedInUserData.user.settings.display.pokemonNames
 
-    //alerts
-    const [alertIds, setAlertIds] = useState([])
-    const {addAlert, dismissAlert} = useContext(AlertsContext)
-
-    const clearAlerts = () => {
-        alertIds.forEach((id) => {
-            dismissAlert(id);
-        });
-        setAlertIds([]);
-    }
-
-    useEffect(() => {
-        return () => {
-            clearAlerts();
-        };
-    }, []);
-
+    const {addAlert} = useContext(AlertsContext)
     const noOfferMessage = selectedOfferData.comment.length === 0
 
+    const offerColInfo = tradeUsers.filter(userD => userD.username === selectedOfferData.offerer)[0].tradeCollection
+    const receivingColInfo = tradeUsers.filter(userD => userD.username === selectedOfferData.recipient)[0].tradeCollection
+    const offererColId = offerColInfo._id
+    const recipientColId = receivingColInfo._id
+    const offererSuperColId = offerColInfo.linkedTo ? offerColInfo.linkedTo.super : undefined
+    const receivingSuperColId = receivingColInfo.linkedTo ? receivingColInfo.linkedTo.super : undefined
+
     const acceptOffer = () => {
-        const offererColId = tradeUsers.filter(userD => userD.username === selectedOfferData.offerer)[0].tradeCollection._id
-        const recipientColId = tradeUsers.filter(userD => userD.username === selectedOfferData.recipient)[0].tradeCollection._id
-        const backendFunc = async() => await acceptTradeOffer(tradeId, tradeUsers.filter(userD => userD.username === otherParticipant)[0]._id, offererColId, recipientColId, loggedInUserData.user.username)
+        const backendFunc = async() => await acceptTradeOffer(tradeId, tradeUsers.filter(userD => userD.username === otherParticipant)[0]._id, offererColId, recipientColId, loggedInUserData.user.username, offererSuperColId, receivingSuperColId)
         const successFunc = () => {
             setTimeout(() => {
                 revalidator.revalidate()
@@ -174,7 +164,6 @@ export default function ShowOffer({numOfOffers, tradeParticipants, offersBasicDa
         handleError(backendFunc, false, successFunc, errorFunc)
     } 
     const rejectOffer = () => {
-        const offererColId = tradeUsers.filter(userD => userD.username === selectedOfferData.offerer)[0].tradeCollection._id
         const backendFunc = async() => await rejectTradeOffer(tradeId, tradeUsers.filter(userD => userD.username === otherParticipant)[0]._id, offererColId, loggedInUserData.user.username)
         const successFunc = () => {
             setTimeout(() => {
@@ -185,8 +174,7 @@ export default function ShowOffer({numOfOffers, tradeParticipants, offersBasicDa
             setStatuses({tradeStatus: 'rejected', offerStatus: 'rejected'})
             const alertMessage = `Rejected the trade offer!`
             const alertInfo = {severity: 'error', message: alertMessage, timeout: 3}
-            const id = addAlert(alertInfo);
-            setAlertIds((prev) => [...prev, id]);
+            addAlert(alertInfo);
         }
         const errorFunc = (errorData) => {
             setConfirmDecisionModal({...confirmDecisionModal, error: true, errorData})
@@ -197,9 +185,7 @@ export default function ShowOffer({numOfOffers, tradeParticipants, offersBasicDa
         navigate(`/trades/${tradeId}/counter-offer`)
     }
     const cancelTradeFunc = () => {
-        const offererColId = tradeUsers.filter(userD => userD.username === selectedOfferData.offerer)[0].tradeCollection._id
-        const recipientColId = tradeUsers.filter(userD => userD.username === selectedOfferData.recipient)[0].tradeCollection._id
-        const backendFunc = async() => await cancelTrade(tradeId, tradeUsers.filter(userD => userD.username === otherParticipant)[0]._id, offererColId, recipientColId, loggedInUserData.user.username)
+        const backendFunc = async() => await cancelTrade(tradeId, tradeUsers.filter(userD => userD.username === otherParticipant)[0]._id, offererColId, recipientColId, loggedInUserData.user.username, offererSuperColId, receivingSuperColId)
         const successFunc = () => {
             setTimeout(() => {
                 revalidator.revalidate()
@@ -220,9 +206,7 @@ export default function ShowOffer({numOfOffers, tradeParticipants, offersBasicDa
         const tradeIsNowComplete = markedCompleteData === otherParticipant
         setMarkingComplete(true)
         if (tradeIsNowComplete) {
-            const offererColId = tradeUsers.filter(userD => userD.username === selectedOfferData.offerer)[0].tradeCollection._id
-            const recipientColId = tradeUsers.filter(userD => userD.username === selectedOfferData.recipient)[0].tradeCollection._id
-            const backendFunc = async() => await toggleMarkedAsComplete(tradeId, tradeUsers.filter(userD => userD.username === otherParticipant)[0]._id, offererColId, recipientColId, loggedInUserData.user.username)
+            const backendFunc = async() => await toggleMarkedAsComplete(tradeId, tradeUsers.filter(userD => userD.username === otherParticipant)[0]._id, offererColId, recipientColId, loggedInUserData.user.username, offererSuperColId, receivingSuperColId)
             const successFunc = () => {
                 setTimeout(() => {
                     revalidator.revalidate()
@@ -232,8 +216,7 @@ export default function ShowOffer({numOfOffers, tradeParticipants, offersBasicDa
                 //spawning alert
                 const alertMessage = `Trade is now complete! Collection updated!`
                 const alertInfo = {severity: 'success', message: alertMessage, timeout: 5}
-                const id = addAlert(alertInfo);
-                setAlertIds((prev) => [...prev, id]);
+                addAlert(alertInfo);
             }
             handleError(backendFunc, false, successFunc, () => {setMarkingComplete(false)})
         } else {
@@ -253,7 +236,7 @@ export default function ShowOffer({numOfOffers, tradeParticipants, offersBasicDa
 
     return (
         <Box sx={{...theme.components.box.fullCenterCol, justifyContent: 'start', width: '90%', height: canRespondToOffer ? '850px' : '750px', gap: 1, backgroundColor: hexToRgba(theme.palette.color1.main, 0.9), borderRadius: '10px', border: `1px solid ${theme.palette.color3.dark}`, alignItems: 'start'}}>
-            <Box sx={{width: '100%', mb: 1}}>
+            <Box sx={{width: '100%', mb: 1, position: 'relative'}}>
                 <Select 
                     sx={{width: '70%', mt: 1, '& .MuiSelect-select': {padding: 1, px: 2, color: 'white'}, '& .MuiSelect-icon': {color: 'white'}, '& .MuiInputBase-input': {border: `2px solid ${theme.palette.color3.dark}`}}}
                     value={selectedOfferIdx}
@@ -261,6 +244,9 @@ export default function ShowOffer({numOfOffers, tradeParticipants, offersBasicDa
                 >
                     {listOfferSelectionItem()}
                 </Select>
+                {tradeGen === 'home' &&
+                    <ChangeHomeEMView sx={{position: 'absolute', right: '5px', top: '120px'}}/>
+                }
             </Box>
             {isPending ? 
             <>
@@ -297,7 +283,7 @@ export default function ShowOffer({numOfOffers, tradeParticipants, offersBasicDa
                             itemContent={(idx) => {
                                 const offerEntity = totalOffer[idx]
                                 const isPokemon = offerEntity.natDexNum !== undefined
-                                return isPokemon ? listTradePokemon(offerEntity, theme, 'offering', true, true, userNameDisplaySettings) : listTradeItem(offerEntity, theme)
+                                return isPokemon ? listTradePokemon(offerEntity, theme, 'offering', true, true, userNameDisplaySettings, {width: '50%'}) : listTradeItem(offerEntity, theme)
                             }}
                             components={{
                                 Scroller: forwardRef((props, ref) => {
@@ -308,7 +294,7 @@ export default function ShowOffer({numOfOffers, tradeParticipants, offersBasicDa
                         />
                         <Box sx={{...theme.components.box.fullCenterRow, width: '100%'}}>
                             <Box sx={{...theme.components.box.fullCenterRow, justifyContent: 'start', width: '50%'}}>
-                                <Typography sx={{color: 'white', fontSize: '14px', mt: 0.5, textIndent: '20px'}}>{offerPokemon.length !== 0 ? `${offerPokemon.length} Aprimon${offerItemCount !== 0 ? ',' : ''} ` : ''}{offerItemCount !== 0 ? `${offerItemCount} Items ` : ''}(Value: {selectedOfferData.trade.offer.value})</Typography>
+                                <Typography sx={{color: 'white', fontSize: '14px', mt: 0.5, textAlign: 'center'}}>{offerPokemon.length !== 0 ? `${offerPokemon.length} Aprimon${offerItemCount !== 0 ? ',' : ''} ` : ''}{offerItemCount !== 0 ? `${offerItemCount} Items ` : ''}(Value: {selectedOfferData.trade.offer.value})</Typography>
                             </Box>
                             <Box sx={{...theme.components.box.fullCenterRow, justifyContent: 'end', width: '50%', mr: '20px'}}>
                                 <Tooltip title={copiedToClipboard.offer ? 'Copied!' : 'Copy to Clipboard'} arrow><Button onClick={() => copyToClipboardFunc('offer')}><ContentCopyIcon sx={{color: 'white', fontSize: '22px'}}/></Button></Tooltip>
@@ -323,7 +309,7 @@ export default function ShowOffer({numOfOffers, tradeParticipants, offersBasicDa
                             itemContent={(idx) => {
                                 const receivingEntity = totalReceiving[idx]
                                 const isPokemon = receivingEntity.natDexNum !== undefined
-                                return isPokemon ? listTradePokemon(receivingEntity, theme, 'offering', true, true, userNameDisplaySettings) : listTradeItem(receivingEntity, theme)
+                                return isPokemon ? listTradePokemon(receivingEntity, theme, 'offering', true, true, userNameDisplaySettings, {width: '50%'}) : listTradeItem(receivingEntity, theme)
                             }}
                             components={{
                                 Scroller: forwardRef((props, ref) => {
@@ -334,7 +320,7 @@ export default function ShowOffer({numOfOffers, tradeParticipants, offersBasicDa
                         />
                         <Box sx={{...theme.components.box.fullCenterRow, width: '100%'}}>
                             <Box sx={{...theme.components.box.fullCenterRow, justifyContent: 'start', width: '50%'}}>   
-                                <Typography sx={{color: 'white', fontSize: '14px', mt: 0.5, textIndent: '20px'}}>{receivingPokemon.length !== 0 ? `${receivingPokemon.length} Aprimon${receivingItemCount !== 0 ? ',' : ''} ` : ''}{receivingItemCount !== 0 ? `${receivingItemCount} Items ` : ''}(Value: {selectedOfferData.trade.receiving.value})</Typography>
+                                <Typography sx={{color: 'white', fontSize: '14px', mt: 0.5, textAlign: 'center'}}>{receivingPokemon.length !== 0 ? `${receivingPokemon.length} Aprimon${receivingItemCount !== 0 ? ',' : ''} ` : ''}{receivingItemCount !== 0 ? `${receivingItemCount} Items ` : ''}(Value: {selectedOfferData.trade.receiving.value})</Typography>
                             </Box>
                             <Box sx={{...theme.components.box.fullCenterRow, justifyContent: 'end', width: '50%', mr: '20px'}}>
                                 <Tooltip title={copiedToClipboard.receiving ? 'Copied!' : 'Copy to Clipboard'} arrow><Button onClick={() => copyToClipboardFunc('receiving')}><ContentCopyIcon sx={{color: 'white', fontSize: '22px'}}/></Button></Tooltip>

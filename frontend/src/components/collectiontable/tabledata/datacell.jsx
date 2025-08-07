@@ -9,8 +9,10 @@ import listStyles from '../../../../utils/styles/componentstyles/liststyles'
 import { setPokemon } from '../../../app/slices/tradeoffer'
 import { selectIfPokemonIsSelected } from '../../../app/selectors/tradeselectors'
 import { getGameColor, homeDisplayGames } from '../../../../common/infoconstants/miscconstants.mjs'
+import GameIndicatorBox from './gameindicatorbox'
+import { convertBallDataIfNeeded } from '../../functionalcomponents/comparecollections/comparedisplaygridcomponents'
 
-export default function DataCell({label, styles, alignment='none', isEditMode, imgParams={isImg: false}, leftMostCell=false, isSelected=false, onClickFunc, onhandCells=false, specialStyles={}, blackSquare=false, availableGames=undefined, localHandleChange=null, isTradePage=false, tradeSide, tradeDispData, imgAlignment={}, bodyColorOverride={}, fontSizeOverride, reserved=0, isEmDisplay=false, flaggedForDeletion=null, ohDeleteMode=false, specificDeselectFunc=null, checkboxCell=false, checkboxData={}, haName=undefined}) {
+export default function DataCell({label, styles, alignment='none', isEditMode, imgParams={isImg: false}, leftMostCell=false, isSelected=false, onClickFunc, onhandCells=false, specialStyles={}, blackSquare=false, availableGames=undefined, localHandleChange=null, isTradePage=false, tradeSide, tradeDispData, imgAlignment={}, bodyColorOverride={}, fontSizeOverride, reserved=0, isEmDisplay=false, flaggedForDeletion=null, ohDeleteMode=false, specificDeselectFunc=null, checkboxCell=false, checkboxData={}, haName=undefined, emGen=undefined, isHomeCollection}) {
     const {isImg, imgLinkKey, imgSize='32px', imgType='poke'} = imgParams
     const theme = useTheme()
     const blackSquareStyles = blackSquare ? {backgroundColor: 'black'} : {}
@@ -24,20 +26,26 @@ export default function DataCell({label, styles, alignment='none', isEditMode, i
 
     const displayAvailableGames = (availableGames !== undefined && haName === undefined)
     const displayHA = haName !== undefined
-    const includeBottomText = displayAvailableGames || reserved !== 0 || displayHA
+    const displayEmGen = emGen !== undefined
+    const includeBottomText = displayAvailableGames || reserved !== 0 || displayHA || displayEmGen
     const relativeStyle = includeBottomText ? {position: 'relative'} : {}
     const isOnHandAndTradePage = isTradePage && onhandCells
     // const localSelectedStyles = localHandleChange !== null ? {backgroundColor: 'theme'}
+   
     if (isOnHandAndTradePage) {
         if (tradeDispData.fullData.isHA !== undefined) {tradeDispData.ballData.isHA = tradeDispData.fullData.isHA}
         if (tradeDispData.fullData.emCount !== undefined) {
             tradeDispData.ballData.emCount = tradeDispData.fullData.emCount
             tradeDispData.ballData.EMs = tradeDispData.fullData.EMs
         }
+        if (tradeDispData.fullData.emGen !== undefined) {
+            tradeDispData.ballData.emGen = tradeDispData.fullData.emGen
+        }
     }
     const isSelectedForTrade = isOnHandAndTradePage ? useSelector((state) => selectIfPokemonIsSelected(state, tradeSide, {name: tradeDispData.pData.name, ball: tradeDispData.ballData.ball, onhandId: tradeDispData.ballData.onhandId})) : false
-    const dispatchTradeChange = isOnHandAndTradePage ? () => dispatch(setPokemon({pData: tradeDispData.pData, ballData: tradeDispData.ballData, tradeSide})) : false
+    const dispatchTradeChange = isOnHandAndTradePage ? () => dispatch(setPokemon({pData: tradeDispData.pData, ballData: isHomeCollection ? convertBallDataIfNeeded(tradeDispData.ballData, tradeDispData.otherListGen, true) : tradeDispData.ballData, tradeSide})) : false
     const nonHAMon = displayHA && haName.includes('Non-HA')
+
     return (
         <>
         
@@ -114,6 +122,18 @@ export default function DataCell({label, styles, alignment='none', isEditMode, i
                             <Typography sx={{fontSize: haName.length >= 24 ? '8.5px' : haName.length > 20 ? '9px' : '11px', color: theme.palette.color1.light, opacity: nonHAMon ? 0.75 : 1}}>
                                 {nonHAMon ? <i>{haName.slice(0, haName.indexOf(' - '))}</i> : <b>{haName}</b>}
                             </Typography>
+                        </Box>
+                    }
+                    {displayEmGen && 
+                        <Box sx={{display: 'flex', position: 'absolute', width: '100%', bottom: '0px', ...theme.components.box.fullCenterRow}}>
+                            <Typography sx={{fontSize: '11px', color: theme.palette.color1.light, opacity: nonHAMon ? 0.75 : 1, mr: 1}}>
+                                In: 
+                            </Typography>
+                            <GameIndicatorBox 
+                                game={emGen}
+                                sx={{px: 0, opacity: 0.65}}
+                                textSx={{fontSize: '10px'}}
+                            />
                         </Box>
                     }
                 </Box>

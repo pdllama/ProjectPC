@@ -42,8 +42,8 @@ export default function SWEditEggMovesForm({EMs, maxEms, emCount, possibleEggMov
                 ${toggleClass === '' ? 'right: -105%;' : ''}
             }
         `}</style>
-        <Box className={`${toggleClass} pEmClasses`}>
-            <Box sx={{width: '303px', height: '360px', ...theme.components.box.fullCenterRow, backgroundColor: 'rgb(150, 150, 150)', borderLeft: '1px solid black'}}>
+        <Box className={`${toggleClass} pEmClasses`} sx={{zIndex: 100}}>
+            <Box sx={{width: '303px', height: '360px', ...theme.components.box.fullCenterRow, backgroundColor: 'rgb(150, 150, 150)', borderLeft: '1px solid black', zIndex: 100}}>
                 <Box sx={{width: '15%', height: '100%', ...theme.components.box.fullCenterCol, ':hover': {backgroundColor: 'rgb(120, 120, 120)', cursor: 'pointer'}}} onClick={() => toggleScreen('close')}>
                     <KeyboardArrowRightIcon sx={{fontSize: '60px'}}/>
                 </Box>

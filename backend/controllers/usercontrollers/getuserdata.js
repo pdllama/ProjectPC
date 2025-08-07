@@ -1,6 +1,26 @@
 import User from '../../models/users.js'
 import Trade from '../../models/trades.js'
+import { transformToFullSheet } from '../collectioncontrollers/editcollectioncontrollers.js/functions/transformlists.js'
 
+//was going to set something up here for linked collections, but i decided to just do it through a map operation.
+// const userCollectionProgressAggregation = (id) => [
+//     {$match: {_id: id}},
+//     {$lookup: {
+//         from: 'collections',
+//         localField: '_id',
+//         foreignField: 'owner',
+//         as: 'collections'
+//     }},
+//     {$addFields: {
+//         collections: {$map: {
+//             input: '$collections',
+//             as: 'c',
+//             in: {
+
+//             }
+//         }}
+//     }}
+// ]
 export async function getUser(req, res) {
     const userRegex = `^${req.params.username}$`
     const user = await User.findOne({username: {$regex: new RegExp(userRegex, 'i')}}).populate({path: 'collections'})
@@ -11,6 +31,12 @@ export async function getUser(req, res) {
         exception.status = 404
         return res.status(404).send(exception)
     }
+    user.collections = user.collections.map(c => {
+        if (c.linkedTo) {
+            c.ownedPokemon = transformToFullSheet(c.ownedPokemon, user.collections.filter(c2 => c2._id.toString() === c.linkedTo.super.toString())[0].ownedPokemon, c.gen)
+        }
+        return c
+    }).filter(c => c.gen !== 'dummy')
     res.json(user)
 }
 

@@ -1,74 +1,109 @@
 import { sortOnHandList } from "../../../../common/sortingfunctions/onhandsorting.mjs"
-import getDefaultData from "../../../../utils/functions/defaultdata"
+import getDefaultData, { handleEggMoveDefaults, handleMultipleDefaultData } from "../../../../utils/functions/defaultdata"
 import newObjectId from "../../../../utils/functions/newobjectid"
 import { interchangeableAltFormIds } from "../../../../common/infoconstants/pokemonconstants.mjs"
 import { filterList } from "../../../../utils/functions/sortfilterfunctions/filterfunctions"
 import { OHByPokemonStateUpdate } from "../../../components/collectiontable/onhandlist/onhandbypokemonupdates/ohbypokemonstateupdate"
 import { randomGender } from "../../../../utils/functions/misc"
 import { selectPokeIdMatches } from "../../selectors/selectpokeidmatches"
+import { getHighestEmGen } from "../../../components/collectiontable/tabledata/emindicator"
 
 //operations related to changing the values on a single pokemon in a collection, which is used to edit the row data.
 
 const collectionReducers = {
     setIsOwned: (state, action) => {
-        const {idx, ball, ballDefault} = action.payload
+        const {idx, ball, ballDefault, subListIdx, currColGen} = action.payload
         const isOwned = state.collection[idx].balls[ball].isOwned
-        const activeTag = state.collection[idx].balls[ball].highlyWanted !== undefined ? 'highlyWanted' : state.collection[idx].balls[ball].pending !== undefined ? 'pending' : 'none'
+        // const activeTag = state.collection[idx].balls[ball].highlyWanted !== undefined ? 'highlyWanted' : state.collection[idx].balls[ball].pending !== undefined ? 'pending' : 'none'
+        const editSubListToo = subListIdx !== undefined
         if (isOwned === false) {
             const changedFields = Object.keys(ballDefault)
+            // const superColDefaultData = needEMsSuperListFormat && currDefault !== 'none' && state.collection[idx].balls[Object.keys(state.collection[idx].balls).filter(b => b === currDefault)[0]]
             for (let field of changedFields) {
-                state.collection[idx].balls[ball][field] = ballDefault[field]
+                if ((field === 'eggMoveData') && editSubListToo) {
+                    //have to pass the information differently to the main list. also, have to add the other default data.
+                    //note: even in sublists, ballDefault comes out with home-format egg moves. see setIsOwned users for information. it needs to be outside so the unsavedchanges reducer can work.
+                    state.collection[idx].balls[ball].eggMoveData = ballDefault.eggMoveData
+                    state.collection[idx].balls[ball].eggMoveData = ballDefault.eggMoveData
+                    state.subList[subListIdx].balls[ball].EMs = ballDefault.eggMoveData[currColGen].EMs
+                    state.subList[subListIdx].balls[ball].emCount = ballDefault.eggMoveData[currColGen].emCount
+                } else {
+                    state.collection[idx].balls[ball][field] = ballDefault[field]
+                    if (editSubListToo) {state.subList[subListIdx].balls[ball][field] = ballDefault[field]}
+                }
+            }
+            if (state.collection[idx].balls[ball].pending || state.collection[idx].balls[ball].highlyWanted) {
+                delete state.collection[idx].balls[ball].pending
+                delete state.collection[idx].balls[ball].highlyWanted
             }
         }
-        if (isOwned === false && activeTag !== 'none') {
-            delete state.collection[idx].balls[ball][activeTag]
-        }
+        // if (isOwned === false && activeTag !== 'none') {
+        //     delete state.collection[idx].balls[ball][activeTag]
+        //     if (editSubListToo) {delete state.subList[subListIdx].balls[ball][activeTag]}
+        // }
         if ((isOwned === false && state.collection[idx].balls[ball].isHA !== undefined) && ballDefault === 'none') {
             state.collection[idx].balls[ball].isHA = true
+            if (editSubListToo) {state.subList[subListIdx].balls[ball].isHA = true}
         }
         state.collection[idx].balls[ball].isOwned = !isOwned
+        if (editSubListToo) {state.subList[subListIdx].balls[ball].isOwned = !isOwned}
+
+        state.listDisplay.forceRefilter = true
+
         return state 
     },
     setTags: (state, action) => {
-        const {tagType, idx, ball} = action.payload
+        const {tagType, idx, ball, subListIdx} = action.payload
         const otherTag = tagType === 'highlyWanted' ? 'pending' : 'highlyWanted'
+        const editSubListToo = subListIdx !== undefined
         if (state.collection[idx].balls[ball][tagType] !== undefined) {
             delete state.collection[idx].balls[ball][tagType]
+            if (editSubListToo) {delete state.subList[subListIdx].balls[ball][tagType]}
             return state
         }
         if (state.collection[idx].balls[ball][otherTag] !== undefined) {
             delete state.collection[idx].balls[ball][otherTag]
+            if (editSubListToo) {delete state.subList[subListIdx].balls[ball][otherTag]}
         }
         state.collection[idx].balls[ball][tagType] = true
+        if (editSubListToo) {state.subList[subListIdx].balls[ball][tagType] = true}
+        
+
+        state.listDisplay.forceRefilter = true
+
         return state
     },
     setDefault: (state, action) => {
-        const {idx, ball, prevDefault} = action.payload
+        const {idx, ball, prevDefault, subListIdx} = action.payload
+        const editSubListToo = subListIdx !== undefined
         if (prevDefault !== 'none') {
             delete state.collection[idx].balls[prevDefault].default
+            if (editSubListToo) {delete state.subList[subListIdx].balls[prevDefault].default}
         }
         if (prevDefault === ball) {
             delete state.collection[idx].balls[ball].default
+            if (editSubListToo) {delete state.subList[subListIdx].balls[ball].default}
         } else {
             state.collection[idx].balls[ball].default = true
+            if (editSubListToo) {state.subList[subListIdx].balls[ball].default = true}
         }
         return state
     },
     setMultipleIsOwned: (state, action) => {
-        const {idx, ballDefault, globalDefault, possibleEggMoves} = action.payload
-        const currentTotalBallData = state.collection[idx].balls
-        const maxEMs = possibleEggMoves === undefined ? 0 : possibleEggMoves.length > 4 ? 4 : possibleEggMoves.length
-        const newBallData = {}
-        Object.keys(currentTotalBallData).forEach(b => {
-            const ballData = currentTotalBallData[b]
-            if (ballData.disabled || ballData.isOwned) {
-                newBallData[b] = ballData
-            } else {
-                const newBallParticularData = {...ballData, isOwned: true, highlyWanted: undefined, pending: undefined, ...getDefaultData(globalDefault, ballDefault, state.collection[idx].balls, maxEMs, possibleEggMoves, b)}
-                newBallData[b] = newBallParticularData
-            }
-        })
+        const {idx, newBallData, subListIdx, currColGen} = action.payload
+        const editSubListToo = subListIdx !== undefined
         state.collection[idx].balls = newBallData
+        if (editSubListToo) {
+            //note: newBallData egg move peripherals comes out in home format even when sublist is active, so we need to reformat it below.
+            const newBallDataSubListFormat = {}
+            Object.keys(newBallData).forEach(b => {
+                newBallDataSubListFormat[b] = {...newBallData[b], EMs: newBallData[b].eggMoveData[currColGen].EMs, emCount: newBallData[b].eggMoveData[currColGen].emCount, eggMoveData: undefined}
+            })
+            state.subList[subListIdx].balls = newBallDataSubListFormat
+        }
+
+        state.listDisplay.forceRefilter = true
+
         return state
     }
 }
@@ -76,170 +111,102 @@ const collectionReducers = {
 const onhandReducers = {
     setBall: (state, action) => {
         const {idx, ball} = action.payload
+        const hasLinkedCollections = state.linkedCollections !== undefined
+        if (hasLinkedCollections) {
+            state.linkedCollections[state.linkedSelectedIdx].onHand[idx].ball = ball
+        }
         state.onhand[idx].ball = ball
-        // state.listDisplay.onhand = state.listDisplay.onhand.map(p => {
-        //     if (p._id === state.onhand[idx]._id) {p.ball = ball}
-        //     return p 
-        // })
+        state.listDisplay.forceRefilter = true
         return state
     },
     setGender: (state, action) => {
         const {idx, gender} = action.payload
+        const hasLinkedCollections = state.linkedCollections !== undefined
+        if (hasLinkedCollections) {
+            state.linkedCollections[state.linkedSelectedIdx].onHand[idx].gender = gender
+        }
         state.onhand[idx].gender = gender
+        state.listDisplay.forceRefilter = true
+        return state
+    },
+    setEmGen: (state, action) => {
+        const {idx, newEmGen, newEmCount, newEMs} = action.payload
+        const hasLinkedCollections = state.linkedCollections !== undefined
+        if (hasLinkedCollections) {
+            state.linkedCollections[state.linkedSelectedIdx].onHand[idx].emGen = newEmGen
+            if (newEMs) {state.linkedCollections[state.linkedSelectedIdx].onHand[idx].EMs = newEMs}
+            if (newEmCount) {state.linkedCollections[state.linkedSelectedIdx].onHand[idx].emCount = newEmCount}
+        }
+        state.onhand[idx].emGen = newEmGen
+        if (newEMs) {state.onhand[idx].EMs = newEMs}
+        if (newEmCount) {state.onhand[idx].emCount = newEmCount}
+
+        state.listDisplay.forceRefilter = true
         return state
     },
     setPokemonSpecies: (state, action) => {
-        const {id, imgLink, pokemonData, sortingOptions} = action.payload
+        const {id, imgLink, haName, pokemonData, sortingOptions} = action.payload
+        const hasLinkedCollections = state.linkedCollections !== undefined
         const idxInTotalList = state.onhand.findIndex((p) => p._id === id)
         const idxInDisplay = state.listDisplay.onhand.findIndex((p) => p._id === id)
-        state.onhand[idxInTotalList] = {_id: state.onhand[idxInTotalList]._id, imgLink,  ...pokemonData}
-        state.listDisplay.onhand[idxInDisplay] = {_id: state.listDisplay.onhand[idxInDisplay]._id, imgLink,  ...pokemonData}
+        const newOnhand = {_id: state.onhand[idxInTotalList]._id, imgLink, haName,  ...pokemonData}
+        state.onhand[idxInTotalList] = newOnhand
+        state.listDisplay.onhand[idxInDisplay] = newOnhand
         if (sortingOptions.reorder) {
             state.onhand = sortOnHandList(sortingOptions.sortFirstBy, sortingOptions.default, sortingOptions.ballOrder, state.onhand)
             state.listDisplay.onhand = sortOnHandList(sortingOptions.sortFirstBy, sortingOptions.default, sortingOptions.ballOrder, state.listDisplay.onhand)
         } 
+        if (hasLinkedCollections) {
+            state.linkedCollections[state.linkedSelectedIdx].onHand = state.onhand
+        }
+
+        state.listDisplay.forceRefilter = true
         return state
     },
     setQty: (state, action) => {
         const {idx, qty} = action.payload
+        const hasLinkedCollections = state.linkedCollections !== undefined
+        if (hasLinkedCollections) {
+            state.linkedCollections[state.linkedSelectedIdx].onHand[idx].qty = qty
+        }
         state.onhand[idx].qty = qty
+        
         return state
     },
     setQtyByPokemon: (state, action) => {
-        const {pokeId, ball, increment, customQty, removeMonFromDisplay} = action.payload
-        const pokeBInColData = state.collection.filter(p => selectPokeIdMatches(p.imgLink, pokeId, p.disabled))[0]
-        const onhandMons = state.onhand.map((p, idx) => {return {...p, idx}}).filter(p => (p.imgLink === pokeId && p.ball === ball))
-        const addingNew = onhandMons.length === 0 && !(customQty === 0) && (customQty !== undefined || increment)
-        const isAnIFormEquivalency = pokeBInColData.imgLink !== pokeId //this means that there is ALWAYS at least one onhand in the list that matches this mon
-        if (addingNew) {
-            //if the pokemon/ball doesnt already have a single onhand with it. 
-            //handles custom qty and incrementing
-            const peripherals = {...pokeBInColData.balls[ball], isOwned: undefined, default: undefined}
-            const basicMonInfo = isAnIFormEquivalency ? state.onhand.filter(p => p.imgLink === pokeId)[0] : pokeBInColData
-            const pData = {
-                _id: newObjectId(),
-                name: basicMonInfo.name,
-                natDexNum: basicMonInfo.natDexNum,
-                imgLink: pokeId,
-                ball,
-                gender: pokeBInColData.possibleGender === 'both' ? 'unknown' : pokeBInColData.possibleGender,
-                ...peripherals,
-                qty: (customQty) ? ((customQty <= 99) ? customQty : 99) : 1
-            }
-            if (customQty && customQty > 99) {
-                let remainingQty = customQty-99
-                const multipleOHs = [{...pData, qty: 99}]
-                while (remainingQty > 0) {
-                    multipleOHs.push({...pData, _id: newObjectId(), qty: remainingQty > 99 ? 99 : remainingQty})
-                    remainingQty = remainingQty > 99 ? remainingQty - 99 : 0
-                }
-                state.onhand = [...state.onhand, ...multipleOHs]
-            } else {
-                state.onhand[state.onhand.length] = pData
-            }
-        } else if (customQty !== undefined) { //lowering the quantity via customQty
-            if (customQty === 0) {
-                state.onhand = state.onhand.filter(p => !(p.imgLink === pokeId && p.ball === ball))
-            } else if (!increment) {
-                const changeDataArr = OHByPokemonStateUpdate(onhandMons, false, pokeBInColData.balls[ball], customQty, true)
-                let remainingQtyToRemove = onhandMons.map(ohP => ohP.qty).reduce((acc, cV) => acc+cV, 0) - customQty
-                const newQtys = changeDataArr.map(ohId => {
-                    const ohData = state.onhand.filter(p => p._id === ohId)[0]
-                    if (remainingQtyToRemove === 0) {return ohData.qty}
-                    if (ohData.qty < remainingQtyToRemove) {
-                        remainingQtyToRemove -= ohData.qty
-                        return 0
-                    } else if (ohData.qty >= remainingQtyToRemove) {
-                        const qtyDifference = ohData.qty - remainingQtyToRemove
-                        remainingQtyToRemove = 0
-                        return qtyDifference
-                    }
-                })
-                state.onhand = state.onhand.map(p => {
-                    const idx = changeDataArr.indexOf(p._id)
-                    const changedQty = idx !== -1
-                    if (changedQty) {
-                        p.qty = newQtys[idx]
-                        if (p.qty === 0) {
+        const {pokeId, changeDataArr, newQtys, multipleOHs, pData, removeMonFromDisplay} = action.payload
+        const hasLinkedCollections = state.linkedCollections !== undefined
+        if (changeDataArr) {
+            changeDataArr.forEach((id, idx) => {
+                state.onhand = state.onhand.map((p)=> {
+                    const changed = id === p._id
+                    if (changed) {
+                        if (newQtys[idx] === 0) {
                             return undefined
                         }
+                        p.qty = newQtys[idx]
                     }
                     return p
-                }).filter(p => p !== undefined) 
-            } else {
-                const changeData = OHByPokemonStateUpdate(onhandMons, increment, pokeBInColData.balls[ball], customQty) //onhand id of the pokemon to increment first.
-                let remainingQtyToAdd = customQty - onhandMons.map(ohP => ohP.qty).reduce((a, c) => a+c, 0) //should always be greater than 0
-                // let remainingQtyToAdd = customQty //should always be greater than 0
-                if (onhandMons.filter(p => p._id === changeData.id).length !== 0 && onhandMons.filter(p => p._id === changeData.id)[0].qty < 99) {
-                    state.onhand = state.onhand.map((p) => {
-                        const changedQty = changeData.id === p._id
-                        if (changedQty) {
-                            if (p.qty+remainingQtyToAdd <= 99) {
-                                p.qty += remainingQtyToAdd
-                                remainingQtyToAdd = 0
-                            } else {
-                                remainingQtyToAdd -= (99-p.qty)
-                                p.qty = 99
-                            }
-                        }
-                        return p
-                    })
-                }
-                if (remainingQtyToAdd > 0) {
-                    const peripherals = {...pokeBInColData.balls[ball], isOwned: undefined, default: undefined}
-                    const pData = {
-                        _id: newObjectId(),
-                        name: pokeBInColData.name,
-                        natDexNum: pokeBInColData.natDexNum,
-                        imgLink: pokeId,
-                        ball,
-                        gender: pokeBInColData.possibleGender === 'both' ? 'unknown' : pokeBInColData.possibleGender,
-                        ...peripherals,
-                    }
-                    const multipleOHs = [{...pData, qty: remainingQtyToAdd > 99 ? 99 : remainingQtyToAdd}]
-                    remainingQtyToAdd = remainingQtyToAdd > 99 ? remainingQtyToAdd-99 : 0
-                    while (remainingQtyToAdd > 0) {
-                        multipleOHs.push({...pData, _id: newObjectId(), qty: remainingQtyToAdd > 99 ? 99 : remainingQtyToAdd})
-                        remainingQtyToAdd = remainingQtyToAdd > 99 ? remainingQtyToAdd - 99 : 0
-                    }
-                    state.onhand = [...state.onhand, ...multipleOHs]
-                }    
-            }
-            
-        } else {
-            const changeData = OHByPokemonStateUpdate(onhandMons, increment, pokeBInColData.balls[ball], customQty)
-            let addNewOnHand = false
-            const changeIdx = onhandMons.filter(p => p._id === changeData.id)[0].idx
-            if (changeData.remove) {
-                state.onhand.splice(changeIdx, 1)
-            } else if (increment && state.onhand[changeIdx].qty === 99) {
-                addNewOnHand = true
-            } else {
-                state.onhand[changeIdx].qty = increment ? state.onhand[changeIdx].qty+1 : state.onhand[changeIdx].qty-1
-            }
-
-            if (addNewOnHand) {
-                const peripherals = {...pokeBInColData.balls[ball], isOwned: undefined, default: undefined}
-                const basicMonInfo = isAnIFormEquivalency ? state.onhand.filter(p => p.imgLink === pokeId)[0] : pokeBInColData
-                const pData = {
-                    _id: newObjectId(),
-                    name: basicMonInfo.name,
-                    natDexNum: basicMonInfo.natDexNum,
-                    imgLink: pokeId,
-                    ball,
-                    gender: pokeBInColData.possibleGender === 'both' ? 'unknown' : pokeBInColData.possibleGender,
-                    ...peripherals,
-                    qty: 1
-                }
-                state.onhand[state.onhand.length] = pData
-            } 
+                }).filter(p => p !== undefined)
+            })
         }
+        if (multipleOHs) {
+            state.onhand = [...state.onhand, ...multipleOHs]
+        } else if (pData) {
+            state.onhand[state.onhand.length] = pData
+        }
+
         if (removeMonFromDisplay) {
             state.listDisplay.onhand = state.listDisplay.onhand.filter(p => p.imgLink !== pokeId)
         }
         if (state.options.sorting.onhand.reorder) {
             state.onhand = sortOnHandList(state.options.sorting.onhand.sortFirstBy, state.options.sorting.onhand.default, state.options.sorting.onhand.ballOrder, state.onhand)
         }
+
+        if (hasLinkedCollections) {
+            state.linkedCollections[state.linkedSelectedIdx].onHand = state.onhand
+        }
+
         return state
     }
 }

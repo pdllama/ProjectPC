@@ -11,8 +11,9 @@ import { ErrorContext } from '../../../../../app/contexts/errorcontext'
 import { AlertsContext } from '../../../../../alerts/alerts-context'
 import { capitalizeFirstLetter } from '../../../../../../utils/functions/misc'
 import { useState, useContext } from 'react'
+import GameIndicatorBox from '../../../../collectiontable/tabledata/gameindicatorbox'
 
-export default function SWDeleteSingleOnHand({handleClose, pokemonName, dexNum, ball, imgLink, isHA, emCount, gender, isMaxEMs, pokemonId, collectionID, demo, isHomeCollection, additionalDispatchProps={}, additionalSuccessFunction=null}) {
+export default function SWDeleteSingleOnHand({handleClose, pokemonName, dexNum, ball, imgLink, isHA, emCount, emGen, gender, isMaxEMs, pokemonId, collectionID, demo, isHomeCollection, additionalDispatchProps={}, additionalSuccessFunction=null}) {
     const theme = useTheme()
     const dispatch = useDispatch()
     const userData = useRouteLoaderData('root').user
@@ -33,7 +34,7 @@ export default function SWDeleteSingleOnHand({handleClose, pokemonName, dexNum, 
                 dispatch(deselect()) 
             }
 
-            dispatch(removeOnHandPokemonFromList({pokemonid: pokemonId, ...additionalDispatchProps})) //list display state - refer to slice
+            dispatch(removeOnHandPokemonFromList({pokemonid: pokemonId, currColId: collectionID, ...additionalDispatchProps})) //list display state - refer to slice
 
             setIsDeleting(false)
             handleClose()
@@ -64,7 +65,8 @@ export default function SWDeleteSingleOnHand({handleClose, pokemonName, dexNum, 
             <Box sx={{height: '15%', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
                 {isHA !== undefined && <Typography sx={haStyles}>{isHA === false ? 'Non-HA' : 'HA'}</Typography>}
                 {isHA !== undefined && emCount !== undefined && <Box sx={{width: '5%'}}></Box>}
-                {(emCount !== undefined && !isHomeCollection) && <Typography sx={emStyles}>{emCount}EM</Typography>}
+                {(emCount !== undefined) && <Typography sx={emStyles}>{emCount}EM</Typography>}
+                {(emCount !== undefined && emGen !== undefined && isHomeCollection) && <GameIndicatorBox game={emGen} sx={{ml: 2}}/>}
             </Box>
             <Box sx={{height: '20%', width: '90%', my: '15px', display: 'flex'}}>
                 <Button variant='contained' sx={{width: '40%', mr: '20%'}} onClick={deleteAndClose}>{isDeleting ?  'Deleting..' : 'Yes'}</Button>

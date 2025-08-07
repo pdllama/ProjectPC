@@ -37,6 +37,9 @@ const getComponentBreakpoints = (screenWidth, component) => {
     } else if (component === 'userTrades') {
         const breakpoint = screenWidth < 500 ? 'tiny' : screenWidth < 600 ? 'smr' : screenWidth < 768 ? 'sm' : 'reg'
         return breakpoint
+    } else if (component === 'linkedCollectionsDisplay') {
+        const breakpoint = screenWidth < 550 ? 'sm' : 'reg'
+        return breakpoint
     } else {
         return screenWidth >= 768 ? 'md' : 'sm'
     }

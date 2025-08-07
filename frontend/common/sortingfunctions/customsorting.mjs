@@ -95,6 +95,22 @@ const customSortChanges = (customSortOrder, collectionList) => {
     return newCollectionList
 }
 
+const getCustomSortObject = (customSortOrder, collectionList, isSubList) => {
+    const obj = {}
+    customSortOrder.forEach((p, idx) => {
+        obj[p.name] = idx
+    })
+    if (!isSubList) {
+        const onlyDisabledMons = collectionList.filter(mon => mon.disabled === true)
+        let nextIdx = customSortOrder.length
+        onlyDisabledMons.forEach(mon => {
+            obj[mon.name] = nextIdx
+            nextIdx += 1
+        }) 
+    }  
+    return obj
+}
+
 const sortList = (sortKey, list) => {
     if (sortKey === 'A2Z' || sortKey === 'Z2A') {
         return sortByName(sortKey, list)
@@ -103,4 +119,4 @@ const sortList = (sortKey, list) => {
     }
 }
 
-export {customSortCollectionListLogic, customSortChanges, sortList}
+export {customSortCollectionListLogic, customSortChanges, getCustomSortObject, sortList}

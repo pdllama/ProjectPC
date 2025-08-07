@@ -13,8 +13,9 @@ import {connect} from 'react-redux'
 import OnHandByPokemonDisplay from './onhandbypokemondisplay';
 import displayOnHandByPokemon from '../../../../utils/functions/display/displayonhandbypokemon';
 import { setHeaders as setByPokemonHeaders, setColumns } from './bypokemoncomponents';
+import { availableGamesInterchangeableEquivalencies } from '../../../../utils/functions/misc';
 
-export default function ShowOnHandList({onhandList, collectionID, styles, collectionListStyles, eggMoveInfo, isEditMode, demo, isHomeCollection, collectingBallsConst, localDisplayState=undefined, height=800, isTradePage, tradeSide, wantedByOtherListData=[], userData, localOnhandView}) {
+export default function ShowOnHandList({onhandList, collectionID, styles, collectionListStyles, isEditMode, demo, isHomeCollection, collectingBallsConst, localDisplayState=undefined, height=800, isTradePage, tradeSide, wantedByOtherListData=[], userData, localOnhandView, otherListGen}) {
     const theme = useTheme()
     const dispatch = useDispatch()
     const listState = useSelector(state => state.collectionState.listDisplay.onhand)
@@ -27,7 +28,7 @@ export default function ShowOnHandList({onhandList, collectionID, styles, collec
     const trueOnhandView = localOnhandView ? localOnhandView : viewType
 
     const ballScopeState = useSelector((state) => state.collectionState.options.collectingBalls)
-    const ballScopeDisplay = (ballScopeState === undefined || (!isEditMode && !demo)) ? collectingBallsConst : ballScopeState
+    const ballScopeDisplay = ballScopeState
 
     const scrollRef = useRef(null)
     const scrollPosition = useRef()
@@ -38,9 +39,11 @@ export default function ShowOnHandList({onhandList, collectionID, styles, collec
 
     useLayoutEffect(() => {
         const sameIDBetweenRefs = collectionID === previousColId
-        if (previousScrollPosition && sameIDBetweenRefs) {
+        if (previousScrollPosition && sameIDBetweenRefs && scrollRef.current !== null) {
             setTimeout(() => {
-              scrollRef.current.scrollTo({top: previousScrollPosition})  
+                if (scrollRef.current !== null) {
+                    scrollRef.current.scrollTo({top: previousScrollPosition})  
+                }
             }, 1000)  
         }
     }, [link])
@@ -59,11 +62,6 @@ export default function ShowOnHandList({onhandList, collectionID, styles, collec
     //     linkRef.current = link
     // }, [link])
 
-    const emColumns = isHomeCollection ? [] : [
-        {label: 'EM Count', dataKey: 'emCount', width: '10%'},
-        {label: 'Egg Moves', dataKey: 'EMs', width: '30%'},
-    ]
-
     const columns = [
         {label: '#', dataKey: 'natDexNum', width: '5%'},
         {label: 'img', dataKey: 'natDexNum', width: '5%', isImg: true},
@@ -71,7 +69,8 @@ export default function ShowOnHandList({onhandList, collectionID, styles, collec
         {label: 'Ball', dataKey: 'ball', width: '5%', isImg: true, smallHeader: true},
         {label: 'Gender', dataKey: 'gender', width: '8%', isImg: true, smallHeader: true},
         {label: 'HA?', dataKey: 'isHA', width: '5%', smallHeader: true},
-        ...emColumns,
+        {label: 'EM Count', dataKey: 'emCount', width: '10%'},
+        {label: 'Egg Moves', dataKey: 'EMs', width: '30%'},
         {label: 'Qty', dataKey: 'qty', width: '5%', smallHeader: true}
     ]
 
@@ -121,7 +120,6 @@ export default function ShowOnHandList({onhandList, collectionID, styles, collec
                 pokemonId={row._id}
                 collectionId={collectionID}
                 styles={styles}
-                allEggMoveInfo={eggMoveInfo}
                 availableGamesInfo={availableGamesInfo}
                 isEditMode={isEditMode}
                 demo={demo}
@@ -130,6 +128,7 @@ export default function ShowOnHandList({onhandList, collectionID, styles, collec
                 tradeSide={tradeSide}
                 wantedByOtherList={finalPokeWantedData}
                 userData={userData}
+                otherListGen={otherListGen}
                 {...includePokemonProp}
             />
         )
@@ -137,12 +136,13 @@ export default function ShowOnHandList({onhandList, collectionID, styles, collec
 
     function rowContentByPokemon(_index, row) {
         const byPokemonColumns = setColumns(userData, ballScopeDisplay)
-        const availableGamesData = isHomeCollection ? {availableGames: availableGamesInfo[row.name]} : {}
+        const availableGamesData = isHomeCollection ? {availableGames: availableGamesInterchangeableEquivalencies(availableGamesInfo, row.name)} : {}
         const dataProp = isEditMode ? {} : {row}
         return (
             <OnHandByPokemonDisplay 
                 {...dataProp}
                 pokemonId={row.imgLink}
+                collectionID={collectionID}
                 columns={byPokemonColumns}
                 styles={collectionListStyles}
                 isEditMode={isEditMode}

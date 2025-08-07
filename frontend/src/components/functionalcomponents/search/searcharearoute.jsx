@@ -34,7 +34,9 @@ export default function SearchAreaRoute({query, searchType, result, page, change
                         owner={collection.owner[0].username}
                         progress={collection.progress}
                         percentProgress={percentProgress}
-                        collectionId={collection._id}
+                        linkedCount={collection.linkedCount}
+                        isLinked={collection.isLinked}
+                        collectionId={collection.linkedTo ? `${collection.linkedTo.super}?col=${collection._id}` : collection._id}
                     />
                 )
             })

@@ -3,7 +3,7 @@ import { capitalizeFirstLetter } from '../../../../../utils/functions/misc'
 import ImgData from '../../tabledata/imgdata'
 import SmallWidthCheckbox from './smallwidthcheckbox'
 
-export default function SmallWidthBallArea({p, rowBalls, isEditMode, handleEditBallInfo, collectionId, isRow2=false, allowedBallsTotal}) {
+export default function SmallWidthBallArea({p, rowBalls, isEditMode, handleEditBallInfo, collectionId, isRow2=false, allowedBallsTotal, isHomeCollection}) {
     const theme = useTheme()
 
     return (
@@ -26,6 +26,7 @@ export default function SmallWidthBallArea({p, rowBalls, isEditMode, handleEditB
                                 isRow2={isRow2}
                                 pokeid={p.imgLink}
                                 allowedBallsTotal={allowedBallsTotal}
+                                isHomeCollection={isHomeCollection}
                             />
                             }
                         </Box>

@@ -443,10 +443,10 @@ export default function AprimonImportForm({handleSubmit, isHomeCollection}) {
                                     />
                                 </Box>}
                             </Box>
-                            <Box sx={{width: '60%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
+                            <Box sx={{width: '60%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'relative'}}>
                                 {isHomeCollection &&
-                                    <Box sx={{...theme.components.box.fullCenterCol, position: 'absolute'}}>
-                                        <Typography sx={{fontWeight: 700, fontSize: '14px'}}>Egg moves are disabled in HOME collections!</Typography>
+                                    <Box sx={{...theme.components.box.fullCenterCol, position: 'absolute', width: '70%'}}>
+                                        <Typography sx={{fontWeight: 700, fontSize: '14px'}}>Egg move importing hasn't been implemented for HOME collections yet!</Typography>
                                     </Box>
                                 }
                                 <Box sx={{width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', ...emSectionDisabledStyles}}>

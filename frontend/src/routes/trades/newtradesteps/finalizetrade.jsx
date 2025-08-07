@@ -18,7 +18,7 @@ import TradeDetailsModal from '../partialcomponents/tradedetailsmodal'
 import { newTradeBackendFormatting, newTradeBackend } from '../../../../utils/functions/backendrequests/trades/newtrade'
 import { counterTradeOffer } from '../../../../utils/functions/backendrequests/trades/traderesponse'
 
-export default function FinalizeTrade({selectedColDisplay, proposedValues, traderId, ownerId, traderUsername, ownerUsername, traderGen, ownerGen, isCounteroffer, tradeId, traderColId, ownerColId}) {
+export default function FinalizeTrade({selectedColDisplay, proposedValues, traderId, ownerId, traderUsername, ownerUsername, traderGen, ownerGen, isCounteroffer, tradeId, traderColId, ownerColId, homeHomeTrade}) {
     const theme = useTheme()
     const nameDisplaySettings = useRouteLoaderData('root').user.settings.display.pokemonNames
     const navigate = useNavigate()
@@ -204,6 +204,7 @@ export default function FinalizeTrade({selectedColDisplay, proposedValues, trade
             changeScreen={changeScreen}
             changeTab={changeTab}
             nameDisplaySettings={nameDisplaySettings}
+            homeHomeTrade={homeHomeTrade}
         />
         <Modal
             aria-labelledby='confirm-trade'

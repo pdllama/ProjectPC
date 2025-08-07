@@ -12,6 +12,7 @@ export default function OptionsSub({elementBg, screenType, collectionGen, sw}) {
     const [isPending, startTransition] = useTransition()
     const [groupError, setGroupError] = useState({error: false})
     const scopeTotal = useSelector((state) => state.editmode.pokemonScopeTotal)
+    const scopeGen = useSelector((state) => state.editmode.pokemonScopeGen)
     const itemsState = useSelector((state) => state.collectionState.options.tradePreferences.items)
 
     const buttons = screenType === 'changeScope' ? [{screen: 'pokemonScope', display: 'Pokemon Scope'}, {screen: 'ballScope', display: 'Ball Scope'}, {screen: 'excludedCombos', display: 'Excluded Ball Combos'}] : 
@@ -46,10 +47,10 @@ export default function OptionsSub({elementBg, screenType, collectionGen, sw}) {
     }
 
     const initializePokemonGroups = async(screen) => {
-        const backendRequestGroups = Object.keys(scopeTotal).length === 0
+        const backendRequestGroups = Object.keys(scopeTotal).length === 0 || collectionGen !== scopeGen
         if (backendRequestGroups) {
             const backendFunc = async() => await getPokemonGroups(collectionGen)
-            const successFunc = (totalGroups) => {dispatch(changeModalState({screen, initializeScopeTotal: true, scopeTotal: totalGroups}))}
+            const successFunc = (totalGroups) => {dispatch(changeModalState({screen, initializeScopeTotal: true, scopeTotal: totalGroups, scopeGen: collectionGen}))}
             const errorFunc = (errorData) => {setGroupError({error: true, ...errorData})}
             // const totalGroups = await getPokemonGroups(collectionGen)
             startTransition(() => {

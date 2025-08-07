@@ -5,7 +5,7 @@ export async function getTradeData(req, res) {
     const {getFullCollectionData} = req.query
     const latestOfferData = {}
     const trade = await Trade.findById(req.params.id).lean()
-        .populate({path: 'users', select: 'username collections notifications.tradeData.tradeId', populate: {path: 'collections', select: '_id name type gen'}})
+        .populate({path: 'users', select: 'username collections notifications.tradeData.tradeId', populate: {path: 'collections', select: '_id name type gen linkedTo'}})
         .then(data => { //bandaid solution to what should be solved through database queries - couldnt find how to do this.
             data.history = data.history.map((offer, idx) => {
                 const isLatestOffer = idx+1 === data.history.length

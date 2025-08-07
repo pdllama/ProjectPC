@@ -4,8 +4,9 @@ import PokemonScopeSave from './scopeoptions/savechangesconfirmbodies/pokemonsco
 import BallScopeSave from './scopeoptions/savechangesconfirmbodies/ballscopesave'
 import ExcludedComboSave from './scopeoptions/savechangesconfirmbodies/excludedcombossave'
 import SmallWidthModalWrapper from '../../partials/wrappers/smallwidthmodalwrapper'
+import CollectionLinkingSave from './linkoptions/collectionlinkingsave'
 
-export default function SaveChangesConfirmModal({open, modalScreen, saveButtonSelected, nextScreen, pokemonScopeData={}, ballScopeData={}, excludedCombosData={}, sortingOptionData={}, handleChange, closeModal, saving, sw=false, modalWrapperSx={}}) {
+export default function SaveChangesConfirmModal({open, modalScreen, saveButtonSelected, nextScreen, pokemonScopeData={}, ballScopeData={}, excludedCombosData={}, linkingProps={}, sortingOptionData={}, handleChange, closeModal, saving, sw=false, modalWrapperSx={}, customGoBackFunc, customExitWoSavingFunc}) {
 
     //below variable is just used for the aria label
     const screenType = modalScreen === 'pokemonScope' ? 'pokemon scope' : 
@@ -17,6 +18,7 @@ export default function SaveChangesConfirmModal({open, modalScreen, saveButtonSe
         modalScreen === 'preferences' ? 'trade preferences' : 
         modalScreen === 'rates' ? 'trade rates' : 
         modalScreen === 'items' ? 'item trading options' : 
+        modalScreen === 'linking' ? 'collection linking options' : 
         modalScreen === 'other' && 'other options'
 
     const noChangesSection = modalScreen === 'collectionSort' ||
@@ -42,6 +44,7 @@ export default function SaveChangesConfirmModal({open, modalScreen, saveButtonSe
             {modalScreen === 'pokemonScope' && <PokemonScopeSave addedPokemon={addedPokemon} removedPokemon={removedPokemon} collectionAutoSort={collectionAutoSort} collectionSortOrder={collectionSortOrder} sw={sw}/>}
             {modalScreen === 'ballScope' && <BallScopeSave addedBalls={addedBalls} removedBalls={removedBalls} newBallScope={newBallScope} fullBalls={fullBalls} removedPokemon={removedPokemonBallScope} sw={sw}/>}
             {modalScreen === 'excludedCombos' && <ExcludedComboSave addedPokemon={addedPokemonCombos} removedPokemon={removedPokemonCombos} ballChanges={ballChanges} sw={sw}/>}
+            {modalScreen === 'linking' && <CollectionLinkingSave {...linkingProps} sw={sw}/>}
             {reSortWillHappen === true && <Typography sx={{textAlign: 'center'}}>The list will immediately auto-sort to the chosen settings!</Typography>}
         </Box>
         <Box sx={{...modalStyles.onhand.modalElementBg, width: '95%', height: noChangesSection ? '15%' : '10%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, mb: 1}}>
@@ -59,7 +62,7 @@ export default function SaveChangesConfirmModal({open, modalScreen, saveButtonSe
                 <Button 
                     size='medium' 
                     variant='contained' 
-                    onClick={() => handleChange(false, 'goBack')} 
+                    onClick={customGoBackFunc ? customGoBackFunc : () => handleChange(false, 'goBack')} 
                     sx={{pointerEvents: saving ? 'none' : 'auto', opacity: saving ? 0.5 : 1, fontSize: sw ? '12px' : '13px'}}
                 >
                     Go Back
@@ -69,7 +72,7 @@ export default function SaveChangesConfirmModal({open, modalScreen, saveButtonSe
                 <Button 
                     size={sw ? 'small' : 'medium'} 
                     variant='contained'
-                    onClick={() => handleChange(false, nextScreen)} 
+                    onClick={customExitWoSavingFunc ? customExitWoSavingFunc : () => handleChange(false, nextScreen)} 
                     sx={{pointerEvents: saving ? 'none' : 'auto', opacity: saving ? 0.5 : 1, fontSize: sw ? '10px' : '13px'}}
                 >
                     Exit Without Saving

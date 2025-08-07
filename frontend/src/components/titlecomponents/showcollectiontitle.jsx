@@ -13,7 +13,7 @@ import ItemDisplay from './itemdisplay'
 import ComparisonMain from '../functionalcomponents/comparecollections/comparisonmain'
 import { tradePreferenceDisplay } from '../../../common/infoconstants/miscconstants'
 import { useDispatch, useSelector } from 'react-redux'
-import { changeModalState, setUnsavedChanges } from '../../app/slices/editmode'
+import { changeModalState, resetChangesAndUninitialize, toggleSaveChangesConfirmModal } from '../../app/slices/editmode'
 import store from '../../app/store'
 import { homeCompatibleGames } from '../../../common/infoconstants/miscconstants.mjs'
 import { checkIfCanTrade } from '../../../utils/functions/comparecollections/checkifcantrade'
@@ -23,32 +23,58 @@ import { setOptionsInitialState } from '../../app/slices/options'
 import SmallWidthModalWrapper from '../partials/wrappers/smallwidthmodalwrapper'
 import SWDisplays from './subcomponents/swdisplays'
 import { usePutRequest } from '../../../utils/functions/backendrequests/editcollection'
+import { selectBasicColData, selectCorrectOpList, selectLinkedColType } from '../../app/selectors/linkedcolsselectors'
+import RegWidthDisplays from './subcomponents/regwidthdisplays'
+import TitleSaveChangesController from './subcomponents/titlesavechangescontroller'
+import { selectAnyUnsavedOnhandChanges, selectUnsavedChanges } from '../../app/selectors/selectors'
 
-export default function ShowCollectionTitle({collectionInfo, collectionID, options, isEditMode, isOwner, userIsLoggedIn, userData, demo, passDemoCollectionForward, smallScreen}) {
+export const passDemoCollectionForward = (betweenPages, gen) => {
+    const collectionDataInState = store.getState().collectionState
+    const topLevelVirtuals = betweenPages ? {
+        eggMoveInfo: collectionDataInState.eggMoveInfo,
+        availableGamesInfo: collectionDataInState.availableGamesInfo
+    } : {}
+    const collectionDatabaseFormat = {
+        type: 'aprimon',
+        name: collectionDataInState.options.collectionName,
+        gen,
+        options: {...collectionDataInState.options},
+        ownedPokemon: betweenPages ? collectionDataInState.collection : collectionDataInState.collection.map(p => {return {...p, imgLink: undefined, possibleGender: undefined, haName: undefined}}),
+        onHand: betweenPages ? collectionDataInState.onhand : collectionDataInState.onhand.map(p => {return {...p, imgLink: undefined, haName: undefined}}),
+        ...topLevelVirtuals
+    }
+    return collectionDatabaseFormat
+}
+
+
+
+export default function ShowCollectionTitle({collectionInfo, ownerData, collectionID, isEditMode, isOwner, userIsLoggedIn, userData, demo, smallScreen, ballScopeInit, link, queries, startTransition}) {
     const theme = useTheme()
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const revalidator = useRevalidator()
-    const link = useLocation().pathname
     const linkBack = link.slice(0, -5)
-    const {handleError} = useContext(ErrorContext)
-    const {addAlert} = useContext(AlertsContext)
     const demoGen = demo && useSelector((state) => state.collectionState.demoData.gen)
     const [displayScreen, setDisplayScreen] = useState('ballProgress')
     const [comparisonModal, setComparisonModal] = useState(false)
-    const [unsavedChangesNoti, setUnsavedChangesNoti] = useState({open: false, saving: false})
-    const gen8Collection = isNaN(parseInt(collectionInfo.gen))
-    const tradePreferencesState = useSelector((state) => state.collectionState.options.tradePreferences)
-    const tradePreferences = (isEditMode || demo) ? tradePreferencesState : options.tradePreferences
-    const ownerTradesDisabled = !demo && collectionInfo.owner.settings.privacy.disabledTrades
+    const anyUnsavedChanges = useSelector((state) => selectUnsavedChanges(state) || selectAnyUnsavedOnhandChanges(state))
+    const basicColData = useSelector((state) => selectBasicColData(state, collectionInfo))
+    const gen8Collection = isNaN(parseInt(basicColData.gen))
+    const tradePreferences = useSelector((state) => state.collectionState.options.tradePreferences)
+    const collectingBalls = useSelector((state) => state.collectionState.options.collectingBalls)
+    
+    // const tradePreferences = (isEditMode || demo) ? tradePreferencesState : options.tradePreferences
+    const ownerTradesDisabled = !demo && ownerData.settings.privacy.disabledTrades
     const collectionTradesDisabled = tradePreferences.status === 'closed'
     const itemsState = tradePreferences.items
-    const collectionType = gen8Collection ? `${collectionInfo.gen.toUpperCase()} Aprimon Collection` : `Gen ${collectionInfo.gen} Aprimon Collection`
+    const collectionType = gen8Collection ? `${basicColData.gen.toUpperCase()} Aprimon Collection` : `Gen ${basicColData.gen} Aprimon Collection`
     const formattedTradePreferences = [tradePreferenceDisplay.onhandOnly[tradePreferences.onhandOnly], tradePreferenceDisplay.size[tradePreferences.size], tradePreferenceDisplay.items[tradePreferences.items]].filter(display => display !== undefined)
     
-    const tradeableCollections = (userData !== undefined && collectionInfo.owner._id !== userData._id) && userData.collections.filter(col => checkIfCanTrade(collectionInfo, col))
-    const canInitiateTrade = ((userData !== undefined && collectionInfo.owner._id !== userData._id) && tradeableCollections.length !== 0)
-    const loggedInUserIsBlockedByOwner = userData !== undefined && collectionInfo.owner._id !== userData._id && collectionInfo.owner.settings.privacy.blockedUsers.includes(userData.username)
+    const tradeableCollections = (userData !== undefined && ownerData._id !== userData._id) && userData.collections.filter(col => checkIfCanTrade(basicColData, col))
+    const canInitiateTrade = ((userData !== undefined && ownerData._id !== userData._id) && tradeableCollections.length !== 0)
+    const loggedInUserIsBlockedByOwner = userData !== undefined && ownerData._id !== userData._id && ownerData.settings.privacy.blockedUsers.includes(userData.username)
+
+    const currSelectedList = useSelector((state) => selectCorrectOpList(state))
 
     useEffect(() => {
         if (itemsState === 'none' && displayScreen === 'items') {
@@ -71,9 +97,8 @@ export default function ShowCollectionTitle({collectionInfo, collectionID, optio
 
     const changeDisplayScreen = (newVal) => {setDisplayScreen(newVal)}
     const toggleComparisonModal = () => {setComparisonModal(!comparisonModal)}
-    const unsavedChanges = useSelector((state) => smallScreen ? state.editmode.unsavedChanges : false)
-    const unsavedOnhandChanges = useSelector((state) => smallScreen ? state.editmode.unsavedOnhandChanges : false)
-    const anyUnsavedChanges = unsavedChanges || unsavedOnhandChanges
+    
+    
     // const generateInteractionButtons = 
    
     //breakpoints when the label wraps
@@ -127,54 +152,26 @@ export default function ShowCollectionTitle({collectionInfo, collectionID, optio
     }
 
     const leaveEditMode = () => {
-        dispatch(setUnsavedChanges('reset')) 
+        dispatch(resetChangesAndUninitialize()) 
         
-        const state = demo ? {state: {collection: passDemoCollectionForward(true)}} : {}
-        navigate(linkBack, state)
+        const state = demo ? {state: {collection: passDemoCollectionForward(true, demoGen)}} : {}
+        navigate(`${linkBack}${queries.col ? `?col=${queries.col}` : ''}`, state)
         revalidator.revalidate()
         //do not switch the order of these or it ends up revalidating the edit route before it changes which means every other unnecessary state 
         //(col onhand options) gets revalidated too. at least, i THINK thats what happens since it re-renders a LOT when leaving edit mode
     }
 
     const initializeEditMode = () => {
-        const state = demo ? {state: {collection: passDemoCollectionForward(true)}} : {}
-        navigate(demo ? '/demo-collection/edit' : `/collections/${collectionID}/edit`, state)
+        const state = demo ? {state: {collection: passDemoCollectionForward(true, demoGen)}} : {}
+        navigate(demo ? '/demo-collection/edit' : `/collections/${collectionID}/edit${queries.col ? `?col=${queries.col}` : ''}`, state)
     }
-    const saveCollectionEdits = (exitAfter=false) => {
-        //do not compare collection laoder data and collection state, since scope/ball scope/excluded combos update does NOT revalidate to update the loader data.
-        //if you do compare, and the user changes the scope before changing, those scope changes wont be reflected in the laoder data.
-        const collectionState = store.getState().collectionState.collection
-        const onhandState = store.getState().collectionState.onhand
-        const newOwnedPokemonArr = unsavedChanges ? JSON.parse(JSON.stringify(collectionState)).map(p => {
-            delete p.imgLink
-            delete p.possibleGender
-            return p
-        }) : undefined
-        const newOnhandList = unsavedOnhandChanges ? JSON.parse(JSON.stringify(onhandState)).map(p => {
-            delete p.imgLink
-            return p
-        }) : undefined
-        setUnsavedChangesNoti({...unsavedChangesNoti, saving: true})
-        const backendFunc = async() => await usePutRequest(newOwnedPokemonArr, newOnhandList, collectionID)
-        const successFunc = () => {
-            addAlert({severity: 'success', timeout: 5, message: 'Successfully saved the changes to your collection!'})
-            setUnsavedChangesNoti({...unsavedChangesNoti, saving: false})
-            if (exitAfter) {leaveEditMode()}
-            else {dispatch(setUnsavedChanges('reset'))}
-        }
-        const errorFunc = () => {
-            if (exitAfter) {
-                toggleSaveConfirmModal()
-            }
-            setUnsavedChangesNoti({...unsavedChangesNoti, saving: false})
-        }
-        handleError(backendFunc, false, successFunc, errorFunc)
-    }
+
+    
 
     return (
         <Box sx={{display: 'flex', flexDirection: smallScreen ? 'column' : 'row', marginBottom: '1rem', height: smallScreen ? 'auto' : '200px'}}>
             <Box sx={{display: 'flex', flexDirection: 'column', width:  smallScreen ? '100%' : '45%'}}>
-                {/* <TextSpaceDouble label1={'Type'} text1={collectionType} label2={'Owner'} text2={collectionInfo.owner.username} colorStyles={colorStyles} width='100%'/>
+                {/* <TextSpaceDouble label1={'Type'} text1={collectionType} label2={'Owner'} text2={ownerData.username} colorStyles={colorStyles} width='100%'/>
                 <TextSpaceDouble label1='Trade Status' text1={tradeStatus} text2={formattedTradePreferences} colorStyles={colorStyles} width='100%' isLast={true} otherTextStyles={tradeStatusStyles}/> */}
                 <TextSpaceSingle 
                     colorStyles={colorStyles1}
@@ -187,7 +184,7 @@ export default function ShowCollectionTitle({collectionInfo, collectionID, optio
                 <TextSpaceSingle 
                     colorStyles={colorStyles2}
                     otherStyles={{borderBottom: '1px solid white', marginBottom: 0}} 
-                    text={demo ? 'You' : collectionInfo.owner.username}
+                    text={demo ? 'You' : ownerData.username}
                     label={'Owner'}
                     width='100%'
                     noRounding={smallScreen ? true : false}
@@ -222,14 +219,14 @@ export default function ShowCollectionTitle({collectionInfo, collectionID, optio
                     <SWDisplays 
                         display={displayScreen}
                         changeDisplayScreen={changeDisplayScreen}
-                        ballScopeInit={options.collectingBalls}
+                        ballScopeInit={collectingBalls}
                         isEditMode={isEditMode}
                         demo={demo}
-                        collectionList={collectionInfo.ownedPokemon}
+                        collectionList={currSelectedList}
                         userData={userData}
                         isOwner={isOwner}
-                        owner={demo ? 'You' : collectionInfo.owner.username}
-                        gen={collectionInfo.gen}
+                        owner={demo ? 'You' : ownerData.username}
+                        gen={basicColData.gen}
                         tradePreferences={tradePreferences}
                     />
                 </Box>
@@ -243,52 +240,52 @@ export default function ShowCollectionTitle({collectionInfo, collectionID, optio
                         <Tooltip title={ownerTradesDisabled ? 'This user has trades disabled at the moment!' : collectionTradesDisabled ? 'This collection is not accepting trade offers' : 'You were blocked by this user, and cannot initiate a trade!'}>
                             <Typography sx={{':hover': {cursor: 'pointer'}, width: '40%', height: '18px', paddingTop: '6px', fontSize: '11px', color: 'grey', textAlign: 'center'}}>OFFER TRADE</Typography>
                         </Tooltip> :
-                        <Button sx={{width: '40%', fontSize: '11px'}} onClick={() => navigate(`/collections/${collectionID}/trade`)}>Offer Trade</Button>
+                        <Button sx={{width: '40%', fontSize: '11px'}} onClick={() => navigate(`/collections/${basicColData._id}/trade`)}>Offer Trade</Button>
                         }
                         </>
                     }
                     {(isOwner && !isEditMode) && <Button sx={{width: '40%', fontSize: '12px'}} onClick={initializeEditMode}>Edit Mode</Button>}
-                    {(isEditMode && smallScreen) && <Button sx={{fontSize: '11px', width: '50%'}} onClick={() => (anyUnsavedChanges && !demo) ? setUnsavedChangesNoti({...unsavedChangesNoti, open: !unsavedChangesNoti.open}) : leaveEditMode()}>Leave Edit Mode</Button>}
+                    {(isEditMode && smallScreen) && <Button sx={{fontSize: '11px', width: '50%'}} onClick={() => (anyUnsavedChanges && !demo) ? dispatch(toggleSaveChangesConfirmModal()) : leaveEditMode()}>Leave Edit Mode</Button>}
                     {isEditMode && <Button sx={{fontSize: smallScreen ? '11px' : '12px', width: smallScreen ? '50%' : 'auto'}} onClick={() => dispatch(changeModalState({open: true, screen: 'main'}))}>Collection Options</Button>}
                 </Box>
             </Box>
             {!smallScreen && 
-            <Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'center', width: '55%', height: 'auto'}}>
-                {displayScreen === 'ballProgress' && <CollectionProgress ballScopeInit={options.collectingBalls} isEditMode={isEditMode} demo={demo} collectionList={collectionInfo.ownedPokemon} isOwner={isOwner} userData={userData}/>}
-                {displayScreen === 'rates' && <RateDisplay rates={tradePreferences.rates} owner={demo ? '' : collectionInfo.owner.username} collectionGen={collectionInfo.gen} demo={demo}/>}
-                {(displayScreen === 'items' && collectionInfo.gen !== 'home') && <ItemDisplay collectionGen={collectionInfo.gen} itemTradeStatus={tradePreferences.items} lfItems={tradePreferences.lfItems} ftItems={tradePreferences.ftItems}/>}
-            </Box>
+            <RegWidthDisplays 
+                displayScreen={displayScreen}
+                ballScopeInit={ballScopeInit}
+                collectingBalls={collectingBalls}
+                isEditMode={isEditMode}
+                demo={demo}
+                currSelectedList={currSelectedList}
+                isOwner={isOwner}
+                userData={userData}
+                tradePreferences={tradePreferences}
+                ownerData={ownerData}
+                basicColData={basicColData}
+            />
             }
-            {canInitiateTrade && <ComparisonMain open={comparisonModal} toggleModal={toggleComparisonModal} tradeableCollections={tradeableCollections} collectionData={collectionInfo} userData={userData} sw={smallScreen}/>}
-            {(smallScreen && anyUnsavedChanges) && 
-            <SmallWidthModalWrapper 
-                ariaLabel='unsaved changes confirm'
-                ariaDescribe='confirm whether to leave edit mode when you have unsaved changes'
-                open={unsavedChangesNoti.open}
-                handleClose={() => setUnsavedChangesNoti({...unsavedChangesNoti, open: !unsavedChangesNoti.open})}
-                sx={{height: '50%', width: '100%'}}
-                buttonSx={{zIndex: 1}}
-            >
-                <Box sx={{...theme.components.box.fullCenterCol, backgroundColor: theme.palette.color1.dark, borderRadius: '10px', width: '95%', height: '95%', position: 'relative', justifyContent: 'start', color: 'white'}}>
-                    <Typography sx={{fontSize: '24px', fontWeight: 700, mt: 10, textAlign: 'center'}}>Wait! You have unsaved changes!</Typography>
-                    <Typography sx={{fontSize: '16px', mt: 5, textAlign: 'center'}}>Are you sure you want to exit edit mode?</Typography>
-                    <Box sx={{...theme.components.box.fullCenterRow, width: '90%', height: '50px', position: 'absolute', bottom: '30px', gap: 4}}>
-                        <Button variant='contained' size='small' sx={{fontSize: '9px', padding: 0}} disabled={unsavedChangesNoti.saving} onClick={() => leaveEditMode()}>Exit without saving</Button>
-                        <Button variant='contained' size='large' sx={{fontSize: '14px'}} disabled={unsavedChangesNoti.saving} onClick={() => saveCollectionEdits(true)}>
-                            {unsavedChangesNoti.saving ? 
-                                <CircularProgress
-                                    size='26.25px'
-                                    sx={{color: 'white'}}
-                                />  :
-                                'Save and Exit'
-                            }
-                        </Button>
-                        <Button variant='contained' size='medium' sx={{}} disabled={unsavedChangesNoti.saving} onClick={() => setUnsavedChangesNoti({...unsavedChangesNoti, open: false})}>Cancel</Button>
-                    </Box>
-                    
-                </Box>
-            </SmallWidthModalWrapper>
-            }
+            {canInitiateTrade && 
+                <ComparisonMain 
+                    open={comparisonModal} 
+                    toggleModal={toggleComparisonModal} 
+                    tradeableCollections={tradeableCollections} 
+                    collectionData={basicColData.main ? collectionInfo : {...basicColData,
+                        options: {tradePreferences},
+                        owner: ownerData,
+                    }} 
+                    userData={userData} 
+                    sw={smallScreen}
+                    getStateLists={basicColData.main ? false : true}
+                />}
+            <TitleSaveChangesController 
+                mainID={collectionInfo._id}
+                collectionID={collectionID}
+                leaveEditMode={leaveEditMode}
+                anyUnsavedChanges={anyUnsavedChanges}
+                smallScreen={smallScreen}
+                startTransition={startTransition}
+                link={link}
+            />
         </Box>
     )
 }

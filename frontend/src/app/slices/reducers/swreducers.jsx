@@ -1,4 +1,4 @@
-
+import { changesReducers } from "./changesreducers"
 
 const swColReducers = {
     setPosRenderSelectedData: (state, action) => {
@@ -10,20 +10,20 @@ const swColReducers = {
     },
     setPosRenderOHBallData: (state, action) => {
         //this action triggers an extra action in collectionstate
-        const {position, rendered, noOhUpdate, onhandId, newBall} = action.payload
+        const {position, rendered, noOhUpdate, colId, onhandId, prevBall, newBall} = action.payload
         state.swCollection.position = position
         state.swCollection.rendered = rendered
-        if (!noOhUpdate && !state.unsavedOnhandChanges) {
-            state.unsavedOnhandChanges = true
+        if (!noOhUpdate && prevBall !== newBall) {
+            changesReducers.setOnhandChange(state, {type: 'editmode/setOnhandChange', payload: {colId, id: onhandId, field: 'ball', prevValue: prevBall, currValue: newBall}})
         }
     },
     setAllData: (state, action) => {
-        const {position, rendered, noOhUpdate, onhandId, newBall} = action.payload
+        const {position, rendered, noOhUpdate, onhandId, colId, prevBall, newBall} = action.payload
         state.swCollection.position = position
         state.swCollection.rendered = rendered
         state.selectedBall = newBall
-        if (!noOhUpdate && !state.unsavedOnhandChanges) {
-            state.unsavedOnhandChanges = true
+        if (!noOhUpdate && prevBall !== newBall) {
+            changesReducers.setOnhandChange(state, {type: 'editmode/setOnhandChange', payload: {colId, id: onhandId, field: 'ball', prevValue: prevBall, currValue: newBall}})
         }
     },
     setPos: (state, action) => {

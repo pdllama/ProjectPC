@@ -14,16 +14,21 @@ import { capitalizeFirstLetter } from '../../../../../utils/functions/misc'
 import { ballScopeChange } from '../../../../../utils/functions/scope/statechanges'
 import { saveBallScopeChanges } from '../../../../../utils/functions/scope/savescopechanges'
 import { ownedPokemonEdit } from '../../../../../utils/functions/backendrequests/ownedpokemonedit'
+import { backendChangeOptions } from '../../../../../utils/functions/backendrequests/collectionoptionsedit'
+import ballScopeBackendChange from '../../../../../utils/functions/backendrequests/collections/scoperequests/ballscopebackendrequest'
+import { selectUnsavedChanges } from '../../../../app/selectors/selectors'
+import { selectCorrectOpList } from '../../../../app/selectors/linkedcolsselectors'
 
-export default function BallScope({elementBg, collectionGen, collectionId, demo, sw}) {
+export default function BallScope({elementBg, collectionGen, collectionId, mainColId, demo, sw, isLinkedCollection}) {
     const dispatch = useDispatch()
     const {handleError} = useContext(ErrorContext)
     const oneArrLegalBalls = getOneArrData(useSelector((state) => state.editmode.pokemonScopeTotal), false, false)
     //changed collection state to filter disabled mons, and changed legalballinfo to use that instead of collection list display. think thats what
     //i meant to do, but cataloguing in case it comes to an error
-    const collectionState = useSelector((state) => state.collectionState.collection).filter(p => !(p.disabled))
+    const collectionState = useSelector((state) => selectCorrectOpList(state)).filter(p => !(p.disabled))
     const legalBallInfo = oneArrLegalBalls.filter(mon => collectionState.map(listMon => listMon.imgLink === mon.imgLink).includes(true))
     const ballScopeInit = useSelector((state) => state.collectionState.options.collectingBalls)
+    const unsavedChanges = useSelector((state) => state.editmode.changes.unsavedChanges)
     const totalBalls = getBallsInGen(collectionGen)
     const [formData, setFormData] = useState({balls: ballScopeInit, removedPokemon: [], confirmChangesModal: false})
     const addedBalls = formData.balls.filter(ball => !ballScopeInit.includes(ball))
@@ -81,37 +86,30 @@ export default function BallScope({elementBg, collectionGen, collectionId, demo,
 
     const finalizeChanges = async(saveChanges, nextScreen) => {
         if (saveChanges) {
-            const newListState = saveBallScopeChanges(formData.balls, addedBalls, collectionState, legalBallInfo, formData.removedPokemon)
             setFormData({...formData, saving: true})
             if (demo) {
+                const newListState = saveBallScopeChanges(formData.balls, addedBalls, collectionState, legalBallInfo, formData.removedPokemon)
                 setTimeout(() => {
-                    dispatch(setBallScope({newCollectingBalls: formData.balls, newListState}))
+                    dispatch(setBallScope({newCollectingBalls: formData.balls, newListState, demo: true}))
 
                     //spawning alert
                     const alertMessage = `Updated Ball Scope!`
                     const alertInfo = {severity: 'success', message: alertMessage, timeout: 3}
-                    const id = addAlert(alertInfo);
-                    setAlertIds((prev) => [...prev, id]);
+                    addAlert(alertInfo)
 
                     dispatch(changeModalState({open: false}))
                 }, 1000)
             } else {
-                const newListBackendFormat = JSON.parse(JSON.stringify(newListState)).map(mon => {
-                    delete mon.imgLink
-                    delete mon.possibleGender
-                    return mon
-                }) 
-                const backendFunc = async() => await ownedPokemonEdit(collectionGen, newListBackendFormat, collectionId, false, [], [], formData.balls)
+                const backendFunc = async() => await ballScopeBackendChange(collectionId, formData.balls, addedBalls, removedBalls, formData.removedPokemon, mainColId, isLinkedCollection, legalBallInfo, Object.keys(unsavedChanges).length === 0 ? undefined : unsavedChanges)
            
-                const successFunc = () => {
+                const successFunc = (newListState) => {
                     setTimeout(() => {
-                        dispatch(setBallScope({newCollectingBalls: formData.balls, newListState}))
+                        dispatch(setBallScope({newCollectingBalls: formData.balls, newListState, isLinkedCollection, removedPokemon: formData.removedPokemon}))
         
                         //spawning alert
                         const alertMessage = `Updated Ball Scope!`
                         const alertInfo = {severity: 'success', message: alertMessage, timeout: 3}
-                        const id = addAlert(alertInfo);
-                        setAlertIds((prev) => [...prev, id]);
+                        addAlert(alertInfo)
         
                         dispatch(changeModalState({open: false}))
                     }, 1000)
@@ -177,12 +175,13 @@ export default function BallScope({elementBg, collectionGen, collectionId, demo,
             <ArrowForward sx={{color: 'rgb(38, 188, 201)'}}/>
             <Typography sx={{color: 'white', fontWeight: 700, mx: 1, textAlign: 'center'}}>Ball Scope</Typography>
         </Box>
-        <Box sx={{...elementBg, width: '95%', height: '80%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', mt: 1}}>
+        <Box sx={{...elementBg, width: '95%', height: '85%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', mt: 1}}>
             <Typography sx={{fontWeight: 700, fontSize: '22px'}}>Change Ball Scope</Typography>
             <Typography>Select which balls you want to collect.</Typography>
-            <Grid container sx={{width: '100%', height: '70%', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+            <Grid container sx={{width: '100%', height: '60%', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
                 {renderBalls()}
             </Grid>
+            <Typography sx={{fontSize: '12px'}}>Any unsaved collection changes will be saved as a result of making ball scope changes!</Typography>
         </Box>
         <Box sx={{mt: 1, height: sw ? '45px' : '35px', width: '100%', display: 'flex'}}>
             <Box sx={{...elementBg, width: '20%', height: '100%', mr: sw ? '5%' : '20%', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>

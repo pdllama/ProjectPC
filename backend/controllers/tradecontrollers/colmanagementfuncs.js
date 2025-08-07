@@ -1,14 +1,16 @@
-const setPendingTrade = (offerCol, receivingCol, latestOffer, cancel=false) => {
+const setPendingTrade = (offerCol, receivingCol, latestOffer, cancel=false, offerColIsSub=false, receivingColIsSub=false) => {
     const data = {newOfferColOp: [], newReceivingColOp: [], newOfferColOnhand: [], newReceivingColOnhand: []}
     if (latestOffer.trade.offer.pokemon !== undefined && receivingCol !== undefined) { //receivingCol can be undefined for deleting a collection during a pending trade
         data.newReceivingColOp = receivingCol.ownedPokemon.map(p => { //setting offered pokemon as pending, or cancelling it
-            if (p.disabled) {return p}
+            if (!receivingColIsSub && p.disabled) {return p}
+            const pBeingReceivedData = latestOffer.trade.offer.pokemon.filter(tradeP => (tradeP.name === p.name || tradeP.for === p.name))[0]
+            if (pBeingReceivedData === undefined) {return p}
             const newBallData = {}
             Object.keys(p.balls).forEach(ball => {
                 const ballData = p.balls[ball]
-                if (ballData.disabled) {newBallData[ball] = ballData}
+                if (!receivingColIsSub && ballData.disabled) {newBallData[ball] = ballData}
                 else {
-                    const isBeingReceived = latestOffer.trade.offer.pokemon.filter(tradeP => (tradeP.name === p.name || tradeP.for === p.name) && tradeP.balls.filter(tradePBallData => tradePBallData.ball === ball).length !== 0).length !== 0
+                    const isBeingReceived = pBeingReceivedData.balls.filter(tradePBallData => tradePBallData.ball === ball).length !== 0
                     if (!isBeingReceived) {newBallData[ball] = ballData}
                     else {
                         if (cancel) { //if cancelling the pending trade instead
@@ -55,13 +57,15 @@ const setPendingTrade = (offerCol, receivingCol, latestOffer, cancel=false) => {
 
     if (latestOffer.trade.receiving.pokemon !== undefined && offerCol !== undefined) {
         data.newOfferColOp = offerCol.ownedPokemon.map(p => { //setting received pokemon as pending
-            if (p.disabled) {return p}
+            if (!offerColIsSub && p.disabled) {return p}
+            const pBeingReceivedData = latestOffer.trade.receiving.pokemon.filter(tradeP => (tradeP.name === p.name || tradeP.for === p.name))[0]
+            if (pBeingReceivedData === undefined) {return p}
             const newBallData = {}
             Object.keys(p.balls).forEach(ball => {
                 const ballData = p.balls[ball]
-                if (ballData.disabled) {newBallData[ball] = ballData}
+                if (!offerColIsSub && ballData.disabled) {newBallData[ball] = ballData}
                 else {
-                    const isBeingReceived = latestOffer.trade.receiving.pokemon.filter(tradeP => (tradeP.name === p.name || tradeP.for === p.name) && tradeP.balls.filter(tradePBallData => tradePBallData.ball === ball).length !== 0).length !== 0
+                    const isBeingReceived = pBeingReceivedData.balls.filter(tradePBallData => tradePBallData.ball === ball).length !== 0
                     if (!isBeingReceived) {newBallData[ball] = ballData}
                     else {
                         if (cancel) {

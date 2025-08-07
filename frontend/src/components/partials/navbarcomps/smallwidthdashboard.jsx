@@ -154,7 +154,7 @@ export default function SmallWidthDashboard({toggleDashboard, userData, unreadNo
                                             ...collectionHoverStyle
                                         }}
                                         key={`user-collection-${idx+1}-option-${collectionType}`}
-                                        onClick={disabled ? null : () => goToCollectionFunc(`/collections/${col._id}`)}
+                                        onClick={disabled ? null : () => goToCollectionFunc(`/collections/${col.linkedTo ? col.linkedTo.super : col._id}${col.linkedTo ? `?col=${col._id}` : ''}`)}
                                     > 
                                         <Typography>{collectionType}</Typography>
                                     </Box>

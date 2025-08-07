@@ -11,8 +11,10 @@ import { OnHandQtyDisplay } from '../bypokemoncomponents';
 import ImgData from '../../tabledata/imgdata';
 import { getGameColor } from '../../../../../common/infoconstants/miscconstants.mjs';
 import ControlPointIcon from '@mui/icons-material/ControlPoint';
+import store from '../../../../app/store';
+import { getByQtyChanges } from '../../../../app/slices/reducers/reducerfunctions/setQtyByPokemonFunc';
 
-function SmallWidthByPokemonDisplay({cols1, cols2, row={}, pokemonId, isEditMode, isSelected, setSelected, styles, availableGames=undefined, isHomeCollection, row1Balls, row2Balls, noRow2, nameLabel, allowedBalls}) {
+function SmallWidthByPokemonDisplay({cols1, cols2, row={}, collectionID, pokemonId, isEditMode, isSelected, setSelected, styles, availableGames=undefined, isHomeCollection, row1Balls, row2Balls, noRow2, nameLabel, allowedBalls}) {
     const dispatch = useDispatch()
     const theme = useTheme()
     if (row === undefined || Object.keys(row).length === 0) { //see onhandbypokemondisplay.jsx for why this is needed
@@ -28,8 +30,9 @@ function SmallWidthByPokemonDisplay({cols1, cols2, row={}, pokemonId, isEditMode
     const deletedFromMemory = allowedBalls === 'DELETED FROM MEMORY'
 
     const handleEditQty = (ball, increment, addingNew, removeMonFromDisplay) => {
-        dispatch(setQtyByPokemon({pokeId: pokemonId, ball, increment, addingNew, removeMonFromDisplay, smScreen: true, allowedBalls}))
-        dispatch(setUnsavedChanges('onhand'))
+        const collectionState = store.getState().collectionState
+        const {changeDataArr, prevQtys, newQtys, pData, multipleOHs} = getByQtyChanges(collectionState.collection, collectionState.onhand, pokemonId, ball, increment, undefined, isHomeCollection)
+        dispatch(setQtyByPokemon({pokeId: pokemonId, ball, addingNew, changeDataArr, prevQtys, newQtys, pData, multipleOHs, removeMonFromDisplay, currColId: collectionID}))
     }
 
     return (
@@ -178,7 +181,7 @@ function SmallWidthByPokemonDisplay({cols1, cols2, row={}, pokemonId, isEditMode
                                                         ':hover': {cursor: 'pointer'}
                                                     }}
                                                 >
-                                                    Res: {reserved}
+                                                    Res: {bData.reserved}
                                                 </Typography>
                                             </Tooltip>}
                                         </Box>

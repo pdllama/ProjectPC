@@ -1,10 +1,14 @@
 const hideEmptySets = (collectionList) => {
     return collectionList.filter(p => {
-        const isEmptySet = !Object.keys(p.balls).map(b => {
-            return p.balls[b].isOwned
-        }).includes(true)
-        return !isEmptySet
+        const emptySet = isEmptySet(p)
+        return !emptySet
     })
 }
 
-export {hideEmptySets}
+const isEmptySet = (p) => {
+    return !Object.keys(p.balls).map(b => {
+        return p.balls[b].isOwned
+    }).includes(true)
+}
+
+export {isEmptySet, hideEmptySets}

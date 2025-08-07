@@ -1,8 +1,9 @@
 import {Box, useTheme, Checkbox} from '@mui/material'
 import { useDispatch } from 'react-redux'
 import { setIsHA } from '../../../../app/slices/collectionstate'
+import { setOnhandChange } from '../../../../app/slices/editmode'
 
-export default function SWOnHandHACheckbox({isHA, isEditMode, idxOfPokemon}) {
+export default function SWOnHandHACheckbox({isHA, isEditMode, idxOfPokemon, colID, onhandId}) {
     const theme = useTheme()
     const dispatch = useDispatch()
 
@@ -12,7 +13,10 @@ export default function SWOnHandHACheckbox({isHA, isEditMode, idxOfPokemon}) {
                 sx={{position: 'absolute', right: 'calc(50% - 26.5px)', top: 'calc(50% - 26.5px)', color: 'white', pointerEvents: isEditMode ? 'auto' : 'none'}}
                 checked={isHA}
                 size='large'
-                onChange={isEditMode ? () => dispatch(setIsHA({listType: 'onhand', idx: idxOfPokemon})) : undefined}
+                onChange={isEditMode ? () => {
+                    dispatch(setIsHA({listType: 'onhand', idx: idxOfPokemon}))
+                    dispatch(setOnhandChange({colId: colID, id: onhandId, field: 'isHA', currValue: !isHA}))
+                } : undefined}
             />
         </Box>
     )

@@ -8,8 +8,9 @@ import { items } from '../../../../common/infoconstants/miscconstants.mjs'
 import ImgData from '../../../components/collectiontable/tabledata/imgdata'
 import { reFormatToIndividual } from '../../../../utils/functions/comparecollections/comparison'
 import { listTradePokemon, listTradeItem } from './listtradestuff'
+import ChangeHomeEMView from '../../../components/collectiontable/changehomeemview'
 
-export default function TradeDetailsModal({offerData, receivingData, currentScreen, subTab, isTradeSummaryScreen, open, toggleModal, changeScreen, changeTab, nameDisplaySettings}) {
+export default function TradeDetailsModal({offerData, receivingData, currentScreen, subTab, isTradeSummaryScreen, open, toggleModal, changeScreen, changeTab, nameDisplaySettings, homeHomeTrade}) {
     const theme = useTheme()
 
     const noOfferData = {
@@ -79,7 +80,12 @@ export default function TradeDetailsModal({offerData, receivingData, currentScre
                             <Tab value='pokemon' disabled={disabledSubTab.pokemon} label='Pokemon Offer'/>
                             <Tab value='item' disabled={disabledSubTab.items} label='Item Offer'/>
                         </Tabs>
-                        <Typography sx={{my: 2}}>{isTradeSummaryScreen ? 'Total Value' : 'Estimated Value'}: {shownListValue}</Typography>
+                        <Box sx={{my: 2, width: '80%', ...theme.components.box.fullCenterRow, gap: 2}}>
+                            <Typography>{isTradeSummaryScreen ? 'Total Value' : 'Estimated Value'}: {shownListValue}</Typography>
+                            {(subTab !== items && homeHomeTrade) && 
+                                <ChangeHomeEMView />
+                            }
+                        </Box>
                         <Virtuoso 
                             totalCount={shownList.length}
                             style={{height: '480px', width: '90%', border: '1px solid white', borderRadius: '5px'}}

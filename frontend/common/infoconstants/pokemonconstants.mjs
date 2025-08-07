@@ -11,6 +11,8 @@ const regionalFormMons = alolanFormMons.concat(galarianFormMons, hisuianFormMons
 const multipleRegionalFormMons = ['Meowth']
 const allAltFormMons = ['Nidoran', 'Paldean Tauros', 'Burmy', 'Shellos', 'Basculin', 'Deerling', 'Flabébé', 'Pumpkaboo', 'Rockruff', 'Oricorio', 'Minior', 'Indeedee', 'Squawkabilly', 'Tatsugiri'] //vivillon and alcremie are excluded due to being particular cases (so many forms)
 const genderAltFormMons = ['Nidoran', 'Indeedee']
+
+//so many places uses these data.
 const interchangeableAltFormMons = ['Burmy', 'Deerling', 'Oricorio']
 const interchangeableAltFormForms = {
     'Burmy': ['Plant', 'Sandy', 'Trash'],
@@ -18,6 +20,7 @@ const interchangeableAltFormForms = {
     'Oricorio': ['Baile', 'Pom-Pom', "Pa'u", 'Sensu']
 }
 const interchangeableAltFormIds = {forms: ['412-p', '412-s', '412-t', '585-spr', '585-sum', '585-aut', '585-win', '741-b', '741-p', '741-pau', '741-sen'], any: ['412-a', '585-a', '741-a']}
+
 
 const nonBreedableAltFormMons = ['Sinistea', 'Poltchageist']
 //below is needed as normally the collection is generated without these identifiers, so theres no place where its shown in the collection list 

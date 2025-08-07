@@ -16,7 +16,7 @@ dotenv.config()
 
 //env variables
 
-const SECRET = process.env.SECRET
+const SESSION_SECRET = process.env.SESSION_SECRET
 const dbUrl = process.env.DB_URL || "mongodb://127.0.0.1:27017/ProjectPC"
 const frontendUrl = process.env.FRONTEND_URL || true
 
@@ -51,7 +51,7 @@ const store = new MongoDBStore({
     mongoUrl: dbUrl,
     touchAfter: 24 * 60 * 60,
     crypto: {
-        secret: SECRET,
+        secret: SESSION_SECRET,
     }
 })
 
@@ -61,7 +61,7 @@ store.on('error', function(e) {
 
 const sessionConfig = {
     store: store,
-    secret: SECRET,
+    secret: SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -80,8 +80,8 @@ app.use(session(sessionConfig))
 app.use(cors({ credentials: true, origin: frontendUrl }))
 
 // app.use(nocache())
-app.use(express.json({ limit: '500kb' }))
-app.use(bodyParser.json({ limit: '500kb' }))
+app.use(express.json({ limit: '750kb' }))
+app.use(bodyParser.json({ limit: '750kb' }))
 // app.use((req, res, next) => {
 //     res.setHeader('Access-Control-Allow-Credentials', true);
 //     res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
@@ -168,7 +168,7 @@ app.use('/search', searchRoutes)
 //     //         profile: {bio: '', badges: [], games: []},
 //     //         privacy: {disabledTrades: false, blockedUsers: []},
 //     //         account: {verified: false, securityQuestions},
-//     //         display: {pokemonNames: {general: {regionalForms: 'default', originRegionalForms: 'default', alternateForms: 'default'}, specific: {}}, ballOrder: apriballs}
+//     //         display: {pokemonNames: {general: {regionalForms: 'default', originRegionalForms: 'default', alternateForms: 'default'}, specific: {}}, ballOrder: apriballs, defaultOnHandView: 'byIndividual'}
 //     //     }
 //     //     bcrypt.hash('12345', 11, async function(err, hash) {
 //     //         const newUser = new User({username: user, password: hash, accountType: 'regular', email: randEmail, settings})

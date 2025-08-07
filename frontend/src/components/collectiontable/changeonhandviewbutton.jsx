@@ -1,12 +1,14 @@
 import { useDispatch, useSelector } from "react-redux";
-import { Button, useTheme } from "@mui/material";
+import { Button, useTheme, CircularProgress } from "@mui/material";
 import { setOnHandView } from "../../app/slices/collectionstate";
 import { deselect } from "../../app/slices/editmode";
 import hexToRgba from "hex-to-rgba";
+import { useTransition } from "react";
 
-export default function ChangeOnHandView({collectionLoaderData, isEditMode, demo, sw, listType}) {
+export default function ChangeOnHandView({sw, listType, nameDisplaySettings={}}) {
     const theme = useTheme()
     const dispatch = useDispatch()
+    const [isPending, startTransition] = useTransition()
     const onhandView = useSelector((state) => state.collectionState.listDisplay.onhandView)
 
     const mediaQuery = {
@@ -32,9 +34,10 @@ export default function ChangeOnHandView({collectionLoaderData, isEditMode, demo
             }}
             onClick={() => {
                 dispatch(deselect())
-                dispatch(setOnHandView({useState: (isEditMode || demo), onhand: collectionLoaderData.onHand, collection: collectionLoaderData.ownedPokemon}))
+                dispatch(setOnHandView({nameDisplaySettings}))
             }}
         >
+            {/* {isPending ? <CircularProgress/> : `View by ${onhandView === 'byIndividual' ? 'Pokemon' : 'Individual'}`} */}
             View by {onhandView === 'byIndividual' ? 'Pokemon' : 'Individual'}
         </Button>
     )

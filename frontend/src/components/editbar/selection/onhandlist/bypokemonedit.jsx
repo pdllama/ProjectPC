@@ -12,6 +12,7 @@ import EmTooltipWrapper from '../../../collectiontable/tabledata/emtooltipwrappe
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import newObjectId from '../../../../../utils/functions/newobjectid'
 import DeleteOnHandConfirm from '../../editsectioncomponents/onhandeditonly/deleteonhandconfirmmodal'
+import { getHighestEmGen } from '../../../collectiontable/tabledata/emindicator'
 
 const scrollerStyles = {
     '&::-webkit-scrollbar': {
@@ -39,16 +40,19 @@ export default function ByPokemonEdit({collectionId, ownerId, ohPokemonObj, allE
     const idxOfPokemon = useSelector((state) => state.collectionState.onhand.indexOf(selectedPokemon))
 
     const addOnhandOfBall = () => {
+        const noEMs = colBallInfo.emCount === undefined && colBallInfo.eggMoveData === undefined
+        const homeEmGen = (isHomeCollection && !noEMs) ? getHighestEmGen(colBallInfo.eggMoveData) : undefined
+        const emPeripherals = noEMs ? {} : {emCount: isHomeCollection ? colBallInfo.eggMoveData[homeEmGen].emCount : colBallInfo.emCount, EMs: isHomeCollection ? colBallInfo.eggMoveData[homeEmGen].EMs : colBallInfo.EMs, emGen: homeEmGen}
         const newOnhandData = {
             _id: newObjectId(),
             name: selectedPokemon.name,
             natDexNum: selectedPokemon.natDexNum,
             imgLink: selectedPokemon.imgLink,
+            haName: selectedPokemon.haName,
             ball: selectedPokemon.ball,
             gender: possibleGender === 'both' ? 'unknown' : possibleGender,
             isHA: colBallInfo.isHA,
-            emCount: colBallInfo.emCount,
-            EMs: colBallInfo.EMs,
+            ...emPeripherals,
             qty: 1
         }
         dispatch(addOnHandPokemonToListByPokemon(newOnhandData))
@@ -81,7 +85,7 @@ export default function ByPokemonEdit({collectionId, ownerId, ohPokemonObj, allE
             demo={demo}
             setSelectedBall={true}
         />
-        <Select value={selectedOhP} onChange={(e, i) => i.props.value === '' ? null : setSelectedOhP(i.props.value)} sx={{position: 'absolute', top: '100%', right: '10%', width: '485px', backgroundColor: theme.palette.color1.main, color: 'white'}} MenuProps={{MenuListProps: {sx: {maxHeight: '200px', overflowY: 'scroll', py: 0, ...scrollerStyles}}}}>
+        <Select value={selectedOhP} onChange={(e, i) => i.props.value === '' ? null : setSelectedOhP(i.props.value)} sx={{position: 'absolute', top: isHomeCollection ? '148%' : '100%', right: '10%', width: '485px', backgroundColor: theme.palette.color1.main, color: 'white'}} MenuProps={{MenuListProps: {sx: {maxHeight: '200px', overflowY: 'scroll', py: 0, ...scrollerStyles}}}}>
             {ohPokemonObj.list.map((ohP, idx) => {
                 const ballDisplay = `${capitalizeFirstLetter(ohP.ball)}`
                 const monDisplay = `${getNameDisplay(userNameDisplaySettings, ohP.name, ohP.natDexNum)}`

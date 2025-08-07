@@ -50,11 +50,11 @@ const gridComponents = {
 
 const generateOneOrOtherContent = (option1, option2, activePokemon, handleChange, isBabyAdultSelection, groupInfo, ballScope, nameDisplaySettings, sw) => {
     const multipleOption2 = Array.isArray(option2)
-    const noLegalBalls = !option1 === undefined && (!option1.legalBalls.map(ball => (
+    const noLegalBalls = !(option1 === undefined) && (!option1.legalBalls.map(ball => 
         ball === 'apriball' ?
         apriballLiterals.map(b => ballScope.includes(b)).includes(true) : 
         ballScope.includes(ball)
-    )).includes(true))
+    ).includes(true))
     const tyrogueInfo = option1 === undefined
     return (
         <Item sx={{width: sw ? '94%' : '95%', mb: 1, display: 'flex', flexDirection: 'row', padding: '8px', backgroundColor: '#283f57', justifyContent: 'center'}}>
@@ -84,16 +84,18 @@ const generateOneOrOtherContent = (option1, option2, activePokemon, handleChange
                     placement='top' 
                     arrow
                 >
-                    <Item sx={{padding: '5%', width: '50%', backgroundColor: '#283f57', position: 'relative', ':hover': {cursor: 'pointer'}, opacity: 0.5}}>
-                        <Typography sx={{fontSize: '10px'}}>#{option1.natDexNum}</Typography>
-                        <Typography sx={{fontSize: '12px'}}>{getNameDisplay(nameDisplaySettings, option1.name, option1.natDexNum)}</Typography>
-                        <ImgData type='poke' linkKey={option1.imgLink}/>
-                        <Box sx={{position: 'absolute', top: '80%', display: 'flex', flexDirection: 'row', width: '90%', alignItems: 'center', justifyContent: 'center'}}>
-                            <Typography sx={{fontSize: '10px'}}>
-                                No Legal Balls
-                            </Typography>
-                        </Box>
-                    </Item>
+                    <Box sx={{width: '50%', display: 'flex',flexDirection: 'column',alignItems: 'center', justifyContent: 'center',textTransform: 'none',color: 'white',border: 'none',padding: 0}}>
+                        <Item sx={{paddingY: '8%', width: '60%', backgroundColor: '#283f57', position: 'relative', ':hover': {cursor: 'pointer'}, opacity: 0.5}}>
+                            <Typography sx={{fontSize: '10px'}}>#{option1.natDexNum}</Typography>
+                            <Typography sx={{fontSize: '12px'}}>{getNameDisplay(nameDisplaySettings, option1.name, option1.natDexNum)}</Typography>
+                            <ImgData type='poke' linkKey={option1.imgLink}/>
+                            <Box sx={{position: 'absolute', top: '80%', display: 'flex', flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'center'}}>
+                                <Typography sx={{fontSize: '10px'}}>
+                                    No Legal Balls
+                                </Typography>
+                            </Box>
+                        </Item>
+                    </Box>
                 </Tooltip> :
                 <ToggleButton 
                     sx={{width: '50%'}} 
@@ -141,16 +143,18 @@ const generateOneOrOtherContent = (option1, option2, activePokemon, handleChange
                         arrow
                         key={`${option.imgLink}-selection`}
                     >
-                        <Item sx={{padding: '5%', width: '90%',  height: '90%', backgroundColor: '#283f57', position: 'relative', ':hover': {cursor: 'pointer'}, opacity: 0.5}}>
-                            <Typography sx={{fontSize: '10px'}}>#{option.natDexNum}</Typography>
-                            <Typography sx={{fontSize: '12px'}}>{getNameDisplay(nameDisplaySettings, option.name, option.natDexNum)}</Typography>
-                            <ImgData type='poke' linkKey={option.imgLink}/>
-                            <Box sx={{position: 'absolute', top: '80%', display: 'flex', flexDirection: 'row', width: '90%', alignItems: 'center', justifyContent: 'center'}}>
-                                <Typography sx={{fontSize: '10px'}}>
-                                    No Legal Balls
-                                </Typography>
-                            </Box>
-                        </Item>
+                        <Box sx={{width: '50%', display: 'flex',flexDirection: 'column',alignItems: 'center', justifyContent: 'center',textTransform: 'none',color: 'white',border: 'none',padding: 0}}>
+                            <Item sx={{paddingY: '8%', width: '60%', backgroundColor: '#283f57', position: 'relative', ':hover': {cursor: 'pointer'}, opacity: 0.5}}>
+                                <Typography sx={{fontSize: '10px'}}>#{option.natDexNum}</Typography>
+                                <Typography sx={{fontSize: '12px'}}>{getNameDisplay(nameDisplaySettings, option.name, option.natDexNum)}</Typography>
+                                <ImgData type='poke' linkKey={option.imgLink}/>
+                                <Box sx={{position: 'absolute', top: '80%', display: 'flex', flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'center'}}>
+                                    <Typography sx={{fontSize: '10px'}}>
+                                        No Legal Balls
+                                    </Typography>
+                                </Box>
+                            </Item>
+                        </Box>
                     </Tooltip> :
                     <ToggleButton 
                         key={`${option.imgLink}-selection`}

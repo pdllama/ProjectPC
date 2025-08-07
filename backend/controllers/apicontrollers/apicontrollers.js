@@ -23,7 +23,9 @@ export async function getSession(req, res) {
     if (noUser) {
         res.json({})
     } else {
-        const userData = await User.findById(req.session.passport.user).lean().populate({path: 'collections', select: 'type gen -owner'}).select('username accountType collections notifications.unread settings.privacy.blockedUsers settings.display').exec()
+        const userData = await User.findById(req.session.passport.user).lean().populate({path: 'collections', select: 'type gen name linkedTo -owner'}).select('username accountType collections notifications.unread settings.privacy.blockedUsers settings.display').exec()
+        //below is a rough workaround over using mongodb stuff
+        userData.collections = userData.collections.filter(c => c.gen !== 'dummy')
         res.json(userData)
     }
 }

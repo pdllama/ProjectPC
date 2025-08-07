@@ -8,6 +8,7 @@ import listDisplay from './slices/listdisplay'
 import options from './slices/options'
 import tradeOffer from './slices/tradeoffer'
 import alerts from './slices/alerts'
+import searchParams from './slices/searchparams'
 import reduxWindow from 'redux-window'
 
 const store = configureStore({
@@ -20,6 +21,7 @@ const store = configureStore({
         options: options.reducer,
         tradeOffer: tradeOffer.reducer,
         alerts: alerts.reducer,
+        searchParams: searchParams.reducer,
         reduxWindow
     }
 })

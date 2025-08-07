@@ -6,7 +6,7 @@ import hexToRgba from "hex-to-rgba"
 import { deselect } from "../../../app/slices/editmode"
 import { toggleFullSetView } from "../../../app/slices/collectionstate"
 
-export default function Sort({listType, isEditMode, collection, demo}) {
+export default function Sort({listType, loggedInUserSettings}) {
     const dispatch = useDispatch()
     const theme = useTheme()
     const ToggleButton = styled(MuiToggleButton)({
@@ -25,10 +25,9 @@ export default function Sort({listType, isEditMode, collection, demo}) {
     // const collectionSort = useSelector((state) => state.listDisplay.collectionFilters.sort)
     // const onhandSort = useSelector((state) => state.listDisplay.onhandFilters.sort)
     const sortKey = listType === 'collection' ? useSelector((state) => state.collectionState.listDisplay.collectionFilters.sort) : useSelector((state) => state.collectionState.listDisplay.onhandFilters.sort)
-    const listDisplayState = listType === 'collection' ? useSelector ((state) => state.collectionState.listDisplay.collection) : useSelector((state) => state.collectionState.listDisplay.onhand)
-
+  
     const handleChange = (e) => {
-        dispatch(setSortKey({sortKey: e.target.value, listType, listState: listDisplayState}))
+        dispatch(setSortKey({sortKey: e.target.value, listType}))
     }
 
     return (
@@ -91,7 +90,7 @@ export default function Sort({listType, isEditMode, collection, demo}) {
                     }}
                     onClick={() => {
                         dispatch(deselect())
-                        dispatch(toggleFullSetView({useState: (isEditMode || demo), collection: collection.ownedPokemon.filter(p => p.disabled === undefined)}))
+                        dispatch(toggleFullSetView({nameDisplaySettings: loggedInUserSettings ? loggedInUserSettings.settings.display.pokemonNames : {}}))
                     }}
                 >
                     {showFullSets ? 'Hide' : 'Show'} Full Sets
@@ -113,7 +112,7 @@ export default function Sort({listType, isEditMode, collection, demo}) {
                     }}
                     onClick={() => {
                         dispatch(deselect())
-                        dispatch(toggleEmptySetView({useState: (isEditMode || demo), collection: collection.ownedPokemon.filter(p => p.disabled === undefined)}))
+                        dispatch(toggleEmptySetView({nameDisplaySettings: loggedInUserSettings ? loggedInUserSettings.settings.display.pokemonNames : {}}))
                         // dispatch(toggleFullSetView({useState: (isEditMode || demo), collection: collection.ownedPokemon.filter(p => p.disabled === undefined)}))
                     }}
                 >

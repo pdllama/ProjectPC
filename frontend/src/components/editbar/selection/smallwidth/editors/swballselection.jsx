@@ -20,7 +20,7 @@ import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 // after modifying this component to work for onhand lists.
 // might be worth checking out a better solution if it ends up too slow on prod builds. 
 
-export default function SWBallSelection({allowedBalls, ohBall=undefined, isCollectionList, baseImgWidth, baseGapWidth, pokemonId, pokemonIdx, useSetAllData=false, selectNextPrevBallsStyles={}}) {
+export default function SWBallSelection({allowedBalls, ohBall=undefined, isCollectionList, baseImgWidth, baseGapWidth, pokemonId, pokemonIdx, useSetAllData=false, selectNextPrevBallsStyles={}, currColID, onhandId}) {
     const theme = useTheme()
     const dispatch = useDispatch()
     const lessThan7ABalls = allowedBalls.length <= 8 //this should be renamed 8ABalls but too much work.
@@ -51,12 +51,12 @@ export default function SWBallSelection({allowedBalls, ohBall=undefined, isColle
         parseInt(baseImgAndGapWidth)*8 + 20
 
     const updateState = useSetAllData ? (newPosition, newBall) => {
-        dispatch(setAllData({position: newPosition, rendered: lessThan7ABalls ? allowedBalls.map((b, idx) => idx) : renderBallListDragVer(allowedBalls, newBall), pokemonIdx, newBall}))
+        dispatch(setAllData({position: newPosition, rendered: lessThan7ABalls ? allowedBalls.map((b, idx) => idx) : renderBallListDragVer(allowedBalls, newBall), onhandId, pokemonIdx, newBall, colId: currColID, prevBall: ohBall}))
     } : 
     isCollectionList ? (newPosition, newBall) => {
         dispatch(setPosRenderSelectedData({position: newPosition, rendered: lessThan7ABalls ? allowedBalls.map((b, idx) => idx) : renderBallListDragVer(allowedBalls, newBall), selectedBall: newBall}))
     } : (newPosition, newBall) => {
-        dispatch(setPosRenderOHBallData({position: newPosition, rendered: lessThan7ABalls ? allowedBalls.map((b, idx) => idx) : renderBallListDragVer(allowedBalls, newBall), onhandId: pokemonId, newBall}))
+        dispatch(setPosRenderOHBallData({position: newPosition, rendered: lessThan7ABalls ? allowedBalls.map((b, idx) => idx) : renderBallListDragVer(allowedBalls, newBall), onhandId: pokemonId, newBall, colId: currColID, prevBall: ohBall}))
     }
     
     if (!lessThan7ABalls) {
@@ -169,8 +169,10 @@ export default function SWBallSelection({allowedBalls, ohBall=undefined, isColle
         // console.log(selectedBallRef.current)
         // console.log(selectedBall)
         const sameAllowedBallsList = !previousAllowedBalls.current.map(b => allowedBalls.includes(b)).includes(false) && previousAllowedBalls.current.length === allowedBalls.length
+        const illegalBall = !allowedBalls.includes(selectedBall)
         const sameBall = !isCollectionList && (selectedBallRef.current && selectedBallRef.current === selectedBall)
-        if (!sameAllowedBallsList || (!isCollectionList && !sameBall)) {
+        const uninitiated = rendered.length === 0
+        if ((!sameAllowedBallsList && illegalBall) || (!isCollectionList && !sameBall) || uninitiated) {
             const rendered = allowedBalls.length <= 8 ? allowedBalls.map((b, idx) => idx) : renderBallListDragVer(allowedBalls, (isCollectionList && !useSetAllData) ? allowedBalls[0] : selectedBall)
             const position = allowedBalls.length <= 8 ? getCenterOffset(parseInt(baseImgWidth), parseInt(baseGapWidth), allowedBalls, (isCollectionList && !useSetAllData) ? allowedBalls[0] : selectedBall) : 0
             const ballInit = allowedBalls.length <= 8 ? allowedBalls[0] : allowedBalls[rendered[(rendered.length-1)/2]]

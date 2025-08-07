@@ -13,6 +13,7 @@ import FinalizeTrade from './newtradesteps/finalizetrade'
 import { checkIfCanTrade } from '../../../utils/functions/comparecollections/checkifcantrade'
 import { getValue } from '../../../utils/functions/comparecollections/getvalue'
 import getUserCollectionData from '../../../utils/functions/backendrequests/getusercollectiondata'
+import { toggleHomeEMView } from '../../app/slices/collectionstate'
 
 export default function NewTrade({loaderData}) {
     const theme = useTheme()
@@ -57,17 +58,24 @@ export default function NewTrade({loaderData}) {
     }
     const disabledStep2 = tradeData.compareWith === '' ? disabledStepStyles : {}
 
-    
+    const userTradeableCollections = userData.user.collections.filter(col => checkIfCanTrade(col, targetColData))
 
     useEffect(() => {
         dispatch(resetTradeData())
     }, [tradeData.compareWith])
 
     const changeSelectedCol = async(newColId, otherStateChanges={}) => {
+        const newColGen = userTradeableCollections.filter(c => c._id === newColId)[0].gen
+        const isLinked = userTradeableCollections.filter(c => c._id === newColId)[0].linkedTo !== undefined
         const successFunc = (userCollectionData) => {
+            const oneHomeOneGame = (targetColData.gen === 'home' && userCollectionData.gen !== 'home') || (targetColData.gen !== 'home' && userCollectionData.gen === 'home')
+            if (oneHomeOneGame) {
+                const newHomeEmView = targetColData.gen !== 'home' ? targetColData.gen : userCollectionData.gen
+                dispatch(toggleHomeEMView(newHomeEmView === '9' ? 9 : newHomeEmView))
+            }
             setTradeData({...tradeData, compareWith: newColId, userCollectionData, ...otherStateChanges})
         }
-        const backendFunc = async() => await getUserCollectionData(newColId)
+        const backendFunc = async() => await getUserCollectionData(newColId, (newColGen === 'home'), isLinked)
         handleError(backendFunc, false, successFunc, () => {})
         
     }
@@ -77,8 +85,15 @@ export default function NewTrade({loaderData}) {
     }
 
     const initDataFromComparison = async() => {
-        const backendFunc = async() => await getUserCollectionData(locationData.state.compareWith) 
-        const successFunc = (userCollectionData) => {setTradeData({...tradeData, displaySteps: {...tradeData.displaySteps, 2: true}, compareWith: locationData.state.compareWith, userCollectionData, comparisonData: locationData.state.comparisonData})}
+        const backendFunc = async() => await getUserCollectionData(locationData.state.compareWith, locationData.state.colGen === 'home', locationData.state.isLinked) 
+        const successFunc = (userCollectionData) => {
+            const oneHomeOneGame = (targetColData.gen === 'home' && userCollectionData.gen !== 'home') || (targetColData.gen !== 'home' && userCollectionData.gen === 'home')
+            if (oneHomeOneGame) {
+                const newHomeEmView = targetColData.gen !== 'home' ? targetColData.gen : userCollectionData.gen
+                dispatch(toggleHomeEMView(newHomeEmView === '9' ? 9 : newHomeEmView))
+            }
+            setTradeData({...tradeData, displaySteps: {...tradeData.displaySteps, 2: true}, compareWith: locationData.state.compareWith, userCollectionData, comparisonData: locationData.state.comparisonData})
+        }
         handleError(backendFunc, false, successFunc, () => {})
         //might be worth passing all collection data into the location state rather than re-requesting it. I think that's how its handled for counter-offers anyway
         //not sure why i did it this way but its worth looking into.
@@ -89,6 +104,8 @@ export default function NewTrade({loaderData}) {
         proposedValues.current = getValue(newGetValueFromCol.options.tradePreferences.rates)
         setTradeData({...tradeData, receivedValueFrom: newGetValueFromCol.owner.username})
     }
+
+    // console.log(tradeData.comparisonData)
 
     useEffect(() => {
         const getValueFromCol = isCounteroffer ? 
@@ -109,7 +126,7 @@ export default function NewTrade({loaderData}) {
         }
     }, [])
     
-    const userTradeableCollections = userData.user.collections.filter(col => checkIfCanTrade(col, targetColData))
+    
     
     return (
         <BodyWrapper sx={{mt: 3, mx: 1, ...theme.components.box.fullCenterCol, justifyContent: 'start'}}>
@@ -174,6 +191,7 @@ export default function NewTrade({loaderData}) {
                                 tradeId={isCounteroffer && loaderData.tradeData._id}
                                 traderColId={tradeData.userCollectionData._id}
                                 ownerColId={targetColData._id}
+                                homeHomeTrade={isCounteroffer ? loaderData.tradeData.gen === 'home' : targetColData.gen === 'home' && tradeData.userCollectionData.gen === 'home'}
                             />}
                         </Box>
                     </Box>

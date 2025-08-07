@@ -11,6 +11,9 @@ export default function PrivateRoute({Component, PlaceholderComponent, routeType
     // const privateTradePage = routeType === 'userTrades' ? loaderData.settings.account.privatizeTrades
     const pathname = useLocation().pathname
     const editCollectionLoaderD = routeType === 'editCollection' && useLoaderData()
+    if (editCollectionLoaderD && editCollectionLoaderD.error) {
+        return <ErrorPage errorData={editCollectionLoaderD}/>
+    }
     const customRLDVal = customRouteLoaderDataProp ? useRouteLoaderData(customRouteLoaderDataProp.id) : undefined
     const customRLDProp = customRouteLoaderDataProp ? {[customRouteLoaderDataProp.name]: customRLDVal} : {}
 

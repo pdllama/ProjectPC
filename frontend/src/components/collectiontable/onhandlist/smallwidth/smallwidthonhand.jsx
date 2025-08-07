@@ -14,7 +14,7 @@ import { capitalizeFirstLetter } from '../../../../../utils/functions/misc';
 import getNameDisplay from '../../../../../utils/functions/display/getnamedisplay';
 import listStyles from '../../../../../utils/styles/componentstyles/liststyles';
 
-export default function SmallWidthOnHand({collectionID, styles, collectionListStyles, eggMoveInfo, isEditMode, demo, isHomeCollection, collectingBallsConst, localDisplayState=undefined, height=800, isTradePage, tradeSide, wantedByOtherListData=[], userData, localOnhandView}) {
+export default function SmallWidthOnHand({collectionID, styles, collectionListStyles, isEditMode, demo, isHomeCollection, collectingBallsConst, localDisplayState=undefined, height=800, isTradePage, tradeSide, wantedByOtherListData=[], userData, localOnhandView}) {
     const theme = useTheme()
     const dispatch = useDispatch()
     const listState = useSelector(state => state.collectionState.listDisplay.onhand)
@@ -24,7 +24,6 @@ export default function SmallWidthOnHand({collectionID, styles, collectionListSt
     const previousScrollPosition = useSelector((state) => state.collectionState.previousOnhandScrollPosition)
     const previousColId = useSelector((state) => state.collectionState.prevColId)
     const availableGamesInfo = useSelector((state) => state.collectionState.availableGamesInfo)
-
     const trueOnhandView = localOnhandView ? localOnhandView : viewType
 
     const ballScopeState = useSelector((state) => state.collectionState.options.collectingBalls)
@@ -39,9 +38,11 @@ export default function SmallWidthOnHand({collectionID, styles, collectionListSt
 
     useLayoutEffect(() => {
         const sameIDBetweenRefs = collectionID === previousColId
-        if (previousScrollPosition && sameIDBetweenRefs) {
+        if (previousScrollPosition && sameIDBetweenRefs && scrollRef.current !== null) {
             setTimeout(() => {
-              scrollRef.current.scrollTo({top: previousScrollPosition})  
+                if (scrollRef.current !== null) {
+                    scrollRef.current.scrollTo({top: previousScrollPosition})  
+                }
             }, 1000)  
         }
     }, [link])
@@ -66,11 +67,6 @@ export default function SmallWidthOnHand({collectionID, styles, collectionListSt
         return cols
     }
 
-    const emColumns = isHomeCollection ? [] : [
-        {label: 'EM #', dataKey: 'emCount', width: '15%', smallHeader: true},
-        {label: 'Egg Moves', dataKey: 'EMs', width: '50%', maxWidth: '400px'},
-    ]
-
     const tableColumns1 = trueOnhandView === 'byPokemon' ? [...setBallCols(1)] : [
         {label: '#', dataKey: 'natDexNum', width: '10%'},
         {label: 'img', dataKey: 'natDexNum', width: '20%', isImg: true},
@@ -82,7 +78,8 @@ export default function SmallWidthOnHand({collectionID, styles, collectionListSt
     const tableColumns2 = trueOnhandView === 'byPokemon' ? [...setBallCols(2)] : [
         {label: 'Gender', dataKey: 'gender', width: isHomeCollection ? '30%' : '17.5%', isImg: true, smallHeader: true},
         {label: 'HA', dataKey: 'isHA', width: isHomeCollection ? '30%' : '17.5%', smallHeader: true},
-        ...emColumns,
+        {label: 'EM #', dataKey: 'emCount', width: '15%', smallHeader: true},
+        {label: 'Egg Moves', dataKey: 'EMs', width: '50%', maxWidth: '400px'}
     ]
     const noRow2 = tableColumns2.length === 0
 
@@ -209,7 +206,6 @@ export default function SmallWidthOnHand({collectionID, styles, collectionListSt
                 pokemonId={row._id}
                 collectionId={collectionID}
                 styles={styles}
-                allEggMoveInfo={eggMoveInfo}
                 availableGamesInfo={availableGamesInfo}
                 isEditMode={isEditMode}
                 demo={demo}
@@ -232,6 +228,7 @@ export default function SmallWidthOnHand({collectionID, styles, collectionListSt
             <SmallWidthByPokemonDisplay
                 {...rowProp}
                 pokemonId={row.imgLink}
+                collectionID={collectionID}
                 cols1={tableColumns1}
                 cols2={tableColumns2}
                 noRow2={noRow2}

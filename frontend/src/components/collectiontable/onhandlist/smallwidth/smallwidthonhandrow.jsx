@@ -14,16 +14,17 @@ import { toggleOnHandIdToDelete, deselect } from '../../../../app/slices/editmod
 import getNameDisplay from '../../../../../utils/functions/display/getnamedisplay'
 import { homeDisplayGames, getGameColor } from '../../../../../common/infoconstants/miscconstants.mjs'
 import SWOnHandHACheckbox from './swonhandhacheckbox'
+import GameIndicatorBox from '../../tabledata/gameindicatorbox'
 
-function SmallWidthOnHandRowContent({row, pokemonId, collectionId, styles, isSelected, setSelected, allEggMoveInfo, availableGamesInfo, isEditMode, demo, isHomeCollection, isTradePage, tradeSide, wantedByOtherList, userData, idxOfPokemon}) {
+function SmallWidthOnHandRowContent({row, pokemonId, collectionId, styles, isSelected, setSelected, availableGamesInfo, isEditMode, demo, isHomeCollection, isTradePage, tradeSide, wantedByOtherList, userData, idxOfPokemon}) {
     const dispatch = useDispatch()
     const theme = useTheme()
 
     const skeletonRow = row === undefined
     if (skeletonRow) { 
         //skeletonRow happens when adding multiple on-hands and leaving edit mode. they come out undefined at first. I gave up trying to debug it, this is a work-around
-        return <>
-            <Box 
+        return <TableCell>
+            <Box
                 sx={{
                     ...theme.components.box.fullCenterRow, 
                     height: '10%', 
@@ -37,7 +38,7 @@ function SmallWidthOnHandRowContent({row, pokemonId, collectionId, styles, isSel
 
             </Box>
             <Box sx={{...theme.components.box.fullCenterRow, height: '90%', width: '100%', color: 'white', position: 'relative'}}></Box>
-        </>
+        </TableCell>
     }
 
     const deleteOnHandMode = isEditMode ? useSelector((state) => state.editmode.deleteOnHandMode) : null
@@ -48,7 +49,7 @@ function SmallWidthOnHandRowContent({row, pokemonId, collectionId, styles, isSel
         dispatch(toggleOnHandIdToDelete(row._id))
     }
 
-    const possibleEMs = !isHomeCollection && (allEggMoveInfo[row.name])
+    const possibleEMs = !isHomeCollection && (useSelector((state) => state.collectionState.eggMoveInfo[row.name]))
     const maxEMs = !isHomeCollection && (possibleEMs === undefined ? 0 : possibleEMs.length > 4 ? 4 : possibleEMs.length)
 
     //trade functions
@@ -69,7 +70,7 @@ function SmallWidthOnHandRowContent({row, pokemonId, collectionId, styles, isSel
 
     const haView = isHomeCollection ? useSelector((state) => state.collectionState.listDisplay.showHAView) : null
     const displayHomeGames = isHomeCollection && !haView
-    const nonHAMon = row.haName.includes('Non-HA')
+    const nonHAMon = row.haName === undefined ? false : row.haName.includes('Non-HA')
 
     return (
         <TableCell 
@@ -184,40 +185,50 @@ function SmallWidthOnHandRowContent({row, pokemonId, collectionId, styles, isSel
                     //     onChange={isEditMode ? () => dispatch(setIsHA({listType: 'onhand', idx: idxOfPokemon})) : undefined}
                     // />
                     // </Box>
-                    <SWOnHandHACheckbox isHA={row.isHA} isEditMode={isEditMode} idxOfPokemon={idxOfPokemon}/>
+                    <SWOnHandHACheckbox isHA={row.isHA} isEditMode={isEditMode} idxOfPokemon={idxOfPokemon} colID={collectionId} onhandId={row._id}/>
                     }
                 </Box>
-                {!isHomeCollection && 
-                    (row.emCount === undefined ? <Box sx={{width: '65%', height: '100px', backgroundColor: 'black'}}></Box> :   
-                    <>
-                   
-                    <Box sx={{width: '15%', height: '100px', ...theme.components.box.fullCenterRow}}> 
-                        <Box sx={{width: '94%', height: '94%', ...theme.components.box.fullCenterCol, backgroundColor: theme.palette.color2.dark, borderRadius: '10px', border: '1px solid black'}}>
-                        <Typography sx={{fontSize: '20px'}}><b>{row.emCount}</b></Typography>
-                        </Box>
+                {row.emCount === undefined ? <Box sx={{width: '65%', height: '100px', backgroundColor: 'black'}}></Box> :   
+                <>
+                
+                <Box sx={{width: '15%', height: '100px', ...theme.components.box.fullCenterRow}}> 
+                    <Box sx={{width: '94%', height: '94%', ...theme.components.box.fullCenterCol, backgroundColor: theme.palette.color2.dark, borderRadius: '10px', border: '1px solid black', position: 'relative'}}>
+                    <Typography sx={{fontSize: '20px'}}><b>{row.emCount}</b></Typography>
+                    {(isHomeCollection && row.emCount !== 0) && 
+                    <Box sx={{display: 'flex', position: 'absolute', width: '100%', bottom: '0px', ...theme.components.box.fullCenterCol}}>
+                        <Typography sx={{fontSize: '11px', color: theme.palette.color1.light, opacity: nonHAMon ? 0.75 : 1}}>
+                            In: 
+                        </Typography>
+                        <GameIndicatorBox 
+                            game={row.emGen}
+                            sx={{px: 0, opacity: 0.65, '@media only screen and (max-width: 400px)': {gap: '4px'}}}
+                            textSx={{fontSize: '10px'}}
+                        />
                     </Box>
-                   
-                    <Box sx={{width: '50%', height: '100px', ...theme.components.box.fullCenterRow}}>
-                        <Box sx={{width: '94%', height: '94%', ...theme.components.box.fullCenterCol, backgroundColor: theme.palette.color2.dark, borderRadius: '10px', border: '1px solid black'}}>
-                            {row.emCount === 0 ? 
-                            <Typography sx={{color: 'grey'}}><i>No Egg Moves</i></Typography> : 
-                            <EggMoveColumnDisplay
-                                EMs={row.EMs}
-                                emCount={row.emCount}
-                                emKeyLiteral={(emNum) => `${row._id}-${row.ball}-egg-move-${emNum}`}
-                                baseStyles={styles}
-                                isEditMode={isEditMode}
-                                flaggedForDeletion={deleteOnHandMode && ohIdsFlagged.includes(row._id)}
-                                onClickFunc={deleteOnHandMode ? () => dispatch(toggleOnHandIdToDelete(row._id)) : isSelected ? null : setSelected}
-                                blackSquare={false}
-                                boxWrapper={true}
-                                customSx={{width: '100%'}}
-                                centeredGridItems
-                            />}
-                        </Box>
+                    }
                     </Box>
-                    </>
-                    )
+                </Box>
+                
+                <Box sx={{width: '50%', height: '100px', ...theme.components.box.fullCenterRow}}>
+                    <Box sx={{width: '94%', height: '94%', ...theme.components.box.fullCenterCol, backgroundColor: theme.palette.color2.dark, borderRadius: '10px', border: '1px solid black'}}>
+                        {row.emCount === 0 ? 
+                        <Typography sx={{color: 'grey'}}><i>No Egg Moves</i></Typography> : 
+                        <EggMoveColumnDisplay
+                            EMs={row.EMs}
+                            emCount={row.emCount}
+                            emKeyLiteral={(emNum) => `${row._id}-${row.ball}-egg-move-${emNum}`}
+                            baseStyles={styles}
+                            isEditMode={isEditMode}
+                            flaggedForDeletion={deleteOnHandMode && ohIdsFlagged.includes(row._id)}
+                            onClickFunc={deleteOnHandMode ? () => dispatch(toggleOnHandIdToDelete(row._id)) : isSelected ? null : setSelected}
+                            blackSquare={false}
+                            boxWrapper={true}
+                            customSx={{width: '100%'}}
+                            centeredGridItems
+                        />}
+                    </Box>
+                </Box>
+                </>
                 }
             </Box>
         </TableCell>

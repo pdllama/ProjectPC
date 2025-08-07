@@ -1,3 +1,4 @@
+import { getPokemonGroups } from "../pokemongroups/getpokemongroups.js";
 import gen1Info from "./gen1info.js";
 import gen2Info from "./gen2info.js";
 import gen3Info from "./gen3info.js";

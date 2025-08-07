@@ -6,13 +6,15 @@ import { apriballs, homeDisplayGames, getGameColor } from "../../../../common/in
 import { OnHandQtyDisplay } from "./bypokemoncomponents";
 import { selectCollectionPokemon, seeIfPokemonIsSelected, selectByPokemonOHData, selectOwnedBallsList, selectOwnedBallsAndHangingOnHandBallsList } from "../../../app/selectors/selectors";
 import { setMaxEmArr } from "../../../../utils/functions/misc";
-import { deselect, setSelected, setUnsavedChanges, toggleOnHandIdToDelete } from "../../../app/slices/editmode";
+import { deselect, setSelected, setUnsavedChanges, toggleOnHandIdToDelete, setOnhandChange } from "../../../app/slices/editmode";
 import newObjectId from "../../../../utils/functions/newobjectid";
 import { setQtyByPokemon } from "../../../app/slices/collectionstate";
 import Selection from "../selection";
 import getNameDisplay from "../../../../utils/functions/display/getnamedisplay";
+import { getByQtyChanges } from "../../../app/slices/reducers/reducerfunctions/setQtyByPokemonFunc";
+import store from "../../../app/store";
 
-function OnHandByPokemonDisplay({columns, row, pokemonId, isEditMode, isSelected, setSelected, styles, availableGames=undefined, demo, userData, isHomeCollection, localHandleChange=null}) {
+function OnHandByPokemonDisplay({columns, collectionID, row, pokemonId, isEditMode, isSelected, setSelected, styles, availableGames=undefined, demo, userData, isHomeCollection, localHandleChange=null}) {
     // console.log(row)
     // console.log(columns)
     const dispatch = useDispatch()
@@ -38,8 +40,10 @@ function OnHandByPokemonDisplay({columns, row, pokemonId, isEditMode, isSelected
     const deselectFunc = () => {dispatch(deselect())}
 
     const handleEditQty = (ball, increment, addingNew, removeMonFromDisplay) => {
-        dispatch(setQtyByPokemon({pokeId: pokemonId, ball, increment, addingNew, removeMonFromDisplay}))
-        dispatch(setUnsavedChanges('onhand'))
+        const collectionState = store.getState().collectionState
+        const {changeDataArr, prevQtys, newQtys, pData, multipleOHs} = getByQtyChanges(collectionState.collection, collectionState.onhand, pokemonId, ball, increment, undefined, isHomeCollection)
+        dispatch(setQtyByPokemon({pokeId: pokemonId, ball, addingNew, changeDataArr, prevQtys, newQtys, pData, multipleOHs, removeMonFromDisplay, currColId: collectionID}))
+        // dispatch(setOnhandChange({changeDataArr, prevQtys, newQtys, pData, multipleOHs, currColId: collectionID}))
     }
 
     return (
@@ -55,6 +59,7 @@ function OnHandByPokemonDisplay({columns, row, pokemonId, isEditMode, isSelected
             const displayHomeGames = c.dataKey === 'name' && displayAvailableGames
             const displayHA = c.dataKey === 'name' && haView
             const deleteFlag = `${row.imgLink} ${c.dataKey}`
+            
             const isLastBallQty = isBallQty && row.balls[c.dataKey] !== undefined && row.balls[c.dataKey].numTotal === 1 && Object.values(row.balls).map(bD => bD.numTotal).reduce((acc, cV) => acc+cV, 0) === 1
             const onClickFunc = isBallQty ? 
                 (isEditMode) ? 

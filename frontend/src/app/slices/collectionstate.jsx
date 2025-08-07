@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, current } from "@reduxjs/toolkit";
 import { collectionReducers, onhandReducers } from "./reducers/listreducers";
 import { listDisplayInitialState, displayReducers } from "./reducers/displayreducers";
 import { optionsInitialState, optionsReducers } from "./reducers/optionsreducers";
@@ -8,24 +8,39 @@ import { filterList } from "../../../utils/functions/sortfilterfunctions/filterf
 import { changeList, setAllData, setPosRenderOHBallData } from "./editmode";
 import { hideFullSets } from "../../../utils/functions/display/fullsetview";
 import { hideEmptySets } from "../../../utils/functions/display/emptysetview";
+import { initializeLinkedEditPage, initializeSwitchedCollections } from "./linkedcollectionsreducers/initialize";
+import { selectCorrectOpList } from "../selectors/linkedcolsselectors";
+import { collectionsFiltersInit, onhandFiltersInit } from "./reducers/displayreducers";
+import { resetChangesAndUninitialize } from "./editmode";
+import { replace } from "react-router-redux";
+import { updateExcludedBallCombos, updatePokemonScope } from "./reducers/scopereducers";
 
 const backendurl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000'
 
-export const fetchCollectionData = createAsyncThunk('collection/fetchCollectionStatus', async(colId) => {
-    const response = await fetch(`${backendurl}/collections/${colId}`).then(res => res.json()).catch(e => {return {status: 500, name: 'Internal Server Error', message: 'We cannot communicate with our servers at the moment. Please try again later.'}})
-    return response
+export const fetchCollectionData = createAsyncThunk('collection/fetchCollectionStatus', async(details) => {
+    const response = await fetch(`${backendurl}/collections/${details.colId}${details.sub ? `?col=${details.sub}` : ''}`).then(res => res.json()).catch(e => {return {status: 500, name: 'Internal Server Error', message: 'We cannot communicate with our servers at the moment. Please try again later.'}})
+    if (response.status) {
+        return {...response, error: true}
+    }
+    return {...response, sub: details.sub}
 })
 
 const collectionState = createSlice({
     name: 'collectionState',
     initialState: {
+        linkedCollections: undefined,
+        linkedSelectedIdx: 0,
         collection: [],
+        subList: [],
         onhand: [],
         eggMoveInfo: {},
         availableGamesInfo: {},
         listDisplay: listDisplayInitialState,
         options: optionsInitialState,
-        demoData: {gen: ''}
+        demoData: {gen: ''},
+        //next two are just for the initialize state wrapper in the app, so it doesnt subscribe to something it doesnt need to
+        initialized: false,
+        collectionID: ''
     },
     reducers: {
         initializeTotalState: commonReducers.initializeTotalState,
@@ -39,11 +54,14 @@ const collectionState = createSlice({
         setTags: collectionReducers.setTags,
         setDefault: collectionReducers.setDefault,
         setMultipleIsOwned: collectionReducers.setMultipleIsOwned,
+        setPokemonScope: updatePokemonScope, 
+        setExcludedCombos: updateExcludedBallCombos,
 
         setBall: onhandReducers.setBall,
         setGender: onhandReducers.setGender,
         setPokemonSpecies: onhandReducers.setPokemonSpecies,
         setQty: onhandReducers.setQty,
+        setEmGen: onhandReducers.setEmGen,
         setQtyByPokemon: onhandReducers.setQtyByPokemon,
 
         setListState: displayReducers.setListState,
@@ -58,87 +76,77 @@ const collectionState = createSlice({
             {...state, lastOnhandScrollPosition: action.payload.scrollPos, prevColId: action.payload.latestColId, } : 
             {...state, lastScrollPosition: action.payload.scrollPos, prevColId: action.payload.latestColId}
         },
-        setOnHandView: (state, action) => {
-            const useState = action.payload.useState
-            if (state.listDisplay.onhandView === 'byIndividual') {
-                state.listDisplay.onhand = displayOnHandByPokemon(state.listDisplay.onhand, action.payload.collection)
-                state.listDisplay.onhandView = 'byPokemon'
-            }
-            else {
-                const filtersData = {
-                    ballFilters: state.listDisplay.onhandFilters.filters.ballFilters,
-                    genFilters: state.listDisplay.onhandFilters.filters.genFilters,
-                    otherFilters: state.listDisplay.onhandFilters.filters.otherFilters
-                }
-                state.listDisplay.onhand = filterList(useState ? state.onhand : action.payload.onhand, '', '', 'onhand', useState ? state.onhand : action.payload.onhand, true, filtersData, state.listDisplay.onhandFilters.sort, state.availableGamesInfo)
-                state.listDisplay.onhandView = 'byIndividual'
-            }
-            return state
-        },
-        toggleFullSetView: (state, action) => {
-            const useState = action.payload.useState
-            state.listDisplay.showFullSets = !state.listDisplay.showFullSets
-            if (state.listDisplay.showFullSets) {
-                const filtersData = {
-                    ballFilters: state.listDisplay.collectionFilters.filters.ballFilters,
-                    genFilters: state.listDisplay.collectionFilters.filters.genFilters,
-                    otherFilters: state.listDisplay.collectionFilters.filters.otherFilters
-                }
-                const colDataToUse = useState ? state.collection.filter(p => p.disabled === undefined) : action.payload.collection
-                state.listDisplay.collection = filterList(colDataToUse, '', '', 'collection', colDataToUse, true, filtersData, state.listDisplay.collectionFilters.sort, state.availableGamesInfo, state.listDisplay.showFullSets, state.listDisplay.showEmptySets)
-            } else {
-                state.listDisplay.collection = hideFullSets(state.listDisplay.collection)
-            }
-            return state
-        },
-        toggleEmptySetView: (state, action) => {
-            const useState = action.payload.useState
-            state.listDisplay.showEmptySets = !state.listDisplay.showEmptySets
-            if (state.listDisplay.showEmptySets) {
-                const filtersData = {
-                    ballFilters: state.listDisplay.collectionFilters.filters.ballFilters,
-                    genFilters: state.listDisplay.collectionFilters.filters.genFilters,
-                    otherFilters: state.listDisplay.collectionFilters.filters.otherFilters
-                }
-                const colDataToUse = useState ? state.collection.filter(p => p.disabled === undefined) : action.payload.collection
-                state.listDisplay.collection = filterList(colDataToUse, '', '', 'collection', colDataToUse, true, filtersData, state.listDisplay.collectionFilters.sort, state.availableGamesInfo, state.listDisplay.showFullSets, state.listDisplay.showEmptySets)
-            } else {
-                state.listDisplay.collection = hideEmptySets(state.listDisplay.collection)
-            }
-        },
+        setOnHandView: displayReducers.setOnHandView,
+        toggleFullSetView: displayReducers.toggleFullSetView,
+        toggleEmptySetView: displayReducers.toggleEmptySetView,
         toggleAbilitiesView: (state) => {
             state.listDisplay.showHAView = !state.listDisplay.showHAView
             return state
         },
+        toggleHomeEMView: displayReducers.toggleHomeEMView,
         resetFilters: (state, action) => {
-            const {useState, onhand, collection, listType} = action.payload
-            state.listDisplay[`${listType}Filters`].filters = {genFilters: [], ballFilters: [], otherFilters: []}
+            const {listType} = action.payload
+            state.listDisplay[`${listType}Filters`].sort = ''
+            state.listDisplay[`${listType}Filters`].filters = listType === 'collection' ? collectionsFiltersInit : onhandFiltersInit
+            state.listDisplay.filterSearchTerm = ''
             if (listType === 'collection') {
                 state.listDisplay.showFullSets = true
-                state.listDisplay.collection = useState ? state.collection.filter(p => p.disabled === undefined) : collection 
+                state.listDisplay.showEmptySets = true
+                state.listDisplay.collection = selectCorrectOpList(state) 
             } else {
-                const onhandListToUse = useState ? state.onhand : onhand 
-                state.listDisplay.onhand = state.listDisplay.onhandView === 'byIndividual' ? onhandListToUse : displayOnHandByPokemon(onhandListToUse, useState ? state.collection : collection)
+                state.listDisplay.onhand = state.listDisplay.onhandView === 'byIndividual' ? state.onhand : displayOnHandByPokemon(state.onhand, state.collection)
             }
         },
 
         setRate: optionsReducers.setRate,
         setBallScope: optionsReducers.setBallScope,
         setSortingOptionsState: optionsReducers.setSortingOptionsState,
+        customSortList: optionsReducers.customSortList,
         setTradePreferencesState: optionsReducers.setTradePreferencesState,
         setItemState: optionsReducers.setItemState,
         setNameState: optionsReducers.setNameState,
-        setGlobalDefaultState: optionsReducers.setGlobalDefaultState
+        setGlobalDefaultState: optionsReducers.setGlobalDefaultState,
+        resetInitialized: (state, action) => {
+            state.initialized = false;
+            return state
+        },
+        resetCollectionID: (state, action) => {
+            state.collectionID = ''
+            return state
+        }
     },
     extraReducers: (builder) => {
         builder
             .addCase(fetchCollectionData.fulfilled, (state, action) => {
-                if (action.payload.status === 500) {
+                if (action.payload.status) {
                     return state
                 }
+                state.initialized = true
+                state.collectionID = action.payload._id
+                const initializeSubCollection = action.payload.sub
+                if (initializeSubCollection) {
+                    return initializeLinkedEditPage(state, action)
+                }
+                if (action.payload.linkedCollections) {
+                    state.linkedCollections = [{
+                        _id: action.payload._id, 
+                        gen: action.payload.gen,
+                        name: action.payload.name,
+                        type: action.payload.type,
+                        main: true,
+                        onHand: action.payload.onHand,
+                        options: action.payload.options
+                    }, ...action.payload.linkedCollections]
+                } else {
+                    if (state.linkedCollections) {
+                        state.linkedCollections = undefined,
+                        state.linkedSelectedIdx = 0,
+                        state.subList = []
+                    }
+                }
                 state.collection = action.payload.ownedPokemon
+                
                 if (state.listDisplay.collection.length === 0) {state.listDisplay.collection = action.payload.ownedPokemon.filter(p => !p.disabled)}
-
                 state.onhand = action.payload.onHand
                 if (state.listDisplay.onhand.length === 0){
                     // state.listDisplay.onhand = action.payload.onHand
@@ -151,8 +159,17 @@ const collectionState = createSlice({
                 return state
             })
             .addCase(changeList, (state, action) => {
+                const {idx} = action.payload
                 state.lastScrollPosition = undefined,
                 state.lastOnhandScrollPosition = undefined
+                state.listDisplay.filterSearchTerm = ''
+                if (idx !== undefined) {
+                    const reInitialize = idx !== state.linkedSelectedIdx
+                    state.linkedSelectedIdx = idx
+                    if (reInitialize) {
+                        initializeSwitchedCollections(state)
+                    }
+                }
                 return state
             })
             .addCase(setPosRenderOHBallData, (state, action) => {
@@ -175,16 +192,20 @@ const collectionState = createSlice({
                 }
                 return state
             })
+            .addCase(resetChangesAndUninitialize, (state, action) => { 
+                state.initialized = false
+                return state
+            })
     }
 })
 
 export const {
     initializeTotalState, setListDisplayInitialState, setIsHA, setEmCount, setEms, deleteEms,
-    setIsOwned, setTags, setDefault, setMultipleIsOwned,
-    setBall, setGender, setPokemonSpecies, setQty, setQtyByPokemon,
+    setIsOwned, setTags, setDefault, setMultipleIsOwned, setPokemonScope, setExcludedCombos,
+    setBall, setGender, setPokemonSpecies, setQty, setEmGen, setQtyByPokemon,
     setListState, addOnHandPokemonToList, addOnHandPokemonToListByPokemon, removeOnHandPokemonFromList, setSortKey, setFilters, filterSearch, 
-    setScrollPosition, setOnHandView, toggleFullSetView, toggleEmptySetView, toggleAbilitiesView, resetFilters,
-    setRate, setBallScope, setSortingOptionsState, setTradePreferencesState, setItemState, setNameState, setGlobalDefaultState,
+    setScrollPosition, setOnHandView, toggleFullSetView, toggleEmptySetView, toggleAbilitiesView, toggleHomeEMView, resetFilters,
+    setRate, setBallScope, setSortingOptionsState, customSortList, setTradePreferencesState, setItemState, setNameState, setGlobalDefaultState, resetInitialized, resetCollectionID
 } = collectionState.actions
 
 export default collectionState

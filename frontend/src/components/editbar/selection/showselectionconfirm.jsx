@@ -4,9 +4,9 @@ import { useRouteLoaderData } from 'react-router'
 import getNameDisplay from '../../../../utils/functions/display/getnamedisplay'
 import ImgData from '../../collectiontable/tabledata/imgdata'
 import {useSelector, useDispatch} from 'react-redux'
-import {toggleEditScreenState} from './../../../app/slices/editmode'
+import {setCollectionChange, toggleEditScreenState} from './../../../app/slices/editmode'
 import { setSelectedBall, deselect, setUnsavedChanges } from './../../../app/slices/editmode'
-import { setMultipleIsOwned, setQtyByPokemon } from '../../../app/slices/collectionstate'
+import { setMultipleIsOwned } from '../../../app/slices/collectionstate'
 import BallSelectionForm from '../editsectioncomponents/shared/ballselectionform'
 import RemoveIcon from '@mui/icons-material/Remove';
 import AddIcon from '@mui/icons-material/Add';
@@ -14,8 +14,9 @@ import { selectAllowedBallsList, selectOwnedBallsAndHangingOnHandBallsList } fro
 import { apriballs } from '../../../../common/infoconstants/miscconstants.mjs'
 import { NumericFormat } from 'react-number-format'
 import ByPokemonQtyEditor from './onhandlist/bypokemonqtyeditor'
+import getDefaultData, { changeDefaultDataToChangeFormat, handleMultipleDefaultData } from '../../../../utils/functions/defaultdata'
 
-export default function ShowSelectionConfirm({listType, pokemon, pokemonDeletedFromMemory, globalDefault, pokemonIdx, possibleEggMoves, smScreen, onhandView, ohByPSWShowEditScreen}) {
+export default function ShowSelectionConfirm({listType, pokemon, pokemonDeletedFromMemory, globalDefault, superCollectionGlobalDefault, pokemonIdx, possibleEggMoves, smScreen, onhandView, ohByPSWShowEditScreen, isHomeCollection, collectionGen, subListIdx}) {
     const dispatch = useDispatch()
     const theme = useTheme()
     const userData = useRouteLoaderData('root')
@@ -24,7 +25,7 @@ export default function ShowSelectionConfirm({listType, pokemon, pokemonDeletedF
     //need to add conditional in the selector, else it detects that less hooks were rendered.
     const allowedBalls = useSelector((state) => (byPokemonEdit && !pokemonDeletedFromMemory && !smScreen) ? selectOwnedBallsAndHangingOnHandBallsList(state, pokemon.imgLink) : undefined)
     const selectedBall = useSelector((state) => byPokemonEdit ? state.editmode.selectedBall : '') 
-
+    const pokemonDataHomeFormat = useSelector((state) => subListIdx !== undefined ? state.collectionState.collection[pokemonIdx] : undefined)
 
     const capitalizedBallName = (listType === 'onHand' && !(onhandView === 'byPokemon')) ? `${pokemon.ball[0].toUpperCase()}${pokemon.ball.slice(1)}` : ''
     useEffect(() => {
@@ -42,12 +43,40 @@ export default function ShowSelectionConfirm({listType, pokemon, pokemonDeletedF
         }
     })
     
-
     const fullyCompleteSet = () => {
         const checkDefault = Object.keys(pokemon.balls)[Object.values(pokemon.balls).map((b) => b.default !== undefined).indexOf(true)]
         const currentDefault = checkDefault === undefined ? 'none' : checkDefault
-        dispatch(setMultipleIsOwned({idx: pokemonIdx, ballDefault: currentDefault, globalDefault, possibleEggMoves}))
-        dispatch(setUnsavedChanges('collection'))
+        const maxEMs = possibleEggMoves.length > 4 ? 4 : possibleEggMoves.length
+        const newBallData = {}
+        const prevDefaultData = {}
+        const newDefaultData = {}
+        Object.keys(pokemon.balls).forEach(b => {
+            const ballData = pokemon.balls[b]
+            if (ballData.isOwned) {
+                if (subListIdx !== undefined) {
+                    newBallData[b] = pokemonDataHomeFormat.balls[b]
+                } else {
+                    newBallData[b] = pokemon.balls[b]
+                }
+            } else {
+                const defaultData = subListIdx !== undefined ? 
+                    handleMultipleDefaultData(globalDefault, collectionGen, superCollectionGlobalDefault, b, pokemonDataHomeFormat.balls, pokemonDataHomeFormat.possibleEggMoves) :  
+                    getDefaultData(globalDefault, currentDefault, pokemon.balls, maxEMs, possibleEggMoves, b, isHomeCollection)
+                const newBallParticularData = {...ballData, isOwned: true, highlyWanted: undefined, pending: undefined, ...defaultData}
+                if (subListIdx !== undefined) {
+                    delete newBallParticularData.EMs
+                    delete newBallParticularData.emCount
+                }
+                newBallData[b] = newBallParticularData
+                newDefaultData[b] = changeDefaultDataToChangeFormat(defaultData, subListIdx !== undefined ? collectionGen : undefined)
+                prevDefaultData[b] = changeDefaultDataToChangeFormat(subListIdx !== undefined ? pokemonDataHomeFormat.balls[b] : pokemon.balls[b], subListIdx !== undefined ? collectionGen : undefined, true)
+                
+            }
+        })
+        dispatch(setMultipleIsOwned({idx: pokemonIdx, newBallData, subListIdx, currColGen: collectionGen}))
+        Object.keys(newDefaultData).forEach(b => {
+            dispatch(setCollectionChange({id: pokemon.imgLink, ball: b, field: 'isOwned', currValue: true, defaultData: newDefaultData[b], prevDefaultData: prevDefaultData[b]}))
+        })
     }
 
     const smScreenMQuery = smScreen ? {
@@ -104,7 +133,7 @@ export default function ShowSelectionConfirm({listType, pokemon, pokemonDeletedF
                     width='40%'
                     handleChange={(e, b) => dispatch(setSelectedBall(b))}
                 />
-                <ByPokemonQtyEditor qtyData={pokemon.idSetsAndNums[selectedBall]} fullIdSetsAndNums={pokemon.idSetsAndNums} pokeId={pokemon.imgLink} ball={selectedBall} smScreen={false}/>
+                <ByPokemonQtyEditor qtyData={pokemon.idSetsAndNums[selectedBall]} fullIdSetsAndNums={pokemon.idSetsAndNums} pokeId={pokemon.imgLink} ball={selectedBall} smScreen={false} isHomeCollection={isHomeCollection}/>
                 </>}
             </Box>
         }

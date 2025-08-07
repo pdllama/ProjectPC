@@ -79,6 +79,9 @@ export default function ShowTrade({tradeAndLOfferData}) {
         }
     }, [])
 
+    const col0Link = deletedCollection0 ? null : tradeData.users[0].tradeCollection.linkedTo ? `${tradeData.users[0].tradeCollection.linkedTo.super}?col=${tradeData.users[0].tradeCollection._id}` : tradeData.users[0].tradeCollection._id
+    const col1Link = deletedCollection1 ? null : tradeData.users[1].tradeCollection.linkedTo ? `${tradeData.users[1].tradeCollection.linkedTo.super}?col=${tradeData.users[1].tradeCollection._id}` : tradeData.users[1].tradeCollection._id
+
     return (
         <BodyWrapper sx={{mt: 3, mx: 1, ...theme.components.box.fullCenterCol, justifyContent: 'start', mb: 0}}>
             <Box sx={{...theme.components.box.fullCenterCol, justifyContent: 'start', maxWidth: '1200px', width: '100%', gap: 1}}>  
@@ -103,7 +106,7 @@ export default function ShowTrade({tradeAndLOfferData}) {
                                 backgroundColor: hexToRgba(theme.palette.color3.main, 0.3), 
                                 border: `1px solid ${theme.palette.color3.dark}`
                             }}
-                            onClick={deletedCollection0 ? null : () => navigate(`/collections/${tradeData.users[0].tradeCollection._id}`)}
+                            onClick={deletedCollection0 ? null : () => navigate(`/collections/${col0Link}`)}
                             disabled={deletedCollection0}
                         >
                             
@@ -171,7 +174,7 @@ export default function ShowTrade({tradeAndLOfferData}) {
                                 backgroundColor: hexToRgba(theme.palette.color3.main, 0.3), 
                                 border: `1px solid ${theme.palette.color3.dark}`
                             }}
-                            onClick={deletedCollection1 ? null : () => navigate(`/collections/${tradeData.users[1].tradeCollection._id}`)}
+                            onClick={deletedCollection1 ? null : () => navigate(`/collections/${col1Link}`)}
                             disabled={deletedCollection1}
                         >
                             <Box sx={{width: '100%', ...theme.components.box.fullCenterCol, display: 'inline-block'}}>
@@ -205,6 +208,7 @@ export default function ShowTrade({tradeAndLOfferData}) {
                     markedCompleteData={tradeData.markedCompleteBy}
                     tradeStatus={tradeData.status}
                     errorSelection={selectedOffer.error}
+                    tradeGen={tradeData.gen}
                 /> 
             </Box>
         </BodyWrapper>

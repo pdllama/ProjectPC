@@ -534,7 +534,8 @@ const gen1Info = [{
     info: {
         natDexNum: 26,
         HA: {
-            hasHA: false
+            hasHA: false,
+            regAbilityName: 'Surge Surfer'
         },
         evolvedRegionalForm: true,
         species: 'Raichu'
@@ -3247,6 +3248,13 @@ const gen1Info = [{
         gen8: {
             balls: {
                 swsh: {
+                    apriball: {isLegal: true, haIsLegal: true},
+                    safari: {isLegal: true, haIsLegal: true},
+                    sport: {isLegal: true, haIsLegal: true},
+                    beast: {isLegal: true, haIsLegal: true},
+                    dream: {isLegal: true, haIsLegal: true}
+                },
+                bdsp: {
                     apriball: {isLegal: true, haIsLegal: true},
                     safari: {isLegal: true, haIsLegal: true},
                     sport: {isLegal: true, haIsLegal: true},

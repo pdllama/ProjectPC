@@ -4,17 +4,20 @@ import { ErrorContext } from '../../../../app/contexts/errorcontext'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectCustomSortData } from '../../../../app/selectors/selectors'
 import { changeModalState } from '../../../../app/slices/editmode'
-import { sortList, customSortChanges } from '../../../../../common/sortingfunctions/customsorting.mjs'
+import { sortList, customSortChanges, getCustomSortObject } from '../../../../../common/sortingfunctions/customsorting.mjs'
 import { ownedPokemonEdit } from '../../../../../utils/functions/backendrequests/ownedpokemonedit'
 import CustomSortModalContents from '../../../collectioncreation/stepcomponents/optionsselection/aprimon/customsortmodalcontents'
 import SaveChangesConfirmModal from '../savechangesconfirmmodal'
-import { setListState } from '../../../../app/slices/collectionstate'
+import { customSortList, setListState } from '../../../../app/slices/collectionstate'
+import { selectCorrectOpList } from '../../../../app/selectors/linkedcolsselectors'
+import customSortChange from '../../../../../utils/functions/backendrequests/collections/sortingrequests/customsort'
 
 export default function CustomSortingOptions({elementBg, collectionGen, collectionId, demo, sw}) {
     const dispatch = useDispatch()
     const {handleError} = useContext(ErrorContext)
     const customSortStateInit = useSelector((state) => selectCustomSortData(state))
-    const collectionState = useSelector((state) => state.collectionState.collection)
+    const collectionState = useSelector((state) => selectCorrectOpList(state))
+    const isSubList = useSelector(state => state.linkedCollections !== undefined && state.linkedSelectedIdx !== 0)
 
     const [sortData, setSortData] = useState({customSort: customSortStateInit, holdPokemon: [], saveChangesConfirmOpen: false})
     
@@ -79,17 +82,13 @@ export default function CustomSortingOptions({elementBg, collectionGen, collecti
 
     const finalizeChanges = (saveChanges, nextScreen) => {
         if (saveChanges) {
-            const enabledMonsOrderRef = [...sortData.customSort, ...sortData.holdPokemon].map((mon, idx) => {return {...mon, idx}})
-            const newCollectionListState = customSortChanges(enabledMonsOrderRef, collectionState)
-            const backendListFormat = JSON.parse(JSON.stringify(newCollectionListState)).map(mon => {
-                delete mon.imgLink
-                delete mon.possibleGender
-                return mon
-            })
+            // const enabledMonsOrderRef = [...sortData.customSort, ...sortData.holdPokemon].map((mon, idx) => {return {...mon, idx}})
+            // const newCollectionListState = customSortChanges(enabledMonsOrderRef, collectionState)
+            const customSortOrderObj = getCustomSortObject([...sortData.customSort, ...sortData.holdPokemon], collectionState, isSubList)
             setSortData({...sortData, saving: true})
             setTimeout(() => {
                 if (demo) {
-                    dispatch(setListState({collection: newCollectionListState, resetCollectionFilters: true, onlyUpdateCollection: true}))
+                    dispatch(customSortList({sortingOrder: customSortOrderObj}))
 
                     //spawning alert
                     const alertMessage = `Sorted Collection List!`
@@ -98,9 +97,9 @@ export default function CustomSortingOptions({elementBg, collectionGen, collecti
                     setAlertIds((prev) => [...prev, id]);
                     dispatch(changeModalState({open: false}))
                 } else {
-                    const backendReq = async() => await ownedPokemonEdit(collectionGen, backendListFormat, collectionId)
+                    const backendReq = async() => await customSortChange(collectionId, customSortOrderObj)
                     const successFunc = () => {
-                        dispatch(setListState({collection: newCollectionListState, resetCollectionFilters: true, onlyUpdateCollection: true}))
+                        dispatch(customSortList({sortingOrder: customSortOrderObj}))
 
                         //spawning alert
                         const alertMessage = `Sorted Collection List!`

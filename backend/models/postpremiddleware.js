@@ -2,7 +2,7 @@ import Collection from './collections.js'
 import User from './users.js'
 import Trade from './trades.js'
 import { setPendingTrade } from '../controllers/tradecontrollers/colmanagementfuncs.js'
-import { collectionProgressAggField } from '../controllers/searchcontroller.js'
+import { transformToFullSheet } from '../controllers/collectioncontrollers/editcollectioncontrollers.js/functions/transformlists.js'
 
 export const postDeleteColEditTradeCol = async (trade, userPos) => {
     const latestOffer = trade.history[trade.history.length-1]
@@ -13,11 +13,12 @@ export const postDeleteColEditTradeCol = async (trade, userPos) => {
         return gen === col.gen
     })[0]._id)
     const otherUserOfferRef = latestOffer.offerer === otherUser.username ? 'offerer' : 'recipient'
+    const isSubCol = otherUserCol.linkedTo ? true : false
     const {
         newOfferColOp, 
         newReceivingColOp, 
         newOfferColOnhand, 
-        newReceivingColOnhand} = setPendingTrade(otherUserOfferRef === 'offerer' ? otherUserCol : undefined, otherUserOfferRef === 'recipient' ? otherUserCol : undefined, latestOffer, true)
+        newReceivingColOnhand} = setPendingTrade(otherUserOfferRef === 'offerer' ? otherUserCol : undefined, otherUserOfferRef === 'recipient' ? otherUserCol : undefined, latestOffer, true, otherUserOfferRef === 'offerer' ? isSubCol : undefined, otherUserOfferRef === 'recipient' ? isSubCol : undefined)
     otherUserCol.ownedPokemon = otherUserOfferRef === 'offerer' ? newOfferColOp : newReceivingColOp
     otherUserCol.onHand = otherUserOfferRef === 'offerer' ? newOfferColOnhand : newReceivingColOnhand   
     otherUserCol.save()  
@@ -28,6 +29,32 @@ export const postDeleteColEditTradeCol = async (trade, userPos) => {
         otherUser.notifications.shift()
     }   
     otherUser.save()
+}
+
+export const handleLinkedCollectionDelete = async(doc) => {
+    const collectionsLinkedToThisOne = await Collection.find({'linkedTo.super': doc._id})
+    const isLinkedCollection = doc.linkedTo !== undefined
+    const isCentralCollection = collectionsLinkedToThisOne.length !== 0
+    if (isLinkedCollection) {
+        if (doc.linkedTo.dummyCollection) {
+            const dummyCollection = await Collection.findById(doc.linkedTo.super)
+            const otherCollection = await Collection.findOne({'linkedTo.super': doc.linkedTo.super, _id: {$not: doc._id}})
+            otherCollection.ownedPokemon = transformToFullSheet(otherCollection.ownedPokemon, dummyCollection.ownedPokemon, otherCollection.gen)
+            otherCollection.linkedTo = undefined
+            await otherCollection.save()
+            await Collection.findByIdAndDelete(dummyCollection._id)
+        } else {
+            null
+        }
+    }
+    if (isCentralCollection) {
+        const subCollections = await Collection.find({'linkedTo.super': doc._id})
+        subCollections.forEach(c => {
+            c.ownedPokemon = transformToFullSheet(c.ownedPokemon, doc.ownedPokemon, c.gen)
+            c.linkedTo = undefined,
+            c.save()
+        })
+    }
 }
 
 
@@ -51,6 +78,9 @@ export const deletedUserNotifications = async (deletedUsername) => {
 // }
 
 export const getCollectionProgressPercent = (col, getPercent=true) => {
+    if (col.linkedTo || col.gen === 'dummy') {
+        return 0
+    }
     const pokemonToCollect = col.ownedPokemon.reduce((accum, currValue) => {
         const num = currValue.disabled ? 0 : Object.keys(currValue.balls).reduce((accum2, currValue2) => {
             const toCollect = currValue.balls[currValue2].disabled ? 0 : 1

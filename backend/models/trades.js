@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { homeEggMoves } from './collectionsubschemas/balldataschema.js';
 const Schema = mongoose.Schema;
 
 const offerSchema = new Schema({
@@ -34,6 +35,7 @@ const offerSchema = new Schema({
                     _id: false,
                     name: {type: String},
                     natDexNum: {type: Number},
+                    id: {type: String},
                     balls: {
                         type: [{
                             ball: {
@@ -43,9 +45,10 @@ const offerSchema = new Schema({
                                 }
                             },
                             isHA: {type: Boolean},
+                            eggMoveData: homeEggMoves, //used for HOME-HOME trades
                             emCount: {type: Number, validate: v => v <= 4},
                             EMs: {type: Array, validate: v => v.length <= 4},
-                            isMaxEMs: {type: Boolean},
+                            emGen: {type: String},
                             onhandId: {type: String},
                             wanted: {type: Boolean},
                             for: {type: String}
@@ -66,16 +69,40 @@ const offerSchema = new Schema({
             type: Object,
             value: {type: Number},
             pokemon: {
+                // type: [{
+                //     _id: false,
+                //     name: {type: String},
+                //     natDexNum: {type: Number},
+                //     ball: {type: String, enum: {values: ['fast', 'friend', 'heavy', 'level', 'love', 'lure', 'moon', 'beast', 'dream', 'safari', 'sport']}},
+                //     isHA: {type: Boolean},
+                //     emCount: {type: Number, validate: v => v <= 4},
+                //     EMs: {type: Array, validate: v => v.length <= 4},
+                //     wanted: {type: Boolean},
+                //     for: {type: String}
+                // }]
                 type: [{
                     _id: false,
                     name: {type: String},
                     natDexNum: {type: Number},
-                    ball: {type: String, enum: {values: ['fast', 'friend', 'heavy', 'level', 'love', 'lure', 'moon', 'beast', 'dream', 'safari', 'sport']}},
-                    isHA: {type: Boolean},
-                    emCount: {type: Number, validate: v => v <= 4},
-                    EMs: {type: Array, validate: v => v.length <= 4},
-                    wanted: {type: Boolean},
-                    for: {type: String}
+                    id: {type: String},
+                    balls: {
+                        type: [{
+                            ball: {
+                                type: String,
+                                enum: {
+                                    values: ['fast', 'friend', 'heavy', 'level', 'love', 'lure', 'moon', 'beast', 'dream', 'safari', 'sport']
+                                }
+                            },
+                            isHA: {type: Boolean},
+                            eggMoveData: homeEggMoves, //used for HOME-HOME trades
+                            emCount: {type: Number, validate: v => v <= 4},
+                            EMs: {type: Array, validate: v => v.length <= 4},
+                            emGen: {type: String},
+                            onhandId: {type: String},
+                            wanted: {type: Boolean},
+                            for: {type: String}
+                        }]
+                    }
                 }]
             },
             items: {

@@ -11,15 +11,14 @@ import {useLoaderData} from 'react-router-dom'
 import {useSelector, useDispatch, connect} from 'react-redux'
 import {setIsOwned, setIsHA, setEmCount, setEms, deleteEms} from './../../../app/slices/collectionstate'
 import {setMaxEmArr, selectNextEmCount} from './../../../../utils/functions/misc'
-import {seeIfPokemonIsSelected, selectCollectionPokemon, selectIdxOfMon} from './../../../app/selectors/selectors'
-import {setSelected, deselect, setSelectedAfterChangingOwned} from './../../../app/slices/editmode'
+import {seeIfPokemonIsSelected, selectCollectionPokemon, selectIdxOfMon, selectUnsavedChanges} from './../../../app/selectors/selectors'
+import {setSelected, deselect, setSelectedAfterChangingOwned, setCollectionChange, setHomeEmBuffer} from './../../../app/slices/editmode'
 import {usePutRequest} from './../../../../utils/functions/backendrequests/editcollection'
-import getDefaultData from '../../../../utils/functions/defaultdata';
+import getDefaultData, { changeDefaultDataToChangeFormat, handleMultipleDefaultData } from '../../../../utils/functions/defaultdata';
 import { apriballs } from '../../../../common/infoconstants/miscconstants.mjs';
 import getNameDisplay from '../../../../utils/functions/display/getnamedisplay';
 import {createSelector} from '@reduxjs/toolkit'
 import {setCollectionInitialState} from '../../../app/slices/collection'
-import { setUnsavedChanges } from './../../../app/slices/editmode';
 import store from '../../../app/store'
 import newObjectId from '../../../../utils/functions/newobjectid';
 
@@ -33,7 +32,9 @@ const disabledTableCellStyles = { //for disabled ball combos (which the user pur
     backgroundColor: 'grey'
 }
 
-export function TableRowGroupingNoRedux({columns, row, id, collectionId, ownerId, styles, isHomeCollection, availableGames, isTradePage, tradeSide, wantedByOtherList, userData}) {
+export function TableRowGroupingNoRedux({columns, row, id, collectionId, ownerId, styles, isHomeCollection, availableGames, isTradePage, tradeSide, wantedByOtherList, userData, otherListGen}) {
+    //mainly used for trade page, since most of that editing/selecting functionality is not needed. 'no redux' might be misleading.
+    const showHAView = useSelector((state) => state.collectionState.listDisplay.showHAView)
     return (
         <React.Fragment>
             {columns.map(c => {
@@ -67,7 +68,8 @@ export function TableRowGroupingNoRedux({columns, row, id, collectionId, ownerId
                             isEditMode={false}
                             isSelected={false}
                             onClickFunc={null}
-                            availableGames={(availableGames === undefined) ? undefined : c.dataKey === 'name' ? availableGames[row.name] : undefined}
+                            availableGames={(availableGames === undefined || showHAView) ? undefined : c.dataKey === 'name' ? availableGames[row.name] : undefined}
+                            haName={(showHAView && c.dataKey === 'name') ? row.haName : undefined}
                         />:
                     row.balls[c.dataKey] === undefined ? 
                         <TableCell sx={blackTableCellStyles} key={`${row.imgLink}-${c.label}`}>
@@ -94,8 +96,10 @@ export function TableRowGroupingNoRedux({columns, row, id, collectionId, ownerId
                                 ball: c.dataKey, 
                                 ...wantedData,
                                 ...row.balls[c.dataKey]
-                            }
+                            },
+                            otherListGen
                         }}
+                        pAvailableGames={isHomeCollection && availableGames[row.name]}
                     />
                 )
             })}
@@ -104,7 +108,7 @@ export function TableRowGroupingNoRedux({columns, row, id, collectionId, ownerId
 }
 
 //dont remove id, mapStateToProps uses it
-function TableRowGrouping({columns, row, id, collectionId, ownerId, styles, isSelected, setSelected, isEditMode, demo, isHomeCollection, userData}) {    
+function TableRowGrouping({columns, row, id, collectionId, ownerId, styles, isSelected, setSelected, isEditMode, demo, isHomeCollection, userData, subListIdx, currColGen, dummyMain}) {    
     const dispatch = useDispatch()
     // console.log(`rendered ${row.name}`)
 
@@ -121,53 +125,75 @@ function TableRowGrouping({columns, row, id, collectionId, ownerId, styles, isSe
     const {handleError} = useContext(ErrorContext)
     const {addAlert} = useContext(AlertsContext)
     //following data is used for editing values in the list
-    const possibleEggMoves = ((isEditMode || demo) && !isHomeCollection) ? useSelector((state) => state.collectionState.eggMoveInfo[row.name]) : null
+    // console.log(useSelector((state) => state.collectionState.eggMoveInfo))
+    const possibleEggMoves = ((isEditMode || demo) && !isHomeCollection) ? useSelector((state) => state.collectionState.eggMoveInfo[row.name]) : isHomeCollection ? row.possibleEggMoves : null
     const maxEMs = ((isEditMode || demo) && !isHomeCollection) ? possibleEggMoves.length > 4 ? 4 : possibleEggMoves.length : null
-    const emCountSelectionList = ((isEditMode || demo) && !isHomeCollection) ? setMaxEmArr(maxEMs) : null
+    const emCountSelectionList = ((isEditMode || demo)) ? setMaxEmArr(maxEMs) : null
     const idx = (isEditMode || demo) ? useSelector(state => state.collectionState.collection.findIndex((p) => p.imgLink === id)) : null
-    const unsavedChanges = (isEditMode || demo) ? useSelector((state) => state.editmode.unsavedChanges) : null
 
     //available games and ha view data
     const availableGames = (isHomeCollection) ? useSelector((state) => state.collectionState.availableGamesInfo[row.name]) : null
     const haView = (isHomeCollection) ? useSelector((state) => state.collectionState.listDisplay.showHAView) : null
 
-    //default data
+    //default data and data used for it
     const globalDefaults = (isEditMode || demo) ? useSelector((state) => state.collectionState.options.globalDefaults) : null
+    const superColGlobalDefault = (isEditMode || demo) ? useSelector((state) => (subListIdx !== undefined && !dummyMain) ? state.collectionState.linkedCollections[0].options.globalDefaults : undefined) : null
+    const monDataInSuperCol = useSelector((state) => subListIdx !== undefined ? state.collectionState.collection[idx] : undefined) 
     const checkDefault = Object.keys(row.balls)[Object.values(row.balls).map((b) => b.default !== undefined).indexOf(true)]
     const currentDefault = checkDefault === undefined ? 'none' : checkDefault
 
-    const handleEditBallInfo = (e, key, pokename, ballname, collectionID, ownerID) => {
+    const handleEditBallInfo = (e, key, pokename, ballname, emGen, currEmCount, tag) => {
+        const trueMaxEMs = (key === 'emCount' && isHomeCollection) ? (possibleEggMoves[emGen].length > 4 ? 4 : possibleEggMoves[emGen].length) : maxEMs
+        const trueEmCountSelectionList = setMaxEmArr(trueMaxEMs)
         const newValue = 
             (
                 key === 'isOwned' ? e.target.checked :
                 key === 'isHA' ? !(e.target.value === 'true') :
-                key === 'emCount' ? selectNextEmCount(emCountSelectionList, parseInt(e.target.value)) :
+                key === 'emCount' ? selectNextEmCount(trueEmCountSelectionList, isHomeCollection ? currEmCount : parseInt(e.target.value)) :
                 key === 'EMs' && 'none'
             )
-        const deleteEMs = key === 'emCount' && row.balls[ballname].EMs.length > newValue
-        const hasAllPossibleEMs = key === 'emCount' && newValue === possibleEggMoves.length
-        const defaultData = key === 'emCount' ? (deleteEMs ? {EMs: []} : hasAllPossibleEMs ? {EMs: possibleEggMoves} : undefined) : getDefaultData(globalDefaults, currentDefault, row.balls, maxEMs, possibleEggMoves, ballname)
+        
+        const deleteEMs = key === 'emCount' && (isHomeCollection ? row.balls[ballname].eggMoveData[emGen].EMs.length > newValue : row.balls[ballname].EMs.length > newValue)
+        const hasAllPossibleEMs = key === 'emCount' && (isHomeCollection ? newValue === possibleEggMoves[emGen].length : newValue === possibleEggMoves.length)
+        // const defaultData = key === 'emCount' ? (deleteEMs ? {EMs: []} : hasAllPossibleEMs ? {EMs: possibleEggMoves} : undefined) : getDefaultData(globalDefaults, currentDefault, row.balls, maxEMs, possibleEggMoves, ballname)
+        const defaultData = (subListIdx !== undefined && !dummyMain) ? handleMultipleDefaultData(globalDefaults, currColGen, superColGlobalDefault, ballname, monDataInSuperCol.balls, monDataInSuperCol.possibleEggMoves) : getDefaultData(globalDefaults, currentDefault, row.balls, trueMaxEMs, possibleEggMoves, ballname, isHomeCollection)
         // const successFunc = () => {
         if (key === 'isOwned') {
+            const prevDefaultData = newValue ? changeDefaultDataToChangeFormat(subListIdx !== undefined ? monDataInSuperCol.balls[ballname] : row.balls[ballname], subListIdx !== undefined && currColGen, true) : undefined
             if (newValue === true) {
                 dispatch(setSelectedAfterChangingOwned({idx: id, ball: ballname}))
             }
-            dispatch(setIsOwned({idx, ball: ballname, ballDefault: defaultData}))
+            dispatch(setIsOwned({idx, ball: ballname, ballDefault: defaultData, subListIdx, currColGen, currDefault: currentDefault}))
+            dispatch(setCollectionChange({id: row.imgLink, ball: ballname, field: 'isOwned', currValue: newValue, 
+                    prevDefaultData, 
+                    defaultData: newValue && changeDefaultDataToChangeFormat(defaultData, subListIdx !== undefined && currColGen)
+                }))
+            
         } else if (key === 'isHA') {
-            dispatch(setIsHA({idx, ball: ballname, listType: 'collection'}))
+            dispatch(setIsHA({idx, ball: ballname, listType: 'collection', subListIdx}))
+            dispatch(setCollectionChange({id: row.imgLink, ball: ballname, field: 'isHA', currValue: newValue}))
         } else if (key === 'emCount') {
-            dispatch(setEmCount({idx, ball: ballname, listType: 'collection', numEMs: newValue}))
+            const prevValue = isHomeCollection ? currEmCount : parseInt(e.target.value)
+            const genKey = isHomeCollection ? (emGen === '9' || emGen === 9) ? 'sv' : emGen : subListIdx !== undefined ? (currColGen === '9' || currColGen === 9) ? 'sv' : currColGen : ''
+            dispatch(setEmCount({idx, ball: ballname, listType: 'collection', numEMs: newValue, subListIdx, emGen, currColGen}))
+            dispatch(setCollectionChange({id: row.imgLink, ball: ballname, field: `${genKey}${genKey ? 'E' : 'e'}mCount`, prevValue, currValue: newValue}))
             if (deleteEMs) {
-                dispatch(deleteEms({idx, ball: ballname, listType: 'collection'}))
+                const prevEMs = isHomeCollection ? row.balls[ballname].eggMoveData[emGen].EMs : row.balls[ballname].EMs
+                dispatch(deleteEms({idx, ball: ballname, listType: 'collection', subListIdx, emGen, currColGen}))
+                dispatch(setCollectionChange({id: row.imgLink, ball: ballname, field: `${genKey}EMs`, prevValue: prevEMs, currValue: []}))
             }
             if (hasAllPossibleEMs) {
-                for (let eggmove of possibleEggMoves) {
-                    dispatch(setEms({idx, ball: ballname, listType: 'collection', emName: eggmove}))
+                const prevEMs = isHomeCollection ? row.balls[ballname].eggMoveData[emGen].EMs : row.balls[ballname].EMs
+                const iterate = isHomeCollection ? possibleEggMoves[emGen] : possibleEggMoves
+                for (let eggmove of iterate) {
+                    dispatch(setEms({idx, ball: ballname, listType: 'collection', emName: eggmove, subListIdx, emGen, currColGen}))
                 }
+                dispatch(setCollectionChange({id: row.imgLink, ball: ballname, field: `${genKey}EMs`, prevValue: prevEMs, currValue: iterate}))
+            }
+            if (isHomeCollection) {
+                dispatch(setHomeEmBuffer(emGen))
             }
         }
-        // if (unsavedChanges === false) {addAlert({severity: 'error', timeout: 4, message: 'You have unsaved changes. Make sure to save before leaving!'})}
-        dispatch(setUnsavedChanges())
         // }}
         // const backendFunc = async() => await usePutRequest(key, newValue, {pokename, ballname}, 'collection', collectionID, ownerID, defaultData)
         // handleError(backendFunc, false, successFunc, () => {})
@@ -235,6 +261,7 @@ function TableRowGrouping({columns, row, id, collectionId, ownerId, styles, isSe
                         styles={styles}
                         isEditMode={isEditMode}
                         isHomeCollection={isHomeCollection}
+                        pAvailableGames={availableGames}
                     />
                 )
             })}
@@ -249,9 +276,14 @@ const mapStateToProps = function(state, ownProps) {
     const isPokemonSelected = seeIfPokemonIsSelected(state, ownProps.id)
     // const pokemon = state.collection[ownProps.idx]
     const pokemon = selectCollectionPokemon(state, ownProps.id)
+    const subListIdx = (state.collectionState.linkedCollections !== undefined && state.collectionState.linkedSelectedIdx !== 0) && state.collectionState.subList.findIndex(p => p.imgLink === ownProps.id)
+    const dummyMain = state.collectionState.linkedCollections !== undefined && state.collectionState.linkedCollections[0].gen === 'dummy'
+
     return {
         row: pokemon,
-        isSelected: isPokemonSelected
+        isSelected: isPokemonSelected,
+        subListIdx: subListIdx === false ? undefined : subListIdx,
+        dummyMain: dummyMain
     }
 }
 

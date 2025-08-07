@@ -1,4 +1,5 @@
 import { interchangeableAltFormMons, interchangeableAltFormForms } from "../../common/infoconstants/pokemonconstants.mjs"
+import { getHighestEmGen } from "../../src/components/collectiontable/tabledata/emindicator"
 
 function capitalizeFirstLetter(word) {
     return `${word.charAt(0).toUpperCase()}${word.slice(1)}`
@@ -73,21 +74,25 @@ function randomGender() {
 }
 
 function setNewOnHandPokemonState(ballInfo, newSelection) {
-    if (ballInfo.isHA === undefined && ballInfo.EMs === undefined) {
+    if (ballInfo.isHA === undefined && ballInfo.EMs === undefined && ballInfo.eggMoveData === undefined) {
         const newOnHandData = {
             gender: newSelection.possibleGender === 'both' ? 'unknown' : newSelection.possibleGender, 
             qty: 1
         }
         return newOnHandData
     } else if (ballInfo.isHA === undefined) {
+        const isHomeCollection = ballInfo.eggMoveData !== undefined
+        const highestEmGen = isHomeCollection ? getHighestEmGen(ballInfo.eggMoveData) : undefined
+        const emGenProp = isHomeCollection ? {emGen: highestEmGen} : {}
         const newOnHandData = {
             gender: newSelection.possibleGender === 'both' ? 'unknown' : newSelection.possibleGender, 
-            emCount: ballInfo.emCount,
-            EMs: ballInfo.EMs,
+            emCount: isHomeCollection ? ballInfo.eggMoveData[highestEmGen].emCount : ballInfo.emCount,
+            EMs: isHomeCollection ? ballInfo.eggMoveData[highestEmGen].EMs : ballInfo.EMs,
+            ...emGenProp,
             qty: 1
         }
         return newOnHandData
-    } else if (ballInfo.EMs === undefined) {
+    } else if (ballInfo.EMs === undefined && ballInfo.eggMoveData === undefined) {
         const newOnHandData = {
             gender: newSelection.possibleGender === 'both' ? 'unknown' : newSelection.possibleGender, 
             isHA: ballInfo.isHA,
@@ -95,11 +100,15 @@ function setNewOnHandPokemonState(ballInfo, newSelection) {
         }
         return newOnHandData
     } else {
+        const isHomeCollection = ballInfo.eggMoveData !== undefined
+        const highestEmGen = isHomeCollection ? getHighestEmGen(ballInfo.eggMoveData) : undefined
+        const emGenProp = isHomeCollection ? {emGen: highestEmGen} : {}
         const newOnHandData = {
             gender: newSelection.possibleGender === 'both' ? 'unknown' : newSelection.possibleGender, 
-            isHA: ballInfo.isHA,
-            emCount: ballInfo.emCount,
-            EMs: ballInfo.EMs,
+            isHA: ballInfo.isHA, 
+            emCount: isHomeCollection ? ballInfo.eggMoveData[highestEmGen].emCount : ballInfo.emCount,
+            EMs: isHomeCollection ? ballInfo.eggMoveData[highestEmGen].EMs : ballInfo.EMs,
+            ...emGenProp,
             qty: 1
         }
         return newOnHandData
@@ -124,6 +133,27 @@ function handleEMsState(newEM, currEMArr) {
     }
 }
 
+const interchangeableAltFormNames = []
+
+Object.keys(interchangeableAltFormForms).forEach(name => {
+    interchangeableAltFormForms[name].forEach(form => {
+        interchangeableAltFormNames.push(`${name} (${form})`)
+    })
+})
+
+//when a collection is collecting interchangeable (Any) forms, they can only have on-hands of the actual forms and not (Any).
+//that raises problems when the program looks for available games of that pokemon but because we're collecting (any), their exact form name
+//doesnt show up.
+//this function equalizes that.
+//only applies to on-hand filtering and games display (in the table).
+function availableGamesInterchangeableEquivalencies(availableGamesInfo, pName) {
+    const isInterchangeableMon = interchangeableAltFormNames.includes(pName) 
+    if (isInterchangeableMon && (availableGamesInfo[pName] === undefined)) {
+        return availableGamesInfo[`${pName.slice(0, pName.indexOf(' '))} (Any)`]
+    } 
+    return availableGamesInfo[pName]
+}
+
 export {
     capitalizeFirstLetter, 
     setMaxEmArr, 
@@ -134,5 +164,6 @@ export {
     randomGender, 
     setNewOnHandPokemonState, 
     selectivelyReturnIsHAAndEMs, 
-    handleEMsState
+    handleEMsState,
+    availableGamesInterchangeableEquivalencies
 }

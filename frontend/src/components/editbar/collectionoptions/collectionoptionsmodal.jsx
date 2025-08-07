@@ -14,9 +14,10 @@ import TradePreferenceOptions from './preferenceoptions/tradepreferenceoptions'
 import RateOptions from './preferenceoptions/rateoptions'
 import ItemOptions from './preferenceoptions/itemoptions'
 import OtherOptions from './otheroptions'
+import LinkColMain from './linkoptions/linkcolmain'
 import SmallWidthModalWrapper from '../../partials/wrappers/smallwidthmodalwrapper'
 
-export default function CollectionOptionsModal({collectionGen, collectionId, ownerUsername, demo, sw}) {
+export default function CollectionOptionsModal({collectionGen, collectionId, ownerUsername, demo, sw, mainColId, isLinkedCollection}) {
     const dispatch = useDispatch()
     const modalState = useSelector((state) => state.editmode.collectionOptionsModal)
     const elementBg = modalStyles.onhand.modalElementBg
@@ -29,26 +30,30 @@ export default function CollectionOptionsModal({collectionGen, collectionId, own
         modalState.screen === 'preferences' || 
         modalState.screen === 'other') ? 
             '600px' : 
-        modalState.screen === 'pokemonScope' ? '730px' : '700px'
+        modalState.screen === 'pokemonScope' ? '730px' : 
+        modalState.screen === 'linking' ? '750px' : '700px'
     const makeChangesScreens = modalState.screen === 'pokemonScope' || modalState.screen === 'ballScope' || modalState.screen === 'excludedCombos' ||
         modalState.screen === 'collectionSort' || modalState.screen === 'onhandSort' || modalState.screen === 'customSort' || modalState.screen === 'preferences'
 
     const collectionTypeText = isNaN(parseInt(collectionGen)) ? `${collectionGen.toUpperCase()} Aprimon Collection` : `Gen ${collectionGen} Aprimon Collection`
 
     const generateChildren = () => (
-        modalState.screen === 'main' ? <OptionsMain elementBg={elementBg} sw={sw}/> : 
+        modalState.screen === 'main' ? <OptionsMain elementBg={elementBg} sw={sw} collectionGen={collectionGen} demo={demo}/> : 
         isOptionsSubScreen ? <OptionsSub elementBg={elementBg} screenType={modalState.screen} collectionGen={collectionGen} sw={sw}/> : 
         modalState.screen === 'pokemonScope' ? <PokemonScope elementBg={elementBg} collectionGen={collectionGen} collectionId={collectionId} demo={demo} sw={sw}/> :
-        modalState.screen === 'ballScope' ? <BallScope elementBg={elementBg} collectionGen={collectionGen} collectionId={collectionId} demo={demo} sw={sw}/> :
+        modalState.screen === 'ballScope' ? <BallScope elementBg={elementBg} collectionGen={collectionGen} collectionId={collectionId} demo={demo} sw={sw} mainColId={mainColId} isLinkedCollection={isLinkedCollection}/> :
         modalState.screen === 'excludedCombos' ? <BallCombosScope elementBg={elementBg} collectionGen={collectionGen} collectionId={collectionId} demo={demo} sw={sw}/> :
-        modalState.screen === 'collectionSort' ? <CollectionSortingOptions elementBg={elementBg} collectionGen={collectionGen} collectionId={collectionId} demo={demo} sw={sw}/> :
+        modalState.screen === 'collectionSort' ? <CollectionSortingOptions elementBg={elementBg} collectionGen={collectionGen} collectionId={collectionId} demo={demo} sw={sw} isSubList={!(mainColId === collectionId)}/> :
         modalState.screen === 'onhandSort' ? <OnHandSortingOptions elementBg={elementBg} collectionGen={collectionGen} collectionId={collectionId} demo={demo} sw={sw}/> :
         modalState.screen === 'customSort' ? <CustomSortingOptions elementBg={elementBg} collectionGen={collectionGen} collectionId={collectionId} demo={demo} sw={sw}/> :
         modalState.screen === 'preferences' ? <TradePreferenceOptions elementBg={elementBg} collectionId={collectionId} isHomeCollection={collectionGen === 'home'} demo={demo} sw={sw}/> :
         modalState.screen === 'rates' ? <RateOptions elementBg={elementBg} collectionGen={collectionGen} collectionId={collectionId} demo={demo} sw={sw}/> :
         modalState.screen === 'items' ? <ItemOptions elementBg={elementBg} collectionGen={collectionGen} collectionId={collectionId} demo={demo} sw={sw}/> :
+        modalState.screen === 'linking' ? <LinkColMain elementBg={elementBg} collectionGen={collectionGen} collectionId={collectionId} demo={demo} sw={sw}/> :
         modalState.screen === 'other' && <OtherOptions elementBg={elementBg} collectionGen={collectionGen} collectionId={collectionId} collectionType={collectionTypeText} owner={ownerUsername} demo={demo} sw={sw}/> 
     )
+
+    const width = modalState.screen === 'linking' ? '85%' : '70%'
 
     return (
         sw ? 
@@ -59,6 +64,7 @@ export default function CollectionOptionsModal({collectionGen, collectionId, own
             open={modalState.open}
             smallClose={true}
             hideCloseButton={makeChangesScreens}
+            buttonSx={{top: '10px', right: '-15px'}}
         >
             {generateChildren()}
         </SmallWidthModalWrapper> :
@@ -77,7 +83,7 @@ export default function CollectionOptionsModal({collectionGen, collectionId, own
         >
             <Fade in={modalState.open}>
                 {/* height is normally 665px in scope selection */}
-                <Box sx={{...modalStyles.onhand.modalContainer, height: modalHeight, width: '70%', minWidth: '575px', maxWidth: '850px', display: 'flex', alignItems: 'center'}}>
+                <Box sx={{...modalStyles.onhand.modalContainer, height: modalHeight, width: width, minWidth: '575px', maxWidth: '850px', display: 'flex', alignItems: 'center'}}>
                     {generateChildren()}
                     {/* {modalState.screen === 'main' && <OptionsMain elementBg={elementBg}/>}
                     {isOptionsSubScreen && <OptionsSub elementBg={elementBg} screenType={modalState.screen} collectionGen={collectionGen}/>}

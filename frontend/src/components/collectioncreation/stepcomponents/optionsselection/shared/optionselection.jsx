@@ -10,16 +10,31 @@ import SortingSelection from '../aprimon/sortingselection';
 import MiscSelection from '../aprimon/miscselection';
 import Header from '../../../../titlecomponents/subcomponents/header';
 import { getPossibleItems, apriballLiterals, getBallsInGen } from '../../../../../../common/infoconstants/miscconstants.mjs';
+import { homeDisplayGames } from '../../../../../../common/infoconstants/miscconstants.mjs';
+
+const getGlobalDefaultInit = (collectionGen) => {
+    const globalDefaultInit = {}
+    if (collectionGen === 'home') {
+        globalDefaultInit.eggMoveData = {}
+        homeDisplayGames.forEach(hDG => {
+            globalDefaultInit.eggMoveData[hDG] = 0
+        })
+    } else {
+        globalDefaultInit.emCount = 0
+    }
+    return globalDefaultInit
+}
 
 export default function OptionSelection({collectionType, formOptionsData, collectionGen, goBackStep, cssClass, customSort, userData, handleChange, demo}) {
     const optionTabs = ['preferences', 'rates', 'sorting', 'misc']
     const [optionTab, setOptionTab] = useState(optionTabs[0])
     const collectionNameRef = useRef(null)
+    
     const [optionsFormData, setOptionsFormData] = useState(formOptionsData !== undefined ? formOptionsData : {
         collectionName: '',
         globalDefaults: {
             isHA: true,
-            emCount: 0
+            ...(getGlobalDefaultInit(collectionGen))
         },
         tradePreferences: {
             status: 'open',
@@ -67,8 +82,12 @@ export default function OptionSelection({collectionType, formOptionsData, collec
         setOptionsFormData({...optionsFormData, sorting: {...optionsFormData.sorting, customSort, ...includeHoldPokemon}})
     }
 
-    const handleGlobalDefaultChange = (field, newValue) => {
-        setOptionsFormData({...optionsFormData, globalDefaults: {...optionsFormData.globalDefaults, [field]: newValue}})
+    const handleGlobalDefaultChange = (field, newValue, gen) => {
+        if (collectionGen === 'home' && field === 'eggMoveData') {
+            setOptionsFormData({...optionsFormData, globalDefaults: {...optionsFormData.globalDefaults, eggMoveData: {...optionsFormData.globalDefaults.eggMoveData, [gen]: newValue}}})
+        } else {
+            setOptionsFormData({...optionsFormData, globalDefaults: {...optionsFormData.globalDefaults, [field]: newValue}})
+        }
     }
 
     const sortMechanismTooltip = 'The sorting mechanisms applied to the two lists when content is added or removed. Enable it to have the sorting mechanism apply every time content changes.'

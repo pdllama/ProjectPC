@@ -7,7 +7,8 @@ import {
   useLoaderData,
   useLocation, defer, Await,
   useRouteLoaderData,
-  redirect
+  redirect,
+  useSearchParams
 } from "react-router-dom"
 import Root from './routes/root'
 import Collections from './routes/collections'
@@ -73,8 +74,13 @@ import AdminMain from './routes/admin/adminmain'
 import SendMessagesPage from './routes/admin/sendmessagespage'
 import ChangeTableData from './routes/admin/changetabledata'
 import adminRouter from './routebrowserobjects/adminrouter'
+import helpRouter from './routebrowserobjects/helprouter'
 import BodyWrapper from './components/partials/routepartials/bodywrapper'
 import getAnnouncementsFromBackend from '../utils/functions/backendrequests/api/announcements/getannouncements'
+import queryParamsDecipher from '../utils/functions/routefunctions/parsequeryparams'
+import { selectScreenBreakpoint } from './app/selectors/windowsizeselectors'
+import HelpMain from './routes/infopages/help/helpmain'
+import MaintenancePage from './maintenancepage'
 
 //can add a bit of debounce by adding number parameter in case the event causes performance issues
 resizeEvent(store)
@@ -100,6 +106,7 @@ function NavFooterError() {
 }
 
 function EditCollectionComponent({}) {
+
   return(
     <>
     <EditCollection />
@@ -108,11 +115,20 @@ function EditCollectionComponent({}) {
   )
 }
 
-function InitializeStateWrapper({children, postLoaderFunc, postCompleteTools, resolvedData, comparator}) {
+function ShowCollectionComponent({}) {
+  return <ShowCollection />
+}
+
+
+function InitializeStateWrapper({children, postLoaderFunc, postCompleteTools, resolvedData, comparator, isShowCollection}) {
   if (!postLoaderFunc) {
     return children
   }
   return (
+    isShowCollection ? 
+    <InitializeStateShowCollection postLoaderFunc={postLoaderFunc} postCompleteTools={postCompleteTools} resolvedData={resolvedData} comparator={comparator}>
+      {children}
+    </InitializeStateShowCollection> : 
     <InitializeStateFunc postLoaderFunc={postLoaderFunc} postCompleteTools={postCompleteTools} resolvedData={resolvedData} comparator={comparator}>
       {children}
     </InitializeStateFunc>
@@ -127,6 +143,19 @@ function InitializeStateFunc({children, postLoaderFunc, postCompleteTools, resol
     }, comparator)
     return children
   // }
+}
+
+function InitializeStateShowCollection({children, postLoaderFunc, postCompleteTools, resolvedData, comparator}) {
+  const initialized = useSelector((state) => state.collectionState.initialized)
+  const prevColId = useSelector((state) => state.collectionState.collectionID)
+  useEffect(() => {
+    if (!initialized || (prevColId !== resolvedData._id)) {
+      postLoaderFunc(resolvedData, postCompleteTools)
+    }
+  }, comparator)
+
+  //dubious conditional here, but it prevents certain flickering issues
+  return children
 }
 
 function DeferLoaderComponent({Component, SkeletonComponent, postCompleteTools, postLoaderFunc, loaderDataKey, isProtectedRoute=false, isPrivateRoute=false, privateProtectedRouteProps={}, isShowCollection=false, otherResolvedProps={}, routeLoaderDataInstead, routeLoaderId}) {
@@ -149,13 +178,17 @@ function DeferLoaderComponent({Component, SkeletonComponent, postCompleteTools, 
             )
           }
           const isCollectionOwner = (isShowCollection) && (userData.loggedIn && userData.user._id === resolvedData.owner._id)
-          const postCompleteAdjust = (isShowCollection && userData.loggedIn) ? {dispatch, initList: (col) => setListDisplayInitialState({col, initOnHandView: userData.user.settings.display.defaultOnhandView, currColUrl: currColPath})} : 
-            isShowCollection ? {dispatch, initList: (col) => setListDisplayInitialState({col})} : postCompleteTools
-          const additionalProp = (isShowCollection) ? {isCollectionOwner} : {}
+          const queries = locationData.search ? queryParamsDecipher(locationData.search) : {}
+          const postCompleteAdjust = (isShowCollection && userData.loggedIn) ? {dispatch, initList: (col) => setListDisplayInitialState({col, initOnHandView: userData.user.settings.display.defaultOnhandView, currColUrl: currColPath, subListInit: queries.col ? queries.col : undefined})} : 
+            isShowCollection ? {dispatch, initList: (col) => setListDisplayInitialState({col, subListInit: queries.col ? queries.col : undefined})} : postCompleteTools
+          const additionalProp = (isShowCollection) ? {isCollectionOwner, queryP: queries} : {}
           const loaderProp = {[loaderDataKey]: resolvedData, ...otherResolvedProps}
           return (
             <InitializeStateWrapper
-              postLoaderFunc={postLoaderFunc} postCompleteTools={postCompleteAdjust} resolvedData={resolvedData}
+              postLoaderFunc={(locationData.state && locationData.state.linkedSwitching && !isShowCollection) ? null : postLoaderFunc} 
+              postCompleteTools={postCompleteAdjust} 
+              resolvedData={resolvedData}
+              isShowCollection={isShowCollection}
             >
               {isProtectedRoute ? 
               <ProtectedRoute Component={Component} PlaceholderComponent={SkeletonComponent} {...privateProtectedRouteProps} loaderData={resolvedData} loaderDataProp={loaderProp}/> : 
@@ -219,7 +252,7 @@ function DemoEditCollection({}) {
 //   )
 // }
 
-function Router() {
+export function Router() {
   const dispatch = useDispatch()
   const router = createBrowserRouter([
     {
@@ -343,17 +376,29 @@ function Router() {
                     isShowCollection={true}
                 />,
               id: 'collection',
-              loader: (params) => collectionLoader(params),
+              loader: (params) => {
+                const sub = params.request.url.includes('col=') ? queryParamsDecipher(params.request.url).col : undefined
+                return collectionLoader(params, sub)
+              },
               shouldRevalidate: ({ currentUrl, nextUrl }) => {
                 //  current/next wording is misleading. nextUrl is always show collection page
+                
                 const notSwitchingThroughEditPage = nextUrl.pathname !== currentUrl.pathname.slice(0, -5) && nextUrl.pathname !== `${currentUrl.pathname}/edit`
-                return notSwitchingThroughEditPage
+                const notSwitchingBetweenSubCollections = nextUrl.pathname !== currentUrl.pathname
+                return notSwitchingThroughEditPage && notSwitchingBetweenSubCollections
               }
             },
             {
               path: 'edit',
               element: <PrivateRoute Component={EditCollectionComponent} routeType='editCollection'/>,
-              loader: (params) => dispatch(fetchCollectionData(params.params.id)).then(data => data.payload),
+              loader: (params) => {
+                const sub = params.request.url.includes('col=') ? queryParamsDecipher(params.request.url).col : undefined
+                return dispatch(fetchCollectionData({colId: params.params.id, sub})).then(data => {return {...data.payload, url: undefined}})
+              },
+              shouldRevalidate: ({ currentUrl, nextUrl }) => {
+                const notSwitchingBetweenSubCollections = nextUrl.pathname !== currentUrl.pathname
+                return notSwitchingBetweenSubCollections
+              }
             },
             {
               path: 'trade',
@@ -365,7 +410,7 @@ function Router() {
                   isProtectedRoute={true}
                   privateProtectedRouteProps={{extraAuthType: 'newTrade'}}
                 />,
-              loader: (params) => collectionLoader(params) 
+              loader: (params) => collectionLoader(params, false, true) 
             }
           ]
         },
@@ -482,6 +527,7 @@ function Router() {
           id: 'userSettings',
         },
         ...adminRouter,
+        ...helpRouter,
         {
           path: "*",
           element: <UnknownPath/>
@@ -494,6 +540,8 @@ function Router() {
   )
 }
 
+const isInMaintenanceMode = true
+
 function App() {
   
   return (
@@ -503,7 +551,7 @@ function App() {
           <AlertsProvider>
             <ErrorProvider>
               <Box sx={{width: '100%', display: 'flex', flexDirection: 'column', minHeight: '100vh', margin: 0}}>
-                <Router />
+                {isInMaintenanceMode ? <MaintenancePage /> : <Router />}
               </Box>
             </ErrorProvider>
           </AlertsProvider>

@@ -8,6 +8,7 @@ import changeTableData from "../controllers/apicontrollers/admin/changetabledata
 import getAdminMain from "../controllers/apicontrollers/admin/announcements/getadminmain.js";
 import makeNewAnnouncement from "../controllers/apicontrollers/admin/announcements/newannouncement.js";
 import getAnnouncements from "../controllers/apicontrollers/admin/announcements/getannouncements.js";
+import updateHomeCollections from "../controllers/apicontrollers/admin/updatehomecols.js";
 
 router.get('/session', catchAsync(getSession))
 router.get('/username-availability', catchAsync(checkUsernameEmailAvailability))
@@ -23,6 +24,7 @@ router.route('/admin/announcements')
     .post(isSiteOwner, catchAsync(makeNewAnnouncement))
 
 router.put('/admin/change-table-data', isSiteOwner, catchAsync(changeTableData))
+router.put('/admin/update-home-collections', isSiteOwner, catchAsync(updateHomeCollections))
 router.get('/admin/get-admin-main', catchAsync(getAdminMain))
 
 export {router}

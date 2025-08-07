@@ -6,8 +6,10 @@ import { setQtyByPokemon } from '../../../../app/slices/collectionstate'
 import { setUnsavedChanges } from '../../../../app/slices/editmode'
 import RemoveIcon from '@mui/icons-material/Remove';
 import AddIcon from '@mui/icons-material/Add';
+import store from '../../../../app/store'
+import { getByQtyChanges } from '../../../../app/slices/reducers/reducerfunctions/setQtyByPokemonFunc'
 
-export default function ByPokemonQtyEditor({qtyData, fullIdSetsAndNums, pokeId, ball, width='40%', height='100%', wrapperStyles={}, labelStyles={}, fieldWrapperStyles={}, otherNumsSx={}, separationFactor=1, otherNumsOffset=0, smScreen}) {
+export default function ByPokemonQtyEditor({qtyData, collectionID, fullIdSetsAndNums, pokeId, ball, width='40%', height='100%', wrapperStyles={}, labelStyles={}, fieldWrapperStyles={}, otherNumsSx={}, separationFactor=1, otherNumsOffset=0, smScreen, isHomeCollection}) {
     const theme = useTheme()
     const dispatch = useDispatch()
     const qtyTfRef = useRef(null)
@@ -19,8 +21,9 @@ export default function ByPokemonQtyEditor({qtyData, fullIdSetsAndNums, pokeId, 
             !increment && qtyData !== undefined && qtyData.numTotal === 1 && Object.values(fullIdSetsAndNums).map(bD => bD.numTotal).reduce((acc, cV) => acc+cV, 0) === 1 : 
             //below: if setting customQty to 0 and it is the ONLY ball qty
             customQty === 0 && qtyData !== undefined && Object.values(fullIdSetsAndNums).map(bD => bD.numTotal).reduce((acc, cV) => acc+cV, 0) === qtyData.numTotal
-        dispatch(setQtyByPokemon({pokeId, ball, increment, customQty, removeMonFromDisplay, smScreen}))
-        dispatch(setUnsavedChanges('onhand'))
+        const collectionState = store.getState().collectionState
+        const {changeDataArr, prevQtys, newQtys, pData, multipleOHs} = getByQtyChanges(collectionState.collection, collectionState.onhand, pokeId, ball, increment, customQty, isHomeCollection)
+        dispatch(setQtyByPokemon({pokeId: pokeId, ball, changeDataArr, prevQtys, newQtys, pData, multipleOHs, removeMonFromDisplay, currColId: collectionID}))
     }
 
     return (

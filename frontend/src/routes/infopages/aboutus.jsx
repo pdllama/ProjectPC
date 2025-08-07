@@ -31,9 +31,9 @@ export default function AboutUs({}) {
                 <Typography sx={{fontSize: '16px', width: '100%', textAlign: 'start', ...indentQuery, mt: 4}}>
                     Thank you for checking the site out! Happy collecting!
                 </Typography>
-{/*                 
-                <Box sx={{height: '10px'}}></Box> */}
-                <Box sx={{position: 'absolute', position: '0px', width: '100%', ...theme.components.box.fullCenterCol, alignItems: 'start', mt: 4}}>
+                
+                <Box sx={{height: '10px', mt: 5}}></Box>
+                <Box sx={{position: 'absolute', width: '100%', ...theme.components.box.fullCenterCol, alignItems: 'start', bottom: '5px'}}>
                     <Typography sx={{fontSize: '16px', textAlign: 'start', ...indentQuery}}>
                         - Llama
                     </Typography>

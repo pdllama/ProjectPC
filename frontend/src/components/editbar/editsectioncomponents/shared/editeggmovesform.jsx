@@ -3,7 +3,7 @@ import RenderEggMoves from './rendereggmoves'
 import './../../../../../utils/styles/componentstyles/eggmoveselection.css'
 import RenderPossibleEggMoves from './../eggmovecomponents/renderpossibleeggmoves'
 
-export default function EditEggMovesForm({emCount, EMs, maxEms, idxOfSelectedEM, possibleEggMoves, toggleClass, toggleScreen, handleEMChange}) {
+export default function EditEggMovesForm({emCount, EMs, maxEms, idxOfSelectedEM, possibleEggMoves, toggleClass, toggleScreen, handleEMChange, smallWidth}) {
     const hideBarStyles = {
         '&:hover': {
             backgroundColor: '#c4c4c4',
@@ -30,7 +30,7 @@ export default function EditEggMovesForm({emCount, EMs, maxEms, idxOfSelectedEM,
             className={toggleClass}
         >
             <Box sx={{height: '100%', width: '100%', display: 'flex', flexDirection: 'column'}}>
-                <Box sx={{height: '10%', width: '100%', textAlign: 'center', marginTop: '3px'}}>
+                <Box sx={{height: '10%', width: '100%', textAlign: smallWidth ? 'center' : 'start', marginTop: '3px', ml: smallWidth ? 0 : 3}}>
                     <Typography variant='h2' sx={{fontSize: '16px'}}>
                         Select Egg Moves
                     </Typography>

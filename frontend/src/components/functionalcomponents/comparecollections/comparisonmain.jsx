@@ -1,6 +1,7 @@
 import {Box, Modal, Fade, Backdrop, Typography, useTheme, CircularProgress} from '@mui/material'
 import modalStyles from '../../../../utils/styles/componentstyles/modalstyles'
-import { useState, useContext, useTransition } from 'react'
+import store from '../../../app/store.jsx'
+import { useState, useContext, useTransition, useEffect } from 'react'
 import {ErrorContext} from '../../../app/contexts/errorcontext.jsx'
 import getUserCollectionData from '../../../../utils/functions/backendrequests/getusercollectiondata.js'
 import hexToRgba from 'hex-to-rgba'
@@ -8,8 +9,9 @@ import ComparisonSelection from './comparisonselection'
 import ComparisonDisplay from './comparisondisplay'
 import startComparison from '../../../../utils/functions/comparecollections/componentfunction'
 import SmallWidthModalWrapper from '../../partials/wrappers/smallwidthmodalwrapper.jsx'
+import { selectCorrectOpList } from '../../../app/selectors/linkedcolsselectors.js'
 
-export default function ComparisonMain({open, toggleModal, tradeableCollections, collectionData, userData, isTradePage=false, externalSelectedCol=undefined, externalChangeSelectedCol=undefined, externalComparisonData=undefined, extSetComparisonData=undefined, extSelectedColData=undefined, extCantChangeSelected=false, sw}) {
+export default function ComparisonMain({open, toggleModal, tradeableCollections, collectionData, userData, isTradePage=false, externalSelectedCol=undefined, externalChangeSelectedCol=undefined, externalComparisonData=undefined, extSetComparisonData=undefined, extSelectedColData=undefined, extCantChangeSelected=false, sw, getStateLists=false}) {
     const theme = useTheme()
     const {handleError} = useContext(ErrorContext)
     const [comparisonData, setComparisonData] = useState({screen: 'selection', selectedCol: tradeableCollections[0]._id, optionType: 'basic', options: {userList: {ha: true, em: false, onhand: false}, ownerList: {ha: true, em: false, onhand: false}}, advancedOptions: {equalizeBabyAdults: false, legendary: false, nonBreedable: false, evolvedRegional: false}, pendingTransition: false})
@@ -45,9 +47,14 @@ export default function ComparisonMain({open, toggleModal, tradeableCollections,
     }
 
     const compareData = async(selectedColId, opts, advOpts) => {
-        const backendFunc = async() => await getUserCollectionData(selectedColId)
+        const backendFunc = async() => await getUserCollectionData(selectedColId, tradeableCollections.filter(tC => tC._id === selectedColId)[0].gen === 'home')
         const successFunc = (userCollectionData) => {
-            const result = startComparison(userCollectionData, collectionData, opts, advOpts, extSelectedColData)
+            const ownerDataToUse = collectionData
+            if (getStateLists) {
+                ownerDataToUse.ownedPokemon = selectCorrectOpList(store.getState())
+                ownerDataToUse.onHand = store.getState().collectionState.onhand
+            }
+            const result = startComparison(userCollectionData, ownerDataToUse, opts, advOpts)
             setTimeout(() => {
                 if (externalComparisonData !== undefined) {
                     extSetComparisonData(result)
@@ -59,9 +66,18 @@ export default function ComparisonMain({open, toggleModal, tradeableCollections,
         }
         handleError(backendFunc, false, successFunc, () => {})  
     }
+    
+    useEffect(() => {
+        //lil bit of a flicker when navigating directly to a linked collection, which can cause issues since 
+        //the selected col can be one that cant actually trade
+        if (tradeableCollections.filter(col => col._id === trueSelectedCol)[0] === undefined) {
+            setComparisonData({...comparisonData, selectedCol: tradeableCollections[0]._id})
+        }
+    }, [tradeableCollections])
 
     const selectedCollectionData = tradeableCollections.filter(col => col._id === trueSelectedCol)[0]
-    const oneHomeCollection = trueSelectedCol !== '' && (selectedCollectionData.gen === 'home' || collectionData.gen === 'home')
+    //selectedColelctionData !== undefined is a continuation of the useEffect
+    const oneHomeCollection = (trueSelectedCol !== '' && selectedCollectionData !== undefined) && (selectedCollectionData.gen === 'home' || collectionData.gen === 'home')
 
     const modalScaling = (comparisonData.screen === 'selection') ? {height: '665px', width: '70%', maxWidth: '800px'} : {height: '80%', minHeight: '700px', width: '85%', maxWidth: '1000px'}
 
@@ -115,6 +131,9 @@ export default function ComparisonMain({open, toggleModal, tradeableCollections,
                 userCollectionDisplay={isNaN(parseInt(userCollectionDisplayType.gen)) ? userCollectionDisplayType.gen.toUpperCase() : `Gen ${userCollectionDisplayType.gen}`}
                 ownerCollectionDisplay={isNaN(parseInt(collectionData.gen)) ? collectionData.gen.toUpperCase() : `Gen ${collectionData.gen}`}
                 userColId={trueSelectedCol}
+                userColGen={tradeableCollections.filter(tC => tC._id === trueSelectedCol)[0].gen}
+                userColIsLinked={tradeableCollections.filter(tC => tC._id === trueSelectedCol)[0].linkedTo !== undefined}
+                ownerColGen={collectionData.gen}
                 ownerColId={collectionData._id}
                 comparisonData={trueComparisonData} 
                 ownerUsername={collectionData.owner.username} 

@@ -334,7 +334,7 @@ export default function NavBar() {
                                                             }}
                                                             key={`user-collection-${idx+1}-option-${collectionType}`}
                                                             onClick={disabled ? null : () => {
-                                                                navigate(`/collections/${col._id}`)
+                                                                navigate(`/collections/${col.linkedTo ? col.linkedTo.super : col._id}${col.linkedTo ? `?col=${col._id}` : ''}`)
                                                                 setUserArea({open: false})
                                                             }}
                                                         > 

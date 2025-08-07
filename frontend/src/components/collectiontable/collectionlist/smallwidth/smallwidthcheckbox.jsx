@@ -5,8 +5,9 @@ import EMIndicator from '../../tabledata/emindicator'
 import { setSelected } from '../../../../app/slices/editmode'
 import { renderBallListDragVer } from '../../../../../utils/functions/renderballselection'
 import { getCenterOffset } from '../../../../../utils/functions/renderballselection'
+import HomeEMIndicatorController from '../../tabledata/homeemindicatorcontroller'
 
-export default function SmallWidthCheckbox({ballInfo, isEditMode, handleEditBallInfo, pokeName, ball, collectionId, ownerId, isRow2=false, pokeid, allowedBallsTotal}) {
+export default function SmallWidthCheckbox({ballInfo, isEditMode, handleEditBallInfo, pokeName, ball, collectionId, ownerId, isRow2=false, pokeid, allowedBallsTotal, isHomeCollection}) {
     const theme = useTheme()
     const disabled = !isEditMode
     const dispatch = useDispatch()
@@ -24,8 +25,8 @@ export default function SmallWidthCheckbox({ballInfo, isEditMode, handleEditBall
     const handleHAChangeFunc = (e) => {
         handleEditBallInfo(e, 'isHA', pokeName, ball, collectionId, ownerId)
     }
-    const handleEMCountChangeFunc = (e) => {
-        handleEditBallInfo(e, 'emCount', pokeName, ball, collectionId, ownerId)
+    const handleEMCountChangeFunc = (e, emGen, currEmCount) => {
+        handleEditBallInfo(e, 'emCount', pokeName, ball, emGen, currEmCount)
     }
     const renderTagIndicator = (tagType) => {
         return (
@@ -47,6 +48,7 @@ export default function SmallWidthCheckbox({ballInfo, isEditMode, handleEditBall
         )
     }
 
+    const hasEMs = ballInfo.emCount !== undefined || ballInfo.eggMoveData !== undefined
     return (
         <Box 
             sx={{
@@ -66,7 +68,7 @@ export default function SmallWidthCheckbox({ballInfo, isEditMode, handleEditBall
                 sx={{color: 'white', '&.Mui-disabled': {color: 'white', '&.Mui-checked': {color: '#1976d2'}}, mt: 1}} 
                 disabled={disabled}
                 size='large'
-                onClick={isEditMode ? ((e) => handleEditBallInfo(e, 'isOwned', pokeName, ball, collectionId, ownerId)) : undefined}
+                onClick={isEditMode ? ((e) => handleEditBallInfo(e, 'isOwned', pokeName, ball, collectionId, ownerId, ballInfo.pending ? 'pending' : ballInfo.highlyWanted ? 'highlyWanted' : undefined)) : undefined}
             />
             <Box sx={{...theme.components.box.fullCenterCol, borderTop: '1px solid white', width: '90%', position: 'relative'}}>
                 {ballInfo.isOwned && ballInfo.isHA !== undefined &&
@@ -79,16 +81,31 @@ export default function SmallWidthCheckbox({ballInfo, isEditMode, handleEditBall
                     noTopRow={true}
                     smallWidth={true}
                 />}
-                {ballInfo.isOwned && ballInfo.emCount !== undefined &&
+                {(ballInfo.isOwned && hasEMs) &&
+                (isHomeCollection ? 
+                <HomeEMIndicatorController 
+                    sx={{width: '100%', fontSize: '16px', height: '24px', top: '28px'}}
+                    textOnly={false}
+                    isEditMode={isEditMode}
+                    emCount={ballInfo.emCount}
+                    EMs={ballInfo.EMs}
+                    eggMoveData={ballInfo.eggMoveData}
+                    handleChange={handleEMCountChangeFunc}
+                    smallWidth={true}
+                    isHomeCollection={isHomeCollection}
+                /> : 
                 <EMIndicator 
                     sx={{width: '100%', fontSize: '16px', height: '24px', top: '28px'}}
                     textOnly={false}
                     isEditMode={isEditMode}
                     emCount={ballInfo.emCount}
                     EMs={ballInfo.EMs}
-                    handleChange={(e) => handleEMCountChangeFunc(e)}
+                    eggMoveData={ballInfo.eggMoveData}
+                    handleChange={handleEMCountChangeFunc}
                     smallWidth={true}
+                    isHomeCollection={isHomeCollection}
                 />
+            )
                 }
                 {ballInfo.pending && renderTagIndicator('pending')}
                 {ballInfo.highlyWanted && renderTagIndicator('highlyWanted')} 

@@ -3,7 +3,7 @@ import Box from '@mui/material/Box'
 import {useState, useRef, useEffect} from 'react'
 import {useLocation} from 'react-router'
 import {useSelector} from 'react-redux'
-import { toggleOnHandIdToDelete } from './../../../app/slices/editmode';
+import { setOnhandChange, toggleOnHandIdToDelete } from './../../../app/slices/editmode';
 import './../../../routes/showCollection.css'
 import TableCell from '@mui/material/TableCell'
 import DataCell from '../tabledata/datacell'
@@ -14,8 +14,10 @@ import {connect, useDispatch} from 'react-redux'
 import EggMoveColumnDisplay from './eggmovecolumndisplay';
 import newObjectId from '../../../../utils/functions/newobjectid';
 import { setIsHA } from '../../../app/slices/collectionstate';
+import { availableGamesInterchangeableEquivalencies } from '../../../../utils/functions/misc';
 
-function OnHandRowContent({columns, row, pokemonId, collectionId, styles, isSelected, setSelected, allEggMoveInfo, availableGamesInfo, isEditMode, demo, isHomeCollection, isTradePage, tradeSide, wantedByOtherList, userData, idxOfPokemon}) {
+
+function OnHandRowContent({columns, row, pokemonId, collectionId, styles, isSelected, setSelected, availableGamesInfo, isEditMode, demo, isHomeCollection, isTradePage, tradeSide, wantedByOtherList, userData, idxOfPokemon, otherListGen}) {
     const dispatch = useDispatch()
 
     const skeletonRow = row === undefined
@@ -39,7 +41,7 @@ function OnHandRowContent({columns, row, pokemonId, collectionId, styles, isSele
 
     const deleteOnHandMode = isEditMode ? useSelector((state) => state.editmode.deleteOnHandMode) : null
     const ohIdsFlagged = isEditMode ? useSelector((state) => state.editmode.deletedOnHandIds) : null
-    const possibleEMs = !isHomeCollection && (allEggMoveInfo[row.name])
+    const possibleEMs = !isHomeCollection && (useSelector((state) => state.collectionState.eggMoveInfo[row.name]))
     const maxEMs = !isHomeCollection && (possibleEMs === undefined ? 0 : possibleEMs.length > 4 ? 4 : possibleEMs.length)
 
     const haView = isHomeCollection ? useSelector((state) => state.collectionState.listDisplay.showHAView) : null
@@ -82,7 +84,7 @@ function OnHandRowContent({columns, row, pokemonId, collectionId, styles, isSele
                 const wantedData = isBallColumn && (wantedByOtherList[0] === undefined ? {} : wantedByOtherList[0].balls.includes(row[c.dataKey]) ? {wanted: true} : {})
                 const reservedQty = (c.dataKey === 'qty' && row.reserved !== undefined) ? {reserved: row.reserved} : {}
                 const nameProps = (isHomeCollection && c.dataKey === 'name') ? {
-                    availableGames: availableGamesInfo[row.name]
+                    availableGames: availableGamesInterchangeableEquivalencies(availableGamesInfo, row.name)
                 } : {}
                 const haName = haView === false ? undefined : c.dataKey === 'name' ? row.haName : undefined
                 return (
@@ -99,11 +101,13 @@ function OnHandRowContent({columns, row, pokemonId, collectionId, styles, isSele
                         blackSquare={isBlackSquare}
                         isTradePage={isTradePage}
                         tradeSide={tradeSide}
+                        isHomeCollection={isHomeCollection}
                         tradeDispData={isTradePage ? 
                             {
                                 pData: {name: row.name, id: row.imgLink, natDexNum: row.natDexNum},
                                 ballData: {ball: row.ball, onhandId: row._id, ...wantedData},
-                                fullData: row
+                                fullData: row,
+                                otherListGen
                             } : {}
                         }
                         customPadding={0}
@@ -119,11 +123,13 @@ function OnHandRowContent({columns, row, pokemonId, collectionId, styles, isSele
                         isEditMode={isEditMode}
                         leftMostCell={c.label === '#' ? true : false}
                         isSelected={isSelected}
+                        isHomeCollection={isHomeCollection}
                         flaggedForDeletion={deleteOnHandMode && ohIdsFlagged.includes(row._id)}
                         ohDeleteMode={deleteOnHandMode}
                         onClickFunc={deleteOnHandMode ? () => dispatch(toggleOnHandIdToDelete(row._id)) : isSelected ? null : setSelected}
                         onhandCells={true}
                         haName={haName}
+                        emGen={(isHomeCollection && c.dataKey === 'emCount' && row.emCount !== undefined) ? row.emGen : undefined}
                         specialStyles={textSizeAdjustor}
                         blackSquare={isBlackSquare}
                         isTradePage={isTradePage}
@@ -132,7 +138,8 @@ function OnHandRowContent({columns, row, pokemonId, collectionId, styles, isSele
                             {
                                 pData: {name: row.name, id: row.imgLink, natDexNum: row.natDexNum},
                                 ballData: {ball: row.ball, onhandId: row._id, ...wantedData},
-                                fullData: row
+                                fullData: row,
+                                otherListGen
                             } : {}
                         }
                         isEmDisplay={c.dataKey === 'EMs'}
@@ -141,7 +148,10 @@ function OnHandRowContent({columns, row, pokemonId, collectionId, styles, isSele
                         checkboxCell={c.dataKey === 'isHA' && row[c.dataKey] !== undefined}
                         checkboxData={{
                             active: row[c.dataKey],
-                            onChange: () => dispatch(setIsHA({listType: 'onhand', idx: idxOfPokemon, ball: row.ball})),
+                            onChange: () => {
+                                dispatch(setIsHA({listType: 'onhand', idx: idxOfPokemon, ball: row.ball}))
+                                dispatch(setOnhandChange({colId: collectionId, id: row._id, field: 'isHA', currValue: !row.isHA}))
+                            },
                             sx: {position: 'absolute', right: 'calc(50% - 21px)', top: 'calc(50% - 21px)', zIndex: 1}
                         }}
                     />

@@ -9,14 +9,14 @@ const getOnHandEditData = (key, value, id, otherFieldsData) => {
     return {idOfPokemon: id, onhandPokemon: true, [key]: value, otherFieldsData, editType: 'singleValue'}
 }
 
-const usePutRequest = async(newOwnedPokemonArr=undefined, newOnhand=undefined, collectionID) => {
+const usePutRequest = async(collectionChanges=undefined, onhandChanges=undefined, collectionID, onhandColIDs) => {
     const res = await fetch(`${backendurl}/collections/${collectionID}`, {
         method: 'PUT',
         credentials: 'include',
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({editType: 'singleValue', newOwnedPokemonArr, newOnhand})
+        body: JSON.stringify({editType: 'singleValue', collectionChanges, onhandChanges, onhandColIDs})
     }).then(async(data) => {return await handleApiResponse(data)})
     return res
 }

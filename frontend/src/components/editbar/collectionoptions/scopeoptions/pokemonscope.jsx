@@ -7,24 +7,29 @@ import { scopeSingleChange, scopeMassChange } from '../../../../../utils/functio
 import { getOneArrData } from '../../../../../utils/functions/scope/getonearrdata';
 import { useDispatch } from 'react-redux';
 import { changeModalState } from '../../../../app/slices/editmode';
-import { saveScopeChangesAndGetNewList } from '../../../../../utils/functions/scope/savescopechanges';
+import { demoSavePokeChanges, getBackendPokemonToRequest, } from '../../../../../utils/functions/scope/savescopechanges';
 import SaveChangesConfirmModal from '../savechangesconfirmmodal';
 import { AlertsContext } from '../../../../alerts/alerts-context';
 import { ErrorContext } from '../../../../app/contexts/errorcontext';
-import { setListState } from '../../../../app/slices/collectionstate';
+import { setListState, setPokemonScope } from '../../../../app/slices/collectionstate';
+import getIndividualPokemonObjBackend from '../../../../../utils/functions/backendrequests/getindividualpokemonobj';
+import pokemonScopeBackendChange from '../../../../../utils/functions/backendrequests/collections/scoperequests/pokemonscopebackendchange';
+import { selectCorrectOpList } from '../../../../app/selectors/linkedcolsselectors';
 
 export default function PokemonScope({elementBg, collectionGen, collectionId, demo, sw}) {
     const dispatch = useDispatch()
+    const {addAlert} = useContext(AlertsContext)
     const {handleError} = useContext(ErrorContext)
     const scopeTotal = useSelector((state) => state.editmode.pokemonScopeTotal)
     const oneArrLegalityInfo = getOneArrData(scopeTotal, false)
-    const collectionState = useSelector((state) => state.collectionState.collection)
+    const collectionState = useSelector((state) => selectCorrectOpList(state))
+    const trueCollectionState = useSelector((state) => state.collectionState.collection)
     const optionsState = useSelector((state) => state.collectionState.options)
     const formDataInit = useSelector((state) => selectScopeFormData(state, scopeTotal))
     const groupKeys = Object.keys(scopeTotal)
     const groupKeysWithSubGroups = groupKeys.filter((groupKey) => !Array.isArray(scopeTotal[groupKey]))
     const subGroupModalInit = {subGroup: {}}
-
+    
     for (let gK of groupKeysWithSubGroups) {
         if (gK === 'babyAdultMons') {
             subGroupModalInit.subGroup[gK] = 'regular'
@@ -35,24 +40,7 @@ export default function PokemonScope({elementBg, collectionGen, collectionId, de
 
     const [modalState, setModalState] = useState({group: groupKeys[0], ...subGroupModalInit, saveChangesConfirmOpen: false, saveErrorNotice: false})
     const [formData, setFormData] = useState({pokemon: formDataInit, addedPokemon: [], removedPokemon: []})
-    
-    //alerts
-    const [alertIds, setAlertIds] = useState([])
-    const {addAlert, dismissAlert} = useContext(AlertsContext)
-
-    const clearAlerts = () => {
-        alertIds.forEach((id) => {
-            dismissAlert(id);
-        });
-        setAlertIds([]);
-    }
-
-    useEffect(() => {
-        return () => {
-            clearAlerts();
-        };
-    }, []);
-
+  
     const collectionAutoSort = optionsState.sorting.collection.reorder
     const collectionSortOrder = optionsState.sorting.collection.default
     const ballScope = optionsState.collectingBalls
@@ -103,21 +91,34 @@ export default function PokemonScope({elementBg, collectionGen, collectionId, de
 
     const finalizeChanges = async(saveChanges, nextScreen) => {
         if (saveChanges) {
-            const backendFunc = async() => await saveScopeChangesAndGetNewList(formData.addedPokemon, formData.removedPokemon, collectionState, collectionGen, collectionId, collectionAutoSort, collectionSortOrder, ballScope, oneArrLegalityInfo, demo, {gen: collectionGen, ownedPokemon: collectionState})
+            const backendRequestPokemon = getBackendPokemonToRequest(formData.addedPokemon, trueCollectionState)
+            const editedAddedPokemon = formData.addedPokemon.filter(p => backendRequestPokemon.filter(p2 => p2.name === p.name).length === 0)
+            const backendFunc = async() => {
+                if (demo) {
+                    return await demoSavePokeChanges(editedAddedPokemon, formData.removedPokemon, collectionState, collectionGen, optionsState.sorting.collection, ballScope, oneArrLegalityInfo, backendRequestPokemon)
+                } else {
+                    return await pokemonScopeBackendChange(collectionId, editedAddedPokemon, formData.removedPokemon, backendRequestPokemon)
+                }
+            }
             setModalState({...modalState, saving: true})
             const successFunc = (newListState) => {
                 setTimeout(() => {
-                    const actualListState = newListState.list !== undefined ? newListState.list : newListState
-                    const updatedEggMoveInfo = newListState.updatedEggMoveInfo 
-                    const updateEggMoveData = updatedEggMoveInfo !== undefined
-                    const updatedHomeGames = newListState.updatedHomeGames
-                    dispatch(setListState({collection: actualListState, onlyUpdateCollection: true, resetCollectionFilters: true, updatedEggMoveInfo: updateEggMoveData ? updatedEggMoveInfo : undefined, updatedHomeGames}))
+                    if (demo) {
+                        const actualListState = newListState.list !== undefined ? newListState.list : newListState
+                        const updatedEggMoveInfo = newListState.updatedEggMoveInfo 
+                        const updateEggMoveData = updatedEggMoveInfo !== undefined
+                        const updatedHomeGames = newListState.updatedHomeGames
+                        dispatch(setListState({collection: actualListState, onlyUpdateCollection: true, resetCollectionFilters: true, updatedEggMoveInfo: updateEggMoveData ? updatedEggMoveInfo : undefined, updatedHomeGames, demo}))
+                    } else {
+                        //{addedPokemon, removedPokemon, newPokemonToList, ballLegalityInfo, updatedHomeGames, updatedEggMoves}
+                        dispatch(setPokemonScope({addedPokemon: editedAddedPokemon, removedPokemon: formData.removedPokemon, newPokemonToList: newListState.pokemon, ballLegalityInfo: oneArrLegalityInfo, updatedHomeGames: newListState.updatedHomeGames, updatedEggMoves: newListState.updatedEggMoveInfo}))
+                    }
+                    
 
                     //spawning alert
                     const alertMessage = `Updated Pokemon Scope!`
                     const alertInfo = {severity: 'success', message: alertMessage, timeout: 3}
-                    const id = addAlert(alertInfo);
-                    setAlertIds((prev) => [...prev, id]);
+                    addAlert(alertInfo);
 
                     dispatch(changeModalState({open: false}))
                 }, 1000)
@@ -127,7 +128,7 @@ export default function PokemonScope({elementBg, collectionGen, collectionId, de
                     dispatch(changeModalState({open: false})) 
                 }, 1000)
             }
-            handleError(backendFunc, false, successFunc, errorFunc)
+            handleError(backendFunc, false, successFunc, errorFunc) 
         } else if (nextScreen === 'goBack') {
             setModalState({...modalState, saveChangesConfirmOpen: false})
         } else if (nextScreen === 'exit') {

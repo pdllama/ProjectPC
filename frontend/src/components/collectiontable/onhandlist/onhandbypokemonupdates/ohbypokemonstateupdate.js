@@ -1,4 +1,4 @@
-export const OHByPokemonStateUpdate = (listOfPokeBallCombo, increment, colBallData=undefined, customQty, getListOfIds = false) => {
+export const OHByPokemonStateUpdate = (listOfPokeBallCombo, increment, colBallData=undefined, customQty, getListOfIds = false, isHomeCollection) => {
     const changeData = {}
     let id = 0
     let closestMatch = 'none'
@@ -9,11 +9,16 @@ export const OHByPokemonStateUpdate = (listOfPokeBallCombo, increment, colBallDa
     const listOfNoneMatches = []
 
     listOfPokeBallCombo.forEach((pBC) => {
+        
         if (colBallData !== undefined) {
-            if (getListOfIds || (colBallData.isHA !== undefined && pBC.isHA === colBallData.isHA) && pBC.emCount === colBallData.emCount && (pBC.EMs !== undefined ? (!pBC.EMs.map(pBCEm => colBallData.EMs.includes(pBCEm)).includes(false) && pBC.EMs.length === colBallData.EMs.length) : true)) {
+            const noEMs = pBC.EMs === undefined
+            const colBallEmCPath = (isHomeCollection && !noEMs) ? colBallData.eggMoveData[pBC.emGen].emCount : colBallData.emCount
+            const colBallEmsPath = (isHomeCollection && !noEMs) ? colBallData.eggMoveData[pBC.emGen].EMs : colBallData.EMs
+            const emsMatch = !noEMs ? (!pBC.EMs.map(pBCEm => colBallEmsPath.includes(pBCEm)).includes(false) && pBC.EMs.length === colBallEmsPath.length) : true
+            if (getListOfIds || (colBallData.isHA !== undefined && pBC.isHA === colBallData.isHA) && pBC.emCount === colBallEmCPath && emsMatch) {
                 //if all the peripherals match what is in the collection ball data, take and change that idx.
                 if (getListOfIds) {
-                    listOfAllMatches.push(pBC._id)
+                    listOfAllMatches.unshift(pBC._id)
                 } else {
                     id = pBC._id
                     changeData.remove = (pBC.qty === 1 && !increment) || customQty === 0
@@ -22,16 +27,16 @@ export const OHByPokemonStateUpdate = (listOfPokeBallCombo, increment, colBallDa
             } else if (getListOfIds || (id === 0 || closestMatch === 'none' || closestMatch === 'ems') && colBallData.isHA !== undefined && pBC.isHA === colBallData.isHA) {
                 //otherwise, match the isHA state of the pmnmn fdneripherals, if the mon has a hidden ability
                 if (getListOfIds) {
-                    listOfHaMatches.push(pBC._id)
+                    listOfHaMatches.unshift(pBC._id)
                 } else {
                    id = pBC._id
                     changeData.remove = (pBC.qty === 1 && !increment) || customQty === 0
                     closestMatch = 'ha' 
                 } 
-            } else if (getListOfIds || (id === 0 || closestMatch === 'none') && colBallData.emCount !== undefined && pBC.emCount === colBallData.emCount && (pBC.EMs !== undefined ? (!pBC.EMs.map(pBCEm => colBallData.EMs.includes(pBCEm)).includes(false) && pBC.EMs.length === colBallData.EMs.length) : true)) {
+            } else if (getListOfIds || (id === 0 || closestMatch === 'none') && colBallEmCPath !== undefined && pBC.emCount === colBallEmCPath && colBallEmsPath) {
                 //otherwise, match the emCount and EMs state of the peripherals, if the mon has egg moves
                 if (getListOfIds) {
-                    listOfEmMatches.push(pBC._id)
+                    listOfEmMatches.unshift(pBC._id)
                 } else {
                    id = pBC._id
                     changeData.remove = (pBC.qty === 1 && !increment) || customQty === 0
@@ -40,7 +45,7 @@ export const OHByPokemonStateUpdate = (listOfPokeBallCombo, increment, colBallDa
             } else if (getListOfIds || id === 0) {
                 //if nothing else matches and theres still no match, take this onhand id
                 if (getListOfIds) {
-                    listOfNoneMatches.push(pBC._id)
+                    listOfNoneMatches.unshift(pBC._id)
                 }
                 else {
                    id = pBC._id
@@ -89,7 +94,12 @@ export const matchOnHandInList = (listOfOnHands, colBallData=undefined, ball=und
     listOfOnHands.forEach((pBC) => {
         if (pBC.ball === ball) {
             if (colBallData !== undefined) {
-                if ((colBallData.isHA !== undefined && pBC.isHA === colBallData.isHA) && pBC.emCount === colBallData.emCount && (pBC.EMs !== undefined ? (!pBC.EMs.map(pBCEm => colBallData.EMs.includes(pBCEm)).includes(false) && pBC.EMs.length === colBallData.EMs.length) : true)) {
+                const isHomeCollection = colBallData.eggMoveData !== undefined
+                const noEMs = pBC.EMs === undefined
+                const colBallEmCPath = (isHomeCollection && !noEMs) ? colBallData.eggMoveData[pBC.emGen].emCount : colBallData.emCount
+                const colBallEmsPath = (isHomeCollection && !noEMs) ? colBallData.eggMoveData[pBC.emGen].EMs : colBallData.EMs
+                const emsMatch = !noEMs ? (!pBC.EMs.map(pBCEm => colBallEmsPath.includes(pBCEm)).includes(false) && pBC.EMs.length === colBallEmsPath.length) : true
+                if ((colBallData.isHA !== undefined && pBC.isHA === colBallData.isHA) && pBC.emCount === colBallEmCPath && colBallEmsPath) {
                     //if all the peripherals match what is in the collection ball data, take and change that idx.
                     id = pBC._id
                     closestMatch = 'all'
@@ -97,7 +107,7 @@ export const matchOnHandInList = (listOfOnHands, colBallData=undefined, ball=und
                     //otherwise, match the isHA state of the pmnmn fdneripherals, if the mon has a hidden ability
                     id = pBC._id
                     closestMatch = 'ha'
-                } else if ((id === 0 || closestMatch === 'none') && colBallData.emCount !== undefined && pBC.emCount === colBallData.emCount && (pBC.EMs !== undefined ? (!pBC.EMs.map(pBCEm => colBallData.EMs.includes(pBCEm)).includes(false) && pBC.EMs.length === colBallData.EMs.length) : true)) {
+                } else if ((id === 0 || closestMatch === 'none') && colBallData.emCount !== undefined && pBC.emCount === colBallEmCPath && emsMatch) {
                     //otherwise, match the emCount and EMs state of the peripherals, if the mon has egg moves
                     id = pBC._id
                     closestMatch = 'ems'

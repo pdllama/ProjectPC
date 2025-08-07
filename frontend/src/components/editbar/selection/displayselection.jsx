@@ -12,15 +12,15 @@ import RenderCollectionEdit from './collectionlist/rendercollectionedit'
 import RenderOnHandEdit from './onhandlist/renderonhandedit'
 import ByPokemonEdit from './onhandlist/bypokemonedit'
 import { selectPokeIdMatches } from '../../../app/selectors/selectpokeidmatches'
+import { selectCorrectOpList } from '../../../app/selectors/linkedcolsselectors'
 
- function DisplaySelection({collection, anyUnsavedChanges, saving, saveCollectionEdits, selection, listType, showEditScreen, ohByPSWShowEditScreen, pokemon, idxOfPokemon, demo, smScreen, pokemonDeletedFromMemory, onhandViewType}) {
+ function DisplaySelection({collection, collectionID, collectionGen, anyUnsavedChanges, saving, saveCollectionEdits, selection, listType, showEditScreen, ohByPSWShowEditScreen, pokemon, idxOfPokemon, demo, smScreen, pokemonDeletedFromMemory, onhandViewType, subListIdx, dummyMain}) {
     const ownerID = collection.owner._id
-    const collectionID = collection._id
     // console.log(pokemon)
     const pokemonBallInfo = listType === 'collection' ? pokemon.balls : ((!smScreen && listType === 'onHand') && (!pokemonDeletedFromMemory && selection !== '')) && ( 
         collection.ownedPokemon.filter(p => selectPokeIdMatches(p.imgLink, pokemon.imgLink !== undefined ? pokemon.imgLink : pokemon.list[0].imgLink, p.disabled))[0].balls)
     const possibleGender = (!pokemonDeletedFromMemory && selection !== '' && onhandViewType === 'byPokemon' && listType === 'onHand' && showEditScreen && !smScreen) && collection.ownedPokemon.filter(p => p.imgLink === pokemon.list[0].imgLink)[0].possibleGender
-    
+
     const noSelection = selection === ''
     const buttonArea = noSelection ? 'noSelection' : 
         showEditScreen === false ? 'selectionConfirm' :
@@ -29,7 +29,7 @@ import { selectPokeIdMatches } from '../../../app/selectors/selectpokeidmatches'
     const selectedBall = useSelector((state) => state.editmode.selectedBall)
     const allEggMoves = useSelector((state) => state.collectionState.eggMoveInfo)
     const globalDefault = useSelector((state) => state.collectionState.options.globalDefaults)
-
+    const superCollectionGlobalDefault = useSelector((state) => (subListIdx !== undefined && state.collectionState.linkedCollections[0].gen !== 'dummy') ? state.collectionState.linkedCollections[0].options.globalDefaults : undefined)
     return (
         <>
         <FlexAppBarContainer
@@ -58,11 +58,11 @@ import { selectPokeIdMatches } from '../../../app/selectors/selectpokeidmatches'
                 </Box>
             }
             {/* {onHandNoSelection ? <Box sx={{width: '81.5136%', display: 'flex', justifyContent: 'end'}}><NothingSelected listType={listType}/></Box> : */}
-            {noSelection ? <NothingSelected listType={listType} onhandViewType={onhandViewType} isHomeCollection={collection.gen === 'home'} collectionID={collectionID} demo={demo} smScreen={smScreen}/> :
-            (showEditScreen === false || smScreen) ? <ShowSelectionConfirm listType={listType} pokemon={pokemon} pokemonDeletedFromMemory={pokemonDeletedFromMemory} pokemonIdx={idxOfPokemon} globalDefault={globalDefault} possibleEggMoves={allEggMoves[pokemon.name]} smScreen={smScreen} onhandView={onhandViewType} ohByPSWShowEditScreen={ohByPSWShowEditScreen}/> :
-            !smScreen && listType === 'collection' ? <RenderCollectionEdit collectionId={collection._id} ownerId={ownerID} pokemon={pokemon} ballInfo={pokemonBallInfo} allEggMoves={allEggMoves} isHomeCollection={collection.gen === 'home'}/> :
-            (!smScreen && listType === 'onHand' && onhandViewType === 'byPokemon') ? <ByPokemonEdit collectionId={collection._id} ownerId={ownerID} ohPokemonObj={pokemon} allEggMoves={allEggMoves} isHomeCollection={collection.gen === 'home'} demo={demo} colBallInfo={pokemonBallInfo[selectedBall]} possibleGender={possibleGender}/> : 
-            (!smScreen && listType === 'onHand' ) && <RenderOnHandEdit collectionId={collection._id} ownerId={ownerID} pokemon={pokemon} idxOfPokemon={idxOfPokemon} allEggMoves={allEggMoves} isHomeCollection={collection.gen === 'home'} demo={demo}/>
+            {noSelection ? <NothingSelected listType={listType} onhandViewType={onhandViewType} isHomeCollection={collectionGen === 'home'} collectionID={collectionID} demo={demo} smScreen={smScreen}/> :
+            (showEditScreen === false || smScreen) ? <ShowSelectionConfirm listType={listType} pokemon={pokemon} pokemonDeletedFromMemory={pokemonDeletedFromMemory} pokemonIdx={idxOfPokemon} globalDefault={globalDefault} superCollectionGlobalDefault={superCollectionGlobalDefault} possibleEggMoves={collectionGen === 'home' ? pokemon.possibleEggMoves : allEggMoves[pokemon.name]} smScreen={smScreen} onhandView={onhandViewType} ohByPSWShowEditScreen={ohByPSWShowEditScreen} isHomeCollection={collectionGen === 'home'} subListIdx={subListIdx} collectionGen={collectionGen}/> :
+            !smScreen && listType === 'collection' ? <RenderCollectionEdit collectionId={collection._id} ownerId={ownerID} pokemon={pokemon} ballInfo={pokemonBallInfo} allEggMoves={allEggMoves} isHomeCollection={collectionGen === 'home'} subListIdx={subListIdx} collectionGen={collectionGen} dummyMain={dummyMain}/> :
+            (!smScreen && listType === 'onHand' && onhandViewType === 'byPokemon') ? <ByPokemonEdit collectionId={collectionID} ownerId={ownerID} ohPokemonObj={pokemon} allEggMoves={allEggMoves} isHomeCollection={collectionGen === 'home'} demo={demo} colBallInfo={pokemonBallInfo[selectedBall]} possibleGender={possibleGender}/> : 
+            (!smScreen && listType === 'onHand' ) && <RenderOnHandEdit collectionId={collectionID} ownerId={ownerID} pokemon={pokemon} idxOfPokemon={idxOfPokemon} allEggMoves={allEggMoves} isHomeCollection={collectionGen === 'home'} demo={demo}/>
             }
         </FlexAppBarContainer>
         {!smScreen && 
@@ -81,7 +81,7 @@ import { selectPokeIdMatches } from '../../../app/selectors/selectpokeidmatches'
                     isHA: pokemon.isHA, 
                     emCount: pokemon.emCount,
                     gender: pokemon.gender,
-                    isMaxEMs: pokemon.emCount === 4 || (collection.gen === 'home' ? true : pokemon.emCount === 
+                    isMaxEMs: pokemon.emCount === 4 || (collectionGen === 'home' ? true : pokemon.emCount === 
                         (allEggMoves[pokemon.name] === undefined ? allEggMoves[`${pokemon.name.slice(0, pokemon.name.indexOf(' '))} (Any)`] : 
                         allEggMoves[pokemon.name]).length),
                     pokemonId: pokemon._id
@@ -92,12 +92,15 @@ import { selectPokeIdMatches } from '../../../app/selectors/selectpokeidmatches'
                         ball: selectedBall, 
                         isOwned: pokemon.balls[selectedBall].isOwned, 
                         idx: idxOfPokemon,
+                        id: pokemon.imgLink,
+                        subListIdx,
                         activeTag: pokemon.balls[selectedBall].highlyWanted !== undefined ? 'highlyWanted' : 
                                     pokemon.balls[selectedBall].pending !== undefined ? 'pending' : 'none'
                     }
             }
             demo={demo}
             byPokemonNum={(listType === 'onHand' && onhandViewType === 'byPokemon' && !noSelection && !showEditScreen) && pokemon.idSetsAndNums[selectedBall]}
+            subListIdx={subListIdx}
         />}
         {/* {(!noSelection && smScreen) &&
             <Box sx={{position: 'absolute', pointerEvents: 'none', height: '192vh', width: '100%'}}>
@@ -124,14 +127,17 @@ const mapStateToProps = function(state, ownProps) {
             (showEditScreen && !ownProps.smScreen) ? selectAllOnHandsOfPokemon(state, selection) : 
             selectOnHandPokemonByPokemon(state, selection) : 
         listType === 'onHand' && selectOnHandPokemon(state, selection) : 'none'
-    const idxOfPokemon = selection !== '' && (listType === 'collection' ? state.collectionState.collection.indexOf(pokemon) :
+    const idxOfPokemon = selection !== '' && (listType === 'collection' ? state.collectionState.collection.findIndex(p => p.imgLink === pokemon.imgLink) :
         (listType === 'onHand' && onhandViewType === 'byPokemon' && (!ownProps.smScreen && showEditScreen || ownProps.smScreen && ohByPSWShowEditScreen)) ? state.collectionState.onhand.indexOf(p => p._id === pokemon.init) : 
         (listType === 'onHand' && onhandViewType === 'byPokemon') ? -1 : state.collectionState.onhand.indexOf(pokemon))
     const pokemonDeletedFromMemory = (listType === 'onHand' && selection !== '') && (
         (onhandViewType === 'byPokemon' && (!ownProps.smScreen && showEditScreen || ownProps.smScreen && ohByPSWShowEditScreen)) ? false : 
-        state.collectionState.collection.filter(p => selectPokeIdMatches(p.imgLink, pokemon.imgLink, p.disabled)).length === 0
+        selectCorrectOpList(state).filter(p => selectPokeIdMatches(p.imgLink, pokemon.imgLink, p.disabled)).length === 0
     )
-    return {selection, listType, showEditScreen, pokemon, idxOfPokemon, pokemonDeletedFromMemory, onhandViewType, ohByPSWShowEditScreen}
+    const subListIdx = (selection !== '' && listType === 'collection' && state.collectionState.linkedCollections !== undefined && state.collectionState.linkedSelectedIdx !== 0) ? state.collectionState.subList.findIndex(p => p.imgLink === selection) : undefined 
+    const dummyMain = state.collectionState.linkedCollections !== undefined && state.collectionState.linkedCollections[0].gen === 'dummy'
+    
+    return {selection, listType, showEditScreen, pokemon, idxOfPokemon, pokemonDeletedFromMemory, onhandViewType, ohByPSWShowEditScreen, subListIdx, dummyMain}
 }
 
 export default connect(mapStateToProps)(DisplaySelection)

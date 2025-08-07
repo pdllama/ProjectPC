@@ -1,6 +1,6 @@
 import {handleGen8EMs, handleDifferentFormEMs, selectPokemonInfo} from './infoandotherfuncs.js'
 import { incenseBabiesWithExclusiveEMs, incenseAdultsWithExclusiveEMs, altFormMonsWithExclusiveEMs, pokemonNamesWithSpaces, regionalFormRegions, interchangeableAltFormMons } from '../../common/infoconstants/pokemonconstants.mjs'
-import { genGames, noRegionalFormGens } from '../../common/infoconstants/miscconstants.mjs'
+import { genGames, noRegionalFormGens, homeDisplayGames, getGenNum } from '../../common/infoconstants/miscconstants.mjs'
 import allPokemon from '../aprimonAPI/allpokemoninfo.js'
 
 function getImgLink(p) {
@@ -66,32 +66,60 @@ function getImgLink(p) {
     }
 }
 
-function getPossibleEggMoves(ownedPokemon, gen) {
-    const collectionGen = gen === 'swsh' || gen === 'bdsp' ? 8 : parseInt(gen)
-    const eggMoveInfo = {}
-    ownedPokemon.map(p => {
-        const pokemonInfo = selectPokemonInfo(p.name, p.gen, p.natDexNum)
-        const isRegionalVariant = p.name.includes('Paldean') || p.name.includes('Hisuian') || p.name.includes('Galarian') || p.name.includes('Alolan')
-        const incenseMonExclusiveEMs = incenseBabiesWithExclusiveEMs.includes(p.name) || incenseAdultsWithExclusiveEMs.includes(p.name)
-        const hasRegionalVariant = pokemonInfo.info.regionalForm !== undefined && collectionGen >= pokemonInfo.info.regionalForm.forms[0].gen
-        const altFormWithExclusiveEMs = altFormMonsWithExclusiveEMs.includes(p.name)
-        const eggMovePath = pokemonInfo.specificGenInfo[`gen${collectionGen}`].eggmoves
-        if (eggMovePath === undefined) {
-            eggMoveInfo[p.name] = []
+function getHomeGamesPossibleEggMoves(p) {
+    const possibleEggMoves = {}
+
+    homeDisplayGames.forEach(hDG => {
+        if (Object.keys(p.balls).length === 0) {
+            //this if statement was for debugging purposes only. realistically, this case should NEVER happen, since it means
+            //the pokemon has NO active ball combos (and should just be removed from the list)
+            possibleEggMoves[hDG] = []
         } else {
-            const normEMs = collectionGen === 7 && eggMovePath.usumOnly !== undefined ? 
-                [...eggMovePath.moves, ...eggMovePath.usumOnly] : eggMovePath.moves !== undefined ? 
-                eggMovePath.moves : []
-            if (isRegionalVariant || incenseMonExclusiveEMs || hasRegionalVariant || altFormWithExclusiveEMs) {
-                eggMoveInfo[p.name] = handleDifferentFormEMs(isRegionalVariant, hasRegionalVariant, incenseMonExclusiveEMs, altFormWithExclusiveEMs, collectionGen, gen, p, eggMovePath, normEMs)
-            } else if (collectionGen === 8) {
-                eggMoveInfo[p.name] = handleGen8EMs(eggMovePath, normEMs, gen)
+            const firstBallData = Object.values(p.balls)[0]
+            if (firstBallData.eggMoveData === undefined || Object.keys(firstBallData.eggMoveData).length === 0 || firstBallData.eggMoveData[hDG] === undefined) {
+                possibleEggMoves[hDG] = []
             } else {
-                eggMoveInfo[p.name] = normEMs
+                const genNum = getGenNum(hDG)
+                possibleEggMoves[hDG] = getSingleMonPossibleEggMoves(p, genNum, hDG)
             }
         }
     })
+    return possibleEggMoves
+}
+
+function getPossibleEggMoves(ownedPokemon, gen) {
+    const collectionGen = (gen === 'swsh' || gen === 'bdsp') ? 8 : parseInt(gen)
+    const eggMoveInfo = {}
+    ownedPokemon.map(p => {
+        eggMoveInfo[p.name] = getSingleMonPossibleEggMoves(p, collectionGen, gen)
+    })
     return eggMoveInfo
+}
+
+function getSingleMonPossibleEggMoves(p, numberGen, gen) {
+    const pokemonInfo = selectPokemonInfo(p.name, p.gen, p.natDexNum)
+    const isRegionalVariant = p.name.includes('Paldean') || p.name.includes('Hisuian') || p.name.includes('Galarian') || p.name.includes('Alolan')
+    const incenseMonExclusiveEMs = incenseBabiesWithExclusiveEMs.includes(p.name) || incenseAdultsWithExclusiveEMs.includes(p.name)
+    const hasRegionalVariant = pokemonInfo.info.regionalForm !== undefined && numberGen >= pokemonInfo.info.regionalForm.forms[0].gen
+    const altFormWithExclusiveEMs = altFormMonsWithExclusiveEMs.includes(p.name)
+    if (pokemonInfo.specificGenInfo[`gen${numberGen}`] === undefined) {
+        return []
+    }
+    const eggMovePath = pokemonInfo.specificGenInfo[`gen${numberGen}`].eggmoves
+    if (eggMovePath === undefined) {
+        return []
+    } else {
+        const normEMs = numberGen === 7 && eggMovePath.usumOnly !== undefined ? 
+            [...eggMovePath.moves, ...eggMovePath.usumOnly] : eggMovePath.moves !== undefined ? 
+            eggMovePath.moves : []
+        if (isRegionalVariant || incenseMonExclusiveEMs || hasRegionalVariant || altFormWithExclusiveEMs) {
+            return handleDifferentFormEMs(isRegionalVariant, hasRegionalVariant, incenseMonExclusiveEMs, altFormWithExclusiveEMs, numberGen, gen, p, eggMovePath, normEMs)
+        } else if (numberGen === 8) {
+            return handleGen8EMs(eggMovePath, normEMs, gen)
+        } else {
+            return normEMs
+        }
+    }
 }
 
 function getPossibleGender(p) {
@@ -130,46 +158,51 @@ function getCollectionProgress(ownedPokemonList) {
 function getAvailableHomeGames(ownedPokemonList) {
     const availableGamesData = {}
     ownedPokemonList.forEach((pokemon) => {
-        availableGamesData[pokemon.name] = []
-        const pokemonAPIData = allPokemon.filter(pInfo => {
-            const nameMatches = pokemon.natDexNum === pInfo.info.natDexNum || (pInfo.info.special !== undefined && pokemon.natDexNum === pInfo.info.special.child.natDexNum)
-            return nameMatches
-        })[0]
-        Object.keys(pokemonAPIData.specificGenInfo).forEach((genInfo) => {
-            const isHomeGame = genInfo !== 'gen6' && genInfo !== 'gen7'
-            const isRegionalFormPokemon = regionalFormRegions.map((region) => pokemon.name.toLowerCase().includes(region.toLowerCase())).includes(true) && pokemonAPIData.info.regionalForm !== undefined
-            const regionalFormIntro = isRegionalFormPokemon && pokemonAPIData.info.regionalForm.forms.filter(rForm => pokemon.name.includes(rForm.name))[0].gen
-            const extraConsideration = pokemon.name.includes('White-Striped') //white-striped basculin is the only alt form pokemon who was introduced in a later gen (was introduced in legends arceus and made available in apriballs in sv)
-            if (isHomeGame) {
-                const genNum = parseInt(genInfo.slice(3))
-                const genGameData = genGames.filter(gGInfo => gGInfo.gen === genNum)[0]
-                const hasMultipleGames = genGameData !== undefined
-                if (hasMultipleGames) {
-                    const games = Object.keys(pokemonAPIData.specificGenInfo[genInfo].balls)
-                    const availableGamesInGen = genGameData.games.filter(game => games.includes(game))
-                    if (isRegionalFormPokemon && (regionalFormIntro > genNum)) {
-                        return
-                    } else {
-                        availableGamesInGen.forEach(game => {
-                            if ((isRegionalFormPokemon && noRegionalFormGens.includes(game)) || extraConsideration) {
-                                return
-                            } else {
-                                availableGamesData[pokemon.name].push(game)
-                            }
-                        })
-                    }
-                    
-                } else {
-                    if (isRegionalFormPokemon && noRegionalFormGens.includes(genNum)) {
-                        return
-                    } else {
-                        availableGamesData[pokemon.name].push(genNum)
-                    }
-                }
-            }
-        })
+        availableGamesData[pokemon.name] = getSingleMonAvailableHomeGames(pokemon)
     })
     return availableGamesData
 }
 
-export {getImgLink, getPossibleEggMoves, getPossibleGender, getCollectionProgress, getAvailableHomeGames}
+const getSingleMonAvailableHomeGames = (pokemon, pApiData=undefined) => {
+    const availableGames = []
+    const pokemonAPIData = pApiData ? pApiData : allPokemon.filter(pInfo => {
+        const nameMatches = pokemon.natDexNum === pInfo.info.natDexNum || (pInfo.info.special !== undefined && pokemon.natDexNum === pInfo.info.special.child.natDexNum)
+        return nameMatches
+    })[0]
+    Object.keys(pokemonAPIData.specificGenInfo).forEach((genInfo) => {
+        const isHomeGame = genInfo !== 'gen6' && genInfo !== 'gen7'
+        const isRegionalFormPokemon = regionalFormRegions.map((region) => pokemon.name.toLowerCase().includes(region.toLowerCase())).includes(true) && pokemonAPIData.info.regionalForm !== undefined
+        const regionalFormIntro = isRegionalFormPokemon && pokemonAPIData.info.regionalForm.forms.filter(rForm => pokemon.name.includes(rForm.name))[0].gen
+        const extraConsideration = pokemon.name.includes('White-Striped') //white-striped basculin is the only alt form pokemon who was introduced in a later gen (was introduced in legends arceus and made available in apriballs in sv)
+        if (isHomeGame) {
+            const genNum = parseInt(genInfo.slice(3))
+            const genGameData = genGames.filter(gGInfo => gGInfo.gen === genNum)[0]
+            const hasMultipleGames = genGameData !== undefined
+            if (hasMultipleGames) {
+                const games = Object.keys(pokemonAPIData.specificGenInfo[genInfo].balls)
+                const availableGamesInGen = genGameData.games.filter(game => games.includes(game))
+                if (isRegionalFormPokemon && (regionalFormIntro > genNum)) {
+                    return
+                } else {
+                    availableGamesInGen.forEach(game => {
+                        if ((isRegionalFormPokemon && noRegionalFormGens.includes(game)) || extraConsideration) {
+                            return
+                        } else {
+                            availableGames.push(game)
+                        }
+                    })
+                }
+                
+            } else {
+                if (isRegionalFormPokemon && noRegionalFormGens.includes(genNum)) {
+                    return
+                } else {
+                    availableGames.push(genNum)
+                }
+            }
+        }
+    })
+    return availableGames
+}
+
+export {getImgLink, getPossibleEggMoves, getPossibleGender, getCollectionProgress, getAvailableHomeGames, getSingleMonAvailableHomeGames, getHomeGamesPossibleEggMoves}

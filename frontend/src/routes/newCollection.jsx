@@ -161,11 +161,10 @@ export default function NewCollection({demo=false}) {
 
     const finalizeCreation = async() => {
         const isHomeCollection = formData.collectionType.subTypeValue === 'home'
-        const globalDefaultFormatted = isHomeCollection ? {...formData.options.globalDefaults, emCount: undefined} : formData.options.globalDefaults
         const tradePreferencesFormatted = isHomeCollection ? {...formData.options.tradePreferences, ftItems: undefined, lfItems: undefined} : formData.options.tradePreferences
         const backendOptionsFormat = {
             collectingBalls: formData.ballScope.formData,
-            globalDefaults: globalDefaultFormatted,
+            globalDefaults: formData.options.globalDefaults,
             sorting: {collection: formData.options.sorting.collection, onhand: formData.options.sorting.onhand},
             tradePreferences: {...tradePreferencesFormatted, rates: {pokemonOffers: formData.options.rates.pokemonOffers.filter(off => off.add === undefined), itemOffers: isHomeCollection ? undefined : formData.options.rates.itemOffers.filter(off => off.add === undefined)}}
         }

@@ -6,7 +6,7 @@ import { useState, useEffect, useContext, useRef } from 'react'
 import { AlertsContext } from '../../../alerts/alerts-context'
 import { ErrorContext } from '../../../app/contexts/errorcontext'
 import { changeModalState } from '../../../app/slices/editmode'
-import { setNameState, setGlobalDefaultState } from '../../../app/slices/collectionstate'
+import { setNameState, setGlobalDefaultState, resetInitialized } from '../../../app/slices/collectionstate'
 import { apriballs } from '../../../../common/infoconstants/miscconstants.mjs'
 import { backendChangeOptions } from '../../../../utils/functions/backendrequests/collectionoptionsedit'
 import deleteCollectionRequest from '../../../../utils/functions/backendrequests/deletecollection'
@@ -14,6 +14,8 @@ import ControlledTextInput from '../../functionalcomponents/controlledtextinput'
 import SaveChangesConfirmModal from './savechangesconfirmmodal'
 import ConfirmDecisionModal from '../../functionalcomponents/confirmdecisionmodal'
 import ExportCollectionModal from './otheroptionscomponents/exportcollectionmodal'
+import { homeDisplayGames } from '../../../../common/infoconstants/miscconstants.mjs'
+import GameIndicatorBox from '../../collectiontable/tabledata/gameindicatorbox'
 
 export default function OtherOptions({elementBg, collectionId, collectionGen, collectionType, owner, demo, sw}) {
     const dispatch = useDispatch()
@@ -24,7 +26,7 @@ export default function OtherOptions({elementBg, collectionId, collectionGen, co
     const collectionNameRef = useRef(collectionNameState)
     const navigate = useNavigate()
 
-    const [otherOptions, setOtherOptions] = useState({globalDefaults: globalDefaultInit, deleteCollectionModal: false, saveChangesConfirmOpen: false})
+    const [otherOptions, setOtherOptions] = useState({globalDefaults: globalDefaultInit, deleteCollectionModal: false, saveChangesConfirmOpen: false, homeEMCount: homeDisplayGames[homeDisplayGames.length-1]})
     const [deleteError, setDeleteError] = useState({error: false})
     const [exportCol, setExportCol] = useState(false)
 
@@ -80,7 +82,11 @@ export default function OtherOptions({elementBg, collectionId, collectionGen, co
     }, []);
 
     const changeGlobalDefault = (field, newVal) => {
-        setOtherOptions({...otherOptions, globalDefaults: {...otherOptions.globalDefaults, [field]: newVal}})
+        if (isHomeCollection && field === 'emCount') {
+            setOtherOptions({...otherOptions, globalDefaults: {...otherOptions.globalDefaults, eggMoveData: {...otherOptions.globalDefaults.eggMoveData, [otherOptions.homeEMCount]: newVal}}}) 
+        } else {
+            setOtherOptions({...otherOptions, globalDefaults: {...otherOptions.globalDefaults, [field]: newVal}}) 
+        }
     }
 
     const closeSaveChangesConfirm = () => {
@@ -91,9 +97,16 @@ export default function OtherOptions({elementBg, collectionId, collectionGen, co
         setOtherOptions({...otherOptions, deleteCollectionModal: !otherOptions.deleteCollectionModal})
     }
 
+    const switchHomeCountGen = () => {
+        setOtherOptions({...otherOptions, homeEMCount: otherOptions.homeEMCount === homeDisplayGames[homeDisplayGames.length-1] ? homeDisplayGames[0] : homeDisplayGames[homeDisplayGames.indexOf(otherOptions.homeEMCount)+1]})
+    }
+
     const changeOptions = (saveButtonSelected, nextScreen) => {
         const noNameChanges = collectionNameRef.current.value === collectionNameState
-        const noGlobalDefaultChanges = (globalDefaultInit.isHA === otherOptions.globalDefaults.isHA) && (globalDefaultInit.emCount === otherOptions.globalDefaults.emCount)
+        const noEmCountDefaultChanges = isHomeCollection ? 
+            !(homeDisplayGames.map(hDG => globalDefaultInit.eggMoveData[hDG] === otherOptions.globalDefaults.eggMoveData[hDG]).includes(false)) : 
+            globalDefaultInit.emCount === otherOptions.globalDefaults.emCount
+        const noGlobalDefaultChanges = (globalDefaultInit.isHA === otherOptions.globalDefaults.isHA) && noEmCountDefaultChanges
         const noChangesMade = noNameChanges && noGlobalDefaultChanges
         if (saveButtonSelected && noChangesMade) {
             setOtherOptions({...otherOptions, saveErrorNoticeShow: true})
@@ -115,6 +128,7 @@ export default function OtherOptions({elementBg, collectionId, collectionGen, co
         const backendFunc = async() => deleteCollectionRequest(collectionId)
         const successFunc = () => {
             navigate(`/users/${owner}`)
+            dispatch(resetInitialized())
             addAlert({severity: 'error', timeout: 5, message: `Deleted your ${collectionType}!`})
         }
         const errorFunc = (errorDetails) => {
@@ -127,7 +141,10 @@ export default function OtherOptions({elementBg, collectionId, collectionGen, co
         if (saveChanges) {
             const newName = collectionNameRef.current.value
             const noNameChanges = collectionNameRef === collectionNameState
-            const noGlobalDefaultChanges = (globalDefaultInit.isHA === otherOptions.globalDefaults.isHA) && (globalDefaultInit.emCount === otherOptions.globalDefaults.emCount)
+            const noEmCountDefaultChanges = isHomeCollection ? 
+                !(homeDisplayGames.map(hDG => globalDefaultInit.eggMoveData[hDG] === otherOptions.globalDefaults.eggMoveData[hDG]).includes(false)) : 
+                globalDefaultInit.emCount === otherOptions.globalDefaults.emCount
+            const noGlobalDefaultChanges = (globalDefaultInit.isHA === otherOptions.globalDefaults.isHA) && noEmCountDefaultChanges
             setOtherOptions({...otherOptions, saving: true})
             setTimeout(() => {
                 if (demo) {
@@ -244,17 +261,28 @@ export default function OtherOptions({elementBg, collectionId, collectionGen, co
                         </Box>
                     </Box>
                     <Box sx={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: '50%', height: '100%', position: 'relative'}}>
-                    {isHomeCollection && <Typography sx={{position: 'absolute', fontSize: '12px', top: '25%', right: '20%', fontWeight: 700, width: '70%', height: '50%', textAlign: 'center'}}>Egg Moves are disabled in <br></br>HOME collections</Typography>}
-                        <Typography sx={{fontSize: '14px', mb: 1, fontWeight: 700, ...disabledEMSelection}}>Egg Move Count</Typography>
-                        <Box sx={{display: 'flex', flexDirection: 'row', justifyContent: 'center', ...disabledEMSelection}}>
+                        <Typography sx={{fontSize: '14px', mb: 1, fontWeight: 700}}>Egg Move Count</Typography>
+                        <Box sx={{display: 'flex', flexDirection: 'row', justifyContent: 'center'}}>
                             {Array.from(Array(5).keys()).map((emCount, idx) => {
                                 return (
-                                    <ToggleButton sx={{fontSize: '12px', mx: 0.5, ...buttonStyles}} value={emCount} selected={otherOptions.globalDefaults.emCount === emCount} onChange={(e, newVal) => changeGlobalDefault('emCount', newVal)} key={`global-default-emCount-${emCount}`}>
+                                    <ToggleButton 
+                                        sx={{fontSize: '12px', mx: 0.5, ...buttonStyles}} 
+                                        value={emCount} 
+                                        selected={isHomeCollection ? otherOptions.globalDefaults.eggMoveData[otherOptions.homeEMCount] === emCount : otherOptions.globalDefaults.emCount === emCount} 
+                                        onChange={(e, newVal) => changeGlobalDefault('emCount', newVal)} 
+                                        key={`global-default-emCount-${emCount}`}
+                                    >
                                         {emCount}
                                     </ToggleButton>
                                 )
                             })}
                         </Box>
+                        {isHomeCollection && 
+                            <Box sx={{position: 'absolute', top: sw? '90%' : '80%', display: 'flex', gap: 2, alignItems: 'center'}}>
+                                <Button onClick={switchHomeCountGen}>Switch Gen</Button>
+                                <GameIndicatorBox game={otherOptions.homeEMCount} sx={{height: '24px'}} textSx={{fontSize: '18px'}}/>
+                            </Box>
+                        }
                     </Box>
                 </Box>
             </Box>

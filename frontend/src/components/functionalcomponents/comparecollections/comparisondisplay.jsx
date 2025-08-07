@@ -8,10 +8,11 @@ import hexToRgba from 'hex-to-rgba'
 import { getCompareDisplayGridComponents, listCompareDisplayIndividual, listCompareDisplayPokemon } from './comparedisplaygridcomponents'
 import { useSelector } from 'react-redux'
 import { selectScreenBreakpoint } from '../../../app/selectors/windowsizeselectors'
+import ChangeHomeEMView from '../../collectiontable/changehomeemview'
 
 
 
-export default function ComparisonDisplay({userData, userCollectionDisplay, userColId, ownerCollectionDisplay, ownerColId, comparisonData, ownerUsername, oneHomeCollection, goBackScreen, ownerTradeStatus, ownerBlockedUsers, ownerTradesDisabled, isTradePage, closeModal, sw}) {
+export default function ComparisonDisplay({userData, userCollectionDisplay, userColId, userColGen, userColIsLinked, ownerCollectionDisplay, ownerColId, ownerColGen, comparisonData, ownerUsername, oneHomeCollection, goBackScreen, ownerTradeStatus, ownerBlockedUsers, ownerTradesDisabled, isTradePage, closeModal, sw}) {
     const theme = useTheme()
     const navigate = useNavigate()
     const loggedInUserData = useRouteLoaderData("root")
@@ -21,7 +22,7 @@ export default function ComparisonDisplay({userData, userCollectionDisplay, user
     const canReceiveAmount = comparisonData.canReceive.map((p) => p.balls.length).reduce((accumulator, currentValue) => accumulator+currentValue, 0)
     const compBp = useSelector(state => selectScreenBreakpoint(state, 'compareDisplayMod'))
 
-    // console.log(comparisonData)
+    
 
     const changeDisplayType = (displayType) => {setDisplayType(displayType)}
     const formattedComparisonData = displayType === 'byIndividual' ? reFormatToIndividual(comparisonData) : comparisonData
@@ -32,10 +33,13 @@ export default function ComparisonDisplay({userData, userCollectionDisplay, user
     const onhandCount = comparisonData[list].map(p => p.balls.filter(ballData => ballData.onhandId !== undefined)).flat()
     const canGoNextScreen = (isTradePage || ((canOfferAmount !== 0 || canReceiveAmount !== 0) && ownerTradeStatus === 'open' && !ownerBlockedUsers.includes(userData.username) && !ownerTradesDisabled))
     const userNameDisplaySettings = loggedInUserData.loggedIn ? loggedInUserData.user.settings.display.pokemonNames : undefined
+    const homeHomeComparison = ownerColGen === 'home' && userColGen === 'home'
 
     const navigateOpts = {
         state: {
             compareWith: userColId,
+            colGen: userColGen,
+            isLinked: userColIsLinked,
             comparisonData: {...comparisonData, comparedWith: userColId}
         }
     }
@@ -59,7 +63,7 @@ export default function ComparisonDisplay({userData, userCollectionDisplay, user
                     totalCount={formattedComparisonData[list].length}
                     {...useGridComponents}
                     style={{width: '99%', height: '95%', border: '1px solid white', borderRadius: '10px'}}
-                    itemContent={(idx) => listContentFunc(formattedComparisonData[list][idx], oneHomeCollection, theme, list.slice(3, list.length).toLowerCase(), undefined, undefined, undefined, userNameDisplaySettings, sw, compBp)}
+                    itemContent={(idx) => listContentFunc(formattedComparisonData[list][idx], oneHomeCollection, theme, list.slice(3, list.length).toLowerCase(), undefined, undefined, undefined, userNameDisplaySettings, sw, compBp, homeHomeComparison)}
                 /> : 
                 <Box sx={{width: '99%', height: '95%', border: '1px solid white', borderRadius: '10px', ...theme.components.box.fullCenterCol}}>
                     <Typography sx={{fontSize: '20px', color: 'grey'}}>
@@ -68,14 +72,17 @@ export default function ComparisonDisplay({userData, userCollectionDisplay, user
                 </Box>
                 }
             </Box>
-            <Button onClick={() => changeDisplayType(displayType === 'byPokemon' ? 'byIndividual' : 'byPokemon')} sx={{color: 'white'}}>{displayType === 'byPokemon' ? 'Group Individually' : 'Group by Pokemon'}</Button>
+            <Box sx={{width: '100%', height: '10%', ...theme.components.box.fullCenterRow}}>
+                <Button onClick={() => changeDisplayType(displayType === 'byPokemon' ? 'byIndividual' : 'byPokemon')} sx={{color: 'white', position: homeHomeComparison ? 'absolute' : 'static', left: '10%', '@media only screen and (max-width: 400px)': {left: '5%', fontSize: '12px'}}}>{displayType === 'byPokemon' ? 'Group Individually' : 'Group by Pokemon'}</Button>
+                {homeHomeComparison && <ChangeHomeEMView sx={{position: 'absolute', right: '10%'}}/>}
+            </Box>
         </Box>
         <Box sx={{...modalStyles.onhand.modalElementBg, width: '95%', height: '20%', display: 'flex', flexDirection: 'column', alignItems: 'center', mb: sw ? 0.5 : 0}}>
             <Box sx={{...theme.components.box.fullCenterRow, mt: 1}}>
             <Typography sx={{fontSize: sw ? '14px' : '16px'}}>
                 {aprimonCount.length} Aprimon: {aprimonCount.filter(count => count.isHA === true).length} w/ HA, {aprimonCount.filter(count => count.isHA === undefined).length} 
             </Typography>
-            <Tooltip title="Non-HA refers to pokemon who do not have hidden abilites, or cannot have them in that ball combination."><Typography sx={{cursor: 'pointer', color: 'turquoise', textAlign: 'center', mx: 0.5, fontSize: sw ? '14px' : '16px'}}> Non-HA.</Typography></Tooltip>
+            <Tooltip title="Non-HA refers to pokemon who do not have a hidden ability, or cannot have them in that ball combination."><Typography sx={{cursor: 'pointer', color: 'turquoise', textAlign: 'center', mx: 0.5, fontSize: sw ? '14px' : '16px'}}> Non-HA.</Typography></Tooltip>
             </Box>
             <Typography sx={{fontSize: sw ? '14px' : '16px'}}>
                 {onhandCount.length} On-Hand Aprimon: {onhandCount.filter(count => count.isHA === true).length} w/ HA, {onhandCount.filter(count => count.isHA === undefined).length} Non-HA.

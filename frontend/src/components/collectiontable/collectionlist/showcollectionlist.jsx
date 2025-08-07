@@ -15,7 +15,7 @@ import { setScrollPosition } from '../../../app/slices/collectionstate';
 import {setCollectionInitialState} from '../../../app/slices/collection'
 import {setSelected} from '../../../app/slices/editmode'
 
-export default function ShowCollectionList({collection, isCollectionOwner, styles, isEditMode, demo, localDisplayState=undefined, height=800, noStates=false, isTradePage=false, tradeSide=null, wantedByOtherListData=[], userData}) {
+export default function ShowCollectionList({collectionLoader, currCollectionGen, ballScopeInit, isCollectionOwner, styles, isEditMode, demo, localDisplayState=undefined, height=800, noStates=false, isTradePage=false, tradeSide=null, wantedByOtherListData=[], userData, pathname, otherListGen}) {
     const theme = useTheme()
     const dispatch = useDispatch()
     const ballScopeState = !noStates && useSelector((state) => state.collectionState.options.collectingBalls)
@@ -23,7 +23,7 @@ export default function ShowCollectionList({collection, isCollectionOwner, style
     const previousScrollPosition = useSelector((state) => state.collectionState.lastScrollPosition)
     const previousColId = useSelector((state) => state.collectionState.prevColId)
     // const showFullSets = useSelector((state) => state.collectionState.listDisplay.showFullSets)
-    const link = useLocation().pathname
+    const link = pathname !== undefined ? pathname : useLocation().pathname
     // const linkRef = useRef(link)
 
     // console.log(collection)
@@ -31,7 +31,7 @@ export default function ShowCollectionList({collection, isCollectionOwner, style
     // ^^ listdisplay always uses state to cover for filtering/sorting functions (which anyone should be able to do)
 
     //apparently, on first render, this component loads faster than the initial state can initialize, meaning we have the one line below.
-    const ballScopeDisplay = (ballScopeState === undefined || (!isEditMode && !demo)) ? collection.options.collectingBalls : ballScopeState
+    const ballScopeDisplay = (ballScopeState.length === 0) ? ballScopeInit : ballScopeState
     const listDisplay = (localDisplayState !== undefined) ? localDisplayState : listState
 
 
@@ -50,17 +50,19 @@ export default function ShowCollectionList({collection, isCollectionOwner, style
     // }, [])
 
     useLayoutEffect(() => {
-        const sameIDBetweenRefs = collection._id === previousColId
-        if (previousScrollPosition && sameIDBetweenRefs) {
+        const sameIDBetweenRefs = collectionLoader._id === previousColId
+        if (previousScrollPosition && sameIDBetweenRefs && scrollRef.current !== null) {
             setTimeout(() => {
-              scrollRef.current.scrollTo({top: previousScrollPosition})  
+                if (scrollRef.current !== null) {
+                    scrollRef.current.scrollTo({top: previousScrollPosition})  
+                }
             }, 1000)  
         }
     }, [link])
 
     useEffect(() => {
         return () => {
-            dispatch(setScrollPosition({scrollPos: scrollPosition.current, latestColId: collection._id}))
+            dispatch(setScrollPosition({scrollPos: scrollPosition.current, latestColId: collectionLoader._id}))
         }
     })
 
@@ -159,18 +161,20 @@ export default function ShowCollectionList({collection, isCollectionOwner, style
                     // idx={_index}
                     id={row.imgLink}
                     isCollectionOwner={isCollectionOwner}
-                    collectionId={demo ? '' : collection._id}
-                    ownerId={demo ? '' : collection.owner._id}
+                    collectionId={demo ? '' : collectionLoader._id}
+                    ownerId={demo ? '' : collectionLoader.owner._id}
                     styles={styles}
                     isEditMode={isEditMode}
                     demo={demo}
-                    isHomeCollection={collection.gen === 'home'}
-                    availableGames={collection.availableGamesInfo !== undefined && collection.availableGamesInfo}
+                    isHomeCollection={currCollectionGen === 'home'}
+                    availableGames={collectionLoader.availableGamesInfo !== undefined && collectionLoader.availableGamesInfo}
                     noStates={noStates}
                     isTradePage={isTradePage}
                     tradeSide={tradeSide}
                     wantedByOtherList={finalPokeWantedData}
                     userData={userData}
+                    currColGen={currCollectionGen}
+                    otherListGen={otherListGen}
                     {...includePokemonProp}
                 />
             // </Fragment>

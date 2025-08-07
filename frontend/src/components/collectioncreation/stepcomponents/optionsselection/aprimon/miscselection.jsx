@@ -1,8 +1,15 @@
-import {Box, Typography, ToggleButton, ToggleButtonGroup} from '@mui/material'
+import {Box, Typography, ToggleButton, ToggleButtonGroup, Button} from '@mui/material'
+import {useState} from 'react'
+import { homeDisplayGames } from '../../../../../../common/infoconstants/miscconstants.mjs'
+import GameIndicatorBox from '../../../../collectiontable/tabledata/gameindicatorbox'
 
 export default function MiscSelection({globalDefaultData, handleChange, collectionGen}) {
     const homeCollection = collectionGen === 'home'
-    const disabledStyles = homeCollection ? {filter: 'blur(10px)', pointerEvents: 'none'} : {}
+    const [homeEmCount, setHomeEmCount] = useState(homeDisplayGames[homeDisplayGames.length-1])
+
+    const switchHomeCountGen = () => {
+        setHomeEmCount(homeDisplayGames[homeDisplayGames.length-1] === homeEmCount ? homeDisplayGames[0] : homeDisplayGames[homeDisplayGames.indexOf(homeEmCount)+1])
+    }
     return (
         <Box sx={{width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative'}}>
             <Typography variant='h6' sx={{fontSize: '16px', fontWeight: 700, mt: 1}}>Set Global Defaults</Typography>
@@ -24,22 +31,36 @@ export default function MiscSelection({globalDefaultData, handleChange, collecti
                         </ToggleButtonGroup>
                     </Box>
                 </Box>
-                <Box sx={{display: 'flex', flexDirection: 'column', justifyContent: 'center', width: '50%', height: '100%', position: 'relative'}}>
-                    {homeCollection && <Typography sx={{position: 'absolute', fontSize: '12px', top: '25%', right: '25%', fontWeight: 700, width: '50%', height: '50%'}}>Egg Moves are disabled in <br></br>HOME collections</Typography>}
-                    <Typography sx={{fontSize: '14px', mb: 1, fontWeight: 700, ...disabledStyles}}>Egg Move Count</Typography>
-                    <Box sx={{display: 'flex', flexDirection: 'row', justifyContent: 'center', ...disabledStyles}}>
+                <Box sx={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: '50%', height: '100%', position: 'relative'}}>
+                    <Typography sx={{fontSize: '14px', mb: 1, fontWeight: 700}}>Egg Move Count</Typography>
+                    <Box sx={{display: 'flex', flexDirection: 'row', justifyContent: 'center'}}>
                         {Array.from(Array(5).keys()).map((emCount, idx) => {
                             return (
-                                <ToggleButton sx={{fontSize: '12px', mx: 0.5}} value={emCount} selected={globalDefaultData.emCount === emCount} onChange={(e, newVal) => handleChange('emCount', newVal)} key={`global-default-emCount-${emCount}`}>
+                                <ToggleButton 
+                                    sx={{fontSize: '12px', mx: 0.5}} 
+                                    value={emCount} 
+                                    selected={collectionGen === 'home' ? globalDefaultData.eggMoveData[homeEmCount] === emCount : globalDefaultData.emCount === emCount} 
+                                    onChange={(e, newVal) => handleChange(collectionGen === 'home' ? 'eggMoveData' : 'emCount', newVal, homeEmCount)} 
+                                    key={`global-default-emCount-${emCount}`}
+                                >
                                     {emCount}
                                 </ToggleButton>
                             )
                         })}
                     </Box>
-                    
+                    {homeCollection && 
+                        <Box sx={{position: 'absolute', top: '85%', display: 'flex', gap: 2, alignItems: 'center'}}>
+                            <Button onClick={switchHomeCountGen}>Switch Gen</Button>
+                            <GameIndicatorBox game={homeEmCount} sx={{height: '24px'}} textSx={{fontSize: '18px'}}/>
+                        </Box>
+                    }
                 </Box>
             </Box>
-            <Typography sx={{fontSize: '10px', width: '100%'}}>
+            {homeCollection && 
+            <Typography sx={{fontSize: '12px', width: '100%', mt: 2}}>
+                In Home Collections, egg moves of a collection pokemon can be set for each HOME-compatible game, and the EM count default can be set accordingly. 
+            </Typography>}
+            <Typography sx={{fontSize: '10px', width: '100%', mt: 2}}>
                 Defaults will account for cases where a pokemon may not have HA/EMs, as well as cases where the max possible EMs may be less than 4.
             </Typography>
         </Box>

@@ -10,7 +10,7 @@ import getNameDisplay from '../../../../../../utils/functions/display/getnamedis
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import hexToRgba from 'hex-to-rgba'
 import { capitalizeFirstLetter } from '../../../../../../utils/functions/misc'
-import { setUnsavedChanges, toggleEditScreenState } from '../../../../../app/slices/editmode'
+import { setOnhandChange, setUnsavedChanges, toggleEditScreenState } from '../../../../../app/slices/editmode'
 import newObjectId from '../../../../../../utils/functions/newobjectid'
 import { addOnHandPokemonToListByPokemon } from '../../../../../app/slices/collectionstate'
 import { selectAllOnHandsOfPokemon, selectOnHandPokemonByPokemon, selectOnHandPokemonIdx, selectOwnedBallsAndHangingOnHandBallsList } from '../../../../../app/selectors/selectors'
@@ -50,20 +50,26 @@ export default function SWOnhandByPokemonEditor({collectionID, demo, ohByPSWShow
     // console.log(colBallInfo)
 
     const addOnhandOfBall = () => {
+        const emData = (isHomeCollection && ohEditData.emCount !== undefined) ? 
+            {emCount: colBallInfo[ball].eggMoveData[ohEditData.emGen].emCount, EMs: colBallInfo[ball].eggMoveData[ohEditData.emGen].EMs, emGen: ohEditData.emGen} : 
+            {
+                emCount: colBallInfo[ball].emCount,
+                EMs: colBallInfo[ball].EMs
+            }
         const newOnhandData = {
             _id: newObjectId(),
             name: ohEditData.name,
             natDexNum: ohEditData.natDexNum,
             imgLink: ohEditData.imgLink,
+            haName: ohEditData.haName,
             ball: ohEditData.ball,
             gender: otherOnhandReqData.possibleGender === 'both' ? 'unknown' : otherOnhandReqData.possibleGender,
             isHA: colBallInfo[ball].isHA,
-            emCount: colBallInfo[ball].emCount,
-            EMs: colBallInfo[ball].EMs,
+            ...emData,
             qty: 1
         }
         dispatch(addOnHandPokemonToListByPokemon(newOnhandData))
-        dispatch(setUnsavedChanges('onhand'))
+        dispatch(setOnhandChange({colId: collectionID, id: newOnhandData._id, newOnhands: [newOnhandData]}))
         changeSelectedMon(newOnhandData._id)
     }
 
@@ -74,7 +80,6 @@ export default function SWOnhandByPokemonEditor({collectionID, demo, ohByPSWShow
     }, [ohByPSESData.init, pokemon.imgLink])
     //for whatever reason, theres a bit of lag between switching from basic to detailed edit and it causes "ohEditData" to be undefined, 
     //which causes issues, hence the ternaries on all the detailed edit sections. Not sure why its the case.
-
     return (
         <>
         {!(ohByPSWShowEditScreen && ohEditData === undefined) && 
@@ -85,8 +90,10 @@ export default function SWOnhandByPokemonEditor({collectionID, demo, ohByPSWShow
             baseImgWidth={baseImgWidth}
             baseGapWidth={baseGapWidth}
             pokemonId={pokemon.imgLink}
+            onhandId={ohByPSWShowEditScreen ? ohEditData._id : ''}
             pokemonIdx={idxOfPokemon}
             useSetAllData={ohByPSWShowEditScreen ? true : false}
+            currColID={collectionID}
         />
         }
         {/* {(ohByPSWShowEditScreen && ohEditData === undefined) && 
@@ -100,6 +107,7 @@ export default function SWOnhandByPokemonEditor({collectionID, demo, ohByPSWShow
         <Box sx={{...theme.components.box.fullCenterCol, justifyContent: 'start', width: '100%', height: '80%'}}>
             <ByPokemonQtyEditor 
                 qtyData={pData.idSetsAndNums[ball]}
+                collectionID={collectionID}
                 fullIdSetsAndNums={pData.idSetsAndNums}
                 pokeId={pData.imgLink}
                 ball={ball}
@@ -110,6 +118,7 @@ export default function SWOnhandByPokemonEditor({collectionID, demo, ohByPSWShow
                 otherNumsSx={{fontSize: '11px'}}
                 wrapperStyles={{ml: 0}}
                 smScreen={true}
+                isHomeCollection={isHomeCollection}
             />
             <Box sx={{height: '20%', width: '80%', ...theme.components.box.fullCenterRow, mt: 4}}>
                 <Button 
@@ -136,11 +145,12 @@ export default function SWOnhandByPokemonEditor({collectionID, demo, ohByPSWShow
             possibleGender={otherOnhandReqData.possibleGender}
             noHA={otherOnhandReqData.noHA}
             noEMs={otherOnhandReqData.noEMs}
+            allowedHomeEmGens={otherOnhandReqData.allowedHomeEmGens}
             otherCustomButton={() => 
                 <Button
                     size='small'
                     sx={{
-                        mt: 2,
+                        mt: isHomeCollection ? 8 : 2,
                         
                     }}
                     onClick={() => dispatch(toggleEditScreenState({setOhByPSWState: true}))}
@@ -157,6 +167,7 @@ export default function SWOnhandByPokemonEditor({collectionID, demo, ohByPSWShow
                     setSelectedMon(ohByPSESData.list.filter((p, i) => idxOfSelectedMon === 0 ? i === 1 : i === (idxOfSelectedMon-1))[0]._id)
                 }
             }}
+            emSelectionHeight='35%'
         />
         <Box sx={{width: '100%', height: '50px', position: 'fixed', top: '64.344px', left: '0px'}}>
             <Select value={selectedMon} onChange={(e, i) => i.props.value === '' ? null : changeSelectedMon(i.props.value)} sx={{width: '100%', height: '50px', backgroundColor: theme.palette.color1.main, color: 'white'}} MenuProps={{MenuListProps: {sx: {maxHeight: '200px', overflowY: 'scroll', py: 0, ...scrollerStyles}}}}>

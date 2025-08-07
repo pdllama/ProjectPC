@@ -10,11 +10,14 @@ import Checkbox from '@mui/material/Checkbox'
 import ImgData from './imgdata'
 import HAIndicator from './haindicator'
 import EMIndicator from './emindicator'
+import HomeEMIndicatorController from './homeemindicatorcontroller'
 import { noCompareWithoutOnhand } from '../../../../common/infoconstants/pokemonconstants.mjs'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import './../../../../utils/styles/componentstyles/checkboxindicators.css'
+import { convertBallDataIfNeeded } from '../../functionalcomponents/comparecollections/comparedisplaygridcomponents'
 
-export default function IsOwnedCheckbox({ballInfo, id, handleEditBallInfo, pokeName, ball, collectionId, ownerId, styles, isEditMode, isSelectedEditPage, isHomeCollection, isTradePage=false, tradeSide=null, tradeDispData}) {
+
+export default function IsOwnedCheckbox({ballInfo, id, handleEditBallInfo, pokeName, ball, collectionId, ownerId, styles, isEditMode, pAvailableGames, isSelectedEditPage, isHomeCollection, isTradePage=false, tradeSide=null, tradeDispData}) {
     const theme = useTheme()
     const dispatch = useDispatch()
     const disabled = !isEditMode
@@ -35,8 +38,9 @@ export default function IsOwnedCheckbox({ballInfo, id, handleEditBallInfo, pokeN
     if (isTradePage) {
         delete tradeDispData.ballData.isOwned
     }
+
     const localHandleChangeFunc = (enableSelecting) ? {
-        onClick: () => dispatch(setPokemon({pData: tradeDispData.pData, ballData: tradeDispData.ballData, tradeSide}))
+        onClick: () => dispatch(setPokemon({pData: tradeDispData.pData, ballData: isHomeCollection ? convertBallDataIfNeeded(tradeDispData.ballData, tradeDispData.otherListGen) : tradeDispData.ballData, tradeSide}))
     } : {}
     const onClickFunc = isEditMode && !enableSelecting ? {
         onClick: () => dispatch(setSelected({selected: id, selectedBall: ball}))
@@ -53,13 +57,13 @@ export default function IsOwnedCheckbox({ballInfo, id, handleEditBallInfo, pokeN
     const isOwned = ballInfo[ball].isOwned 
     const hasHiddenAbility = ballInfo[ball].isHA !== undefined 
     // const haActive = hasHiddenAbility && 
-    const hasEggMoves = ballInfo[ball].emCount !== undefined
+    const hasEggMoves = ballInfo[ball].emCount !== undefined || ballInfo[ball].eggMoveData !== undefined
     const noTopRowHAInd = isHomeCollection //home collections have egg moves disabled, which is the only reason HA would be moved to the top
     const handleHAChangeFunc = (e) => {
         handleEditBallInfo(e, 'isHA', pokeName, ball, collectionId, ownerId)
     }
-    const handleEMCountChangeFunc = (e) => {
-        handleEditBallInfo(e, 'emCount', pokeName, ball, collectionId, ownerId)
+    const handleEMCountChangeFunc = (e, emGen, currEmCount) => {
+        handleEditBallInfo(e, 'emCount', pokeName, ball, emGen, currEmCount)
     }
 
     const renderTagIndicator = (tagType) => {
@@ -97,7 +101,7 @@ export default function IsOwnedCheckbox({ballInfo, id, handleEditBallInfo, pokeN
                     <Typography sx={{position: 'absolute', color: 'white', opacity: ballInfo[ball].isHA ? 1 : 0.5, fontWeight: ballInfo[ball].isHA ? 700 : 400}}>HA</Typography> : 
                     renderHAIndicator('Top', isHomeCollection, ballInfo, ball, isEditMode, pokeName, collectionId, ownerId, disabled, handleEditBallInfo, styles))
                 } */}
-                {(hasHiddenAbility && !noTopRowHAInd) && 
+                {(hasHiddenAbility) && 
                     <HAIndicator 
                         textOnly={isTradePage}
                         topPosition={true}
@@ -113,7 +117,7 @@ export default function IsOwnedCheckbox({ballInfo, id, handleEditBallInfo, pokeN
                     checked={ballInfo[ball].isOwned} 
                     sx={{color: 'white', '&.Mui-disabled': {color: 'white', '&.Mui-checked': {color: '#1976d2'}}, position: 'absolute', right: 'calc(50% - 21px)'}} 
                     disabled={disabled}
-                    onClick={isEditMode ? ((e) => handleEditBallInfo(e, 'isOwned', pokeName, ball, collectionId, ownerId)) : undefined}
+                    onClick={isEditMode ? ((e) => handleEditBallInfo(e, 'isOwned', pokeName, ball, collectionId, ownerId, ballInfo[ball].pending ? 'pending' : ballInfo[ball].highlyWanted ? 'highlyWanted' : undefined)) : undefined}
                 />
                
                 
@@ -123,7 +127,7 @@ export default function IsOwnedCheckbox({ballInfo, id, handleEditBallInfo, pokeN
                 {isOwned && 
                     <>
                         {hasHiddenAbility &&
-                        <Box sx={{position: 'relative', width: (isHomeCollection || !hasEggMoves) ? '100%' : '40%', left: (isHomeCollection || !hasEggMoves) ? 0 : '2px', '@media only screen and (max-width: 1200px)': {width: (isHomeCollection || !hasEggMoves) ? '100%' : '0%', left: 0}}}>
+                        <Box sx={{position: 'relative', width: (!hasEggMoves) ? '100%' : '40%', left: (!hasEggMoves) ? 0 : '2px', '@media only screen and (max-width: 1200px)': {width: (!hasEggMoves) ? '100%' : '0%', left: 0}}}>
                             {/* {ballInfo[ball].isHA !== undefined && (isTradePage ? 
                                 <Typography sx={{position: 'absolute', bottom: '0px', color: 'white', fontSize: '14px', width: '100%',  opacity: ballInfo[ball].isHA ? 1 : 0.5, fontWeight: ballInfo[ball].isHA ? 700 : 400}}>HA</Typography> : 
                                 renderHAIndicator('', isHomeCollection, ballInfo, ball, isEditMode, pokeName, collectionId, ownerId, disabled, handleEditBallInfo, styles))
@@ -134,7 +138,6 @@ export default function IsOwnedCheckbox({ballInfo, id, handleEditBallInfo, pokeN
                                 isEditMode={isEditMode}
                                 isHAActive={ballInfo[ball].isHA}
                                 handleChange={handleHAChangeFunc}
-                                noTopRow={noTopRowHAInd}
                             />
                         </Box>
                         }
@@ -142,17 +145,31 @@ export default function IsOwnedCheckbox({ballInfo, id, handleEditBallInfo, pokeN
                             <Box sx={{position: 'relative', width: '20%', '@media only screen and (max-width: 1200px)': {width: '0%'}}}></Box>
                         }
                         {hasEggMoves && 
-                        <Box sx={{position: 'relative', width: (isHomeCollection) ? '0%' : !hasHiddenAbility ? '100%' : '40%', right: (isHomeCollection || !hasHiddenAbility) ? 0 : '2px', '@media only screen and (max-width: 1200px)': {width: (isHomeCollection) ? '0%' : '100%', right: 0}}}>
+                        <Box sx={{position: 'relative', width: !hasHiddenAbility ? '80%' : '40%', right: (!hasHiddenAbility) ? isHomeCollection ? '-4px' : 0 : '2px', '@media only screen and (max-width: 1200px)': {width: '100%', right: 0}}}>
                             {/* {ballInfo[ball].emCount !== undefined && (isTradePage ? <Typography sx={{position: 'absolute', bottom: '0px', color: 'white', fontSize: '14px', opacity: ballInfo[ball].emCount === 0 ? 0.5 : 1, fontWeight: ballInfo[ball].emCount === 0 ? 400 : 700}}>{ballInfo[ball].emCount}EM</Typography> :
                                 renderEMIndicator(ballInfo, ball, isEditMode, pokeName, collectionId, ownerId, disabled, handleEditBallInfo, styles))} */}
-                            
+                            {isHomeCollection ? 
+                            <HomeEMIndicatorController 
+                                textOnly={isTradePage}
+                                isEditMode={isEditMode}
+                                emCount={ballInfo[ball].emCount}
+                                EMs={ballInfo[ball].EMs}
+                                eggMoveData={ballInfo[ball].eggMoveData}
+                                handleChange={handleEMCountChangeFunc}
+                                availableGames={pAvailableGames}
+                                isHomeCollection={isHomeCollection}
+                            /> : 
                             <EMIndicator 
                                 textOnly={isTradePage}
                                 isEditMode={isEditMode}
                                 emCount={ballInfo[ball].emCount}
                                 EMs={ballInfo[ball].EMs}
+                                eggMoveData={ballInfo[ball].eggMoveData}
                                 handleChange={handleEMCountChangeFunc}
+                                availableGames={pAvailableGames}
+                                isHomeCollection={isHomeCollection}
                             />
+                            }
                         </Box>
                         }
                     </>

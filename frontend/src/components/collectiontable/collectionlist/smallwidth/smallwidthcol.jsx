@@ -12,7 +12,7 @@ import { Virtuoso } from 'react-virtuoso'
 import getTableVirtuosoComponents from '../virtuosotablecomponents/getvirtuosotablecomponents'
 import { capitalizeFirstLetter } from '../../../../../utils/functions/misc'
 
-export default function SmallWidthColList({collection, isCollectionOwner, demo, styles, isEditMode, localDisplayState=undefined, height=800, noStates=false, isTradePage=false, tradeSide=null, wantedByOtherListData=[], userData}) {
+export default function SmallWidthColList({collectionLoader, currCollectionGen, ballScopeInit, isCollectionOwner, demo, styles, isEditMode, localDisplayState=undefined, height=800, noStates=false, isTradePage=false, tradeSide=null, wantedByOtherListData=[], userData}) {
     const theme = useTheme()
     const dispatch = useDispatch()
     const ballScopeState = !noStates && useSelector((state) => state.collectionState.options.collectingBalls)
@@ -22,8 +22,10 @@ export default function SmallWidthColList({collection, isCollectionOwner, demo, 
     const link = useLocation().pathname
 
     //apparently, on first render, this component loads faster than the initial state can initialize, meaning we have the one line below.
-    const ballScopeDisplay = (ballScopeState === undefined || (!isEditMode)) ? collection.options.collectingBalls : ballScopeState
+    const ballScopeDisplay = (ballScopeState.length === 0) ? ballScopeInit : ballScopeState
     const listDisplay = (localDisplayState !== undefined) ? localDisplayState : listState
+
+    
 
     // console.log(listDisplay)
 
@@ -31,17 +33,19 @@ export default function SmallWidthColList({collection, isCollectionOwner, demo, 
     const scrollPosition = useRef()
 
     useLayoutEffect(() => {
-        const sameIDBetweenRefs = collection._id === previousColId
-        if (previousScrollPosition && sameIDBetweenRefs) {
+        const sameIDBetweenRefs = collectionLoader._id === previousColId
+        if (previousScrollPosition && sameIDBetweenRefs && scrollRef.current !== null) {
             setTimeout(() => {
-              scrollRef.current.scrollTo({top: previousScrollPosition})  
+                if (scrollRef.current !== null) {
+                    scrollRef.current.scrollTo({top: previousScrollPosition})  
+                }
             }, 1000)  
         }
     }, [link])
 
     useEffect(() => {
         return () => {
-            dispatch(setScrollPosition({scrollPos: scrollPosition.current, latestColId: collection._id}))
+            dispatch(setScrollPosition({scrollPos: scrollPosition.current, latestColId: collectionLoader._id}))
         }
     })
 
@@ -136,11 +140,11 @@ export default function SmallWidthColList({collection, isCollectionOwner, demo, 
                 demo={demo}
                 isCollectionOwner={isCollectionOwner}
                 ballScopeDisplay={ballScopeDisplay}
-                collectionId={collection._id}
-                ownerId={demo ? '000000' : collection.owner._id}
+                collectionId={collectionLoader._id}
+                ownerId={demo ? '000000' : collectionLoader.owner._id}
                 isEditMode={isEditMode}
-                isHomeCollection={collection.gen === 'home'}
-                availableGames={collection.availableGamesInfo !== undefined && collection.availableGamesInfo}
+                isHomeCollection={currCollectionGen === 'home'}
+                availableGames={collectionLoader.availableGamesInfo !== undefined && collectionLoader.availableGamesInfo}
                 noStates={noStates}
                 isTradePage={isTradePage}
                 tradeSide={tradeSide}
@@ -148,6 +152,7 @@ export default function SmallWidthColList({collection, isCollectionOwner, demo, 
                 userData={userData}
                 row1Balls={tableColumns1.map(tC => tC.dataKey)}
                 row2Balls={tableColumns2.map(tC => tC.dataKey)}
+                currColGen={currCollectionGen}
             />
         )
     }
