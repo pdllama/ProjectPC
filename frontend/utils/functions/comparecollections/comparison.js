@@ -12,14 +12,21 @@ const comparisonPokemonFormat = (ball, isOnhand, ballData, pokemon, eggMoveData,
     const wanted = highlyWanted ? {wanted: true} : {}
     const onhandId = isOnhand ? {onhandId: pokemon._id} : {}
     if (homeCol && !emGenOverride && Object.keys(emData).length !== 0) {
-        Object.keys(emData.eggMoveData).forEach(emGen => {
-            const d = emData.eggMoveData[emGen]
-            
+        const extensibleEmData = JSON.parse(JSON.stringify(emData))
+        Object.keys(extensibleEmData.eggMoveData).forEach(emGen => {
+            const d = extensibleEmData.eggMoveData[emGen]
             //since this actually mutates the eggMoveData object in the collection, there may already be a value there if the user does another comparison, which brings up an error.
-            if (emData.eggMoveData[emGen].isMaxEMs === undefined) {
-                emData.eggMoveData[emGen].isMaxEMs = d.emCount === 4 || (eggMoveData[pokemon.name] === undefined ? false : eggMoveData[pokemon.name].length === d.emCount)
+            if (d.isMaxEMs === undefined) {
+                d.isMaxEMs = d.emCount === 4 || (eggMoveData[pokemon.name] === undefined ? false : eggMoveData[pokemon.name].length === d.emCount)
             }
         })
+        return {
+            ball,
+            ...isHAData,
+            ...emData,
+            ...onhandId,
+            ...wanted
+        }
     }
     return {
         ball,
