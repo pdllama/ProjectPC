@@ -77,8 +77,9 @@ const app = express();
 
 //middleware
 app.use(session(sessionConfig))
-app.use(cors({ credentials: true, origin: true })) //cors has been causing so many issues and its so annoying, so im setting origin to any. 
+app.use(cors()) //cors has been causing so many issues and its so annoying, so im setting origin to any. 
 //i would prefer to only have frontend be allowed to make requests like ive been having, but its too much of a headache and the issue only rears when shipping updates (in prod)
+//EDIT: im just removing all things for now
 
 // app.use(nocache())
 app.use(express.json({ limit: '750kb' }))
