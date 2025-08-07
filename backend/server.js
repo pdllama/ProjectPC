@@ -78,7 +78,7 @@ const app = express();
 
 //middleware
 app.use(session(sessionConfig))
-app.use(cors({credentials: true, origin: true})) //setting it to true for now
+app.use(cors({credentials: true, origin: frontendUrl})) //setting it to true for now
 
 // app.use(nocache())
 app.use(express.json({ limit: '750kb' }))
@@ -184,6 +184,11 @@ app.use((err, req, res, next) => {
     const {statusCode = 500} = err;
     if (!err.message) err.message = "Oh no, something went wrong!"
     res.status(statusCode).send(err)
+})
+
+app.use((req, res, next) => {
+    console.log('ORIGIN:', req.headers.origin);
+    next()
 })
 
 // port/server
