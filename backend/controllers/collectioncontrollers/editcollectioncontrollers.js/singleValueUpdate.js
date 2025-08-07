@@ -4,7 +4,7 @@ import { homeGenNumConversion } from '../../../common/infoconstants/miscconstant
 import { onhandSingleValueUpdates } from './functions/changessetconstructor.js'
 import { getCollectionProgressPercent } from '../../../models/postpremiddleware.js'
 import { checkBadgeMilestone } from '../../../models/postpremiddleware.js'
-import { sortOnHandList } from '../../../../frontend/common/sortingfunctions/onhandsorting.mjs'
+import { sortOnHandList } from '../../../common/sortingfunctions/onhandsorting.mjs'
 import { getImgLink } from '../../../utils/schemavirtuals/collectionvirtuals.js'
 
 export default async function updateCollectionSingleValue(req, res) { 
